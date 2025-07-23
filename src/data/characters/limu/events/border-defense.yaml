@@ -1,0 +1,85 @@
+id: "limu_border_defense"
+title: "边境告急"
+description: "李牧将军匆忙入宫觐见，神色凝重"
+speaker: "李牧"
+dialogue: "陛下，边境敌军来犯，末将请求增派援军！"
+
+# 身份线索
+characterClues:
+  revealedTraits:
+    - "军事才能"
+    - "忠诚"
+  personalityHints:
+    - "李牧说话直爽，不拐弯抹角"
+    - "他的手上有明显的刀剑痕迹"
+  backgroundHints:
+    - "李牧对边境情况了如指掌"
+    - "士兵们对他很尊敬"
+
+# 事件激活条件
+activationConditions:
+  minReignYears: 1
+  maxReignYears: 20
+  attributeRequirements:
+    minMilitary: 20
+
+# 事件触发条件
+triggerConditions:
+  minMilitary: 30
+
+# 卡池权重
+weight: 7
+
+# 玩家选项
+choices:
+  - id: "send_reinforcements"
+    text: "立即派遣援军"
+    effects:
+      military: 10
+      treasury: -15
+      authority: 5
+    consequences: "你迅速调动军队支援边境，李牧眼中闪过感激之色，军心大振"
+    characterEffects:
+      - characterId: "limu"
+        relationshipChanges:
+          trust: 15
+          respect: 10
+        attributeChanges:
+          loyalty: 5
+    characterClues:
+      - "李牧指挥有方，深得士兵爱戴"
+    
+  - id: "strategic_retreat"
+    text: "战略性撤退，保存实力"
+    effects:
+      military: -5
+      treasury: 5
+      authority: -3
+    consequences: "你选择了保守策略，虽然减少了损失，但李牧显得有些失望"
+    characterEffects:
+      - characterId: "limu"
+        relationshipChanges:
+          trust: -5
+          respect: -3
+    characterClues:
+      - "李牧似乎更倾向于主动出击"
+    
+  - id: "diplomatic_solution"
+    text: "尝试外交解决"
+    effects:
+      military: 2
+      authority: 3
+      popularity: 5
+    consequences: "你决定先尝试外交途径，李牧虽有疑虑但还是遵命执行"
+    characterEffects:
+      - characterId: "limu"
+        relationshipChanges:
+          trust: 2
+        attributeChanges:
+          competence: -2
+    characterClues:
+      - "李牧对外交手段不太熟悉，更相信武力"
+
+# 移除条件
+removalConditions:
+  maxMilitary: 20

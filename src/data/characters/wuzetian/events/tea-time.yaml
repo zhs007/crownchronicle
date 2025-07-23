@@ -1,0 +1,45 @@
+id: "wuzetian_morning_tea"
+title: "母后茶话"
+description: "母后邀请你到她的宫中品茶聊天"
+speaker: "母后"
+dialogue: "皇儿，来母后这里喝杯茶，聊聊朝政如何？"
+
+# 身份线索
+characterClues:
+  revealedTraits:
+    - "关怀"
+    - "政治敏感"
+  personalityHints:
+    - "母后对朝政很关心"
+    - "她喜欢与你交流政务"
+
+# 无激活条件
+# activationConditions: 
+
+# 卡池权重
+weight: 8
+
+# 玩家选项
+choices:
+  - id: "accept_invitation"
+    text: "朕很乐意与母后聊天"
+    effects:
+      health: 5
+      authority: 2
+    consequences: "你接受了母后的邀请，在温馨的氛围中交流了朝政心得"
+    characterEffects:
+      - characterId: "wuzetian"
+        relationshipChanges:
+          affection: 8
+          trust: 5
+    
+  - id: "polite_decline"
+    text: "朕公务繁忙，改日再聊"
+    effects:
+      authority: 1
+    consequences: "你礼貌地拒绝了，母后表示理解但眼中闪过一丝失望"
+    characterEffects:
+      - characterId: "wuzetian"
+        relationshipChanges:
+          affection: -3
+          respect: 2

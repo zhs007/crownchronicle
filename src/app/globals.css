@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'PingFang SC', 'Microsoft YaHei', 'SimHei', 'Arial', sans-serif;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-imperial-600 hover:bg-imperial-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+  }
+  
+  .btn-secondary {
+    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+  }
+  
+  .card {
+    @apply bg-white rounded-lg shadow-md p-6 border border-gray-200;
+  }
+  
+  .card-imperial {
+    @apply bg-gradient-to-br from-imperial-50 to-imperial-100 border-imperial-200 shadow-lg;
+  }
+  
+  .text-imperial {
+    @apply text-imperial-700;
+  }
+  
+  .progress-bar {
+    @apply w-full bg-gray-200 rounded-full h-2.5;
+  }
+  
+  .progress-fill {
+    @apply h-2.5 rounded-full transition-all duration-300;
+  }
+}

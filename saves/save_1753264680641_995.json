@@ -1,0 +1,1132 @@
+{
+  "saveId": "save_1753264680641_995",
+  "saveName": "002",
+  "createdAt": "2025-07-23T09:58:00.641Z",
+  "lastSavedAt": "2025-07-23T10:04:24.066Z",
+  "gameState": {
+    "emperor": {
+      "health": 55,
+      "authority": 57,
+      "treasury": 42,
+      "military": 59,
+      "popularity": 51,
+      "age": 29,
+      "reignYears": 5
+    },
+    "activeCharacters": [
+      {
+        "id": "huoguang",
+        "name": "霍光",
+        "displayName": "大将军",
+        "currentTitle": "大将军",
+        "role": "大将军",
+        "description": "一位老成持重的将军，虽已年迈但威风犹存，对皇室忠心耿耿",
+        "identityRevealed": false,
+        "attributes": {
+          "power": 80,
+          "loyalty": 90,
+          "ambition": 30,
+          "competence": 85,
+          "reputation": 95,
+          "health": 65,
+          "age": 55
+        },
+        "relationshipWithEmperor": {
+          "affection": 70,
+          "trust": 83,
+          "fear": 10,
+          "respect": 95,
+          "dependency": 80,
+          "threat": 20
+        },
+        "relationshipNetwork": [
+          {
+            "targetCharacterId": "wuzetian",
+            "relationType": "enemy",
+            "relationshipStrength": -60,
+            "secretLevel": 30,
+            "historicalBasis": "政治理念冲突，权力争夺"
+          }
+        ],
+        "factionInfo": {
+          "primaryFaction": "传统官僚集团",
+          "secondaryFactions": [
+            "皇室派系",
+            "保守派"
+          ],
+          "factionLoyalty": 85,
+          "leadershipRole": "leader"
+        },
+        "influence": {
+          "health": 1.1,
+          "authority": 1.4,
+          "treasury": 1,
+          "military": 1.5,
+          "popularity": 1.2
+        },
+        "revealedTraits": [],
+        "hiddenTraits": [
+          "忠诚",
+          "军政",
+          "威望",
+          "保守",
+          "固执"
+        ],
+        "discoveredClues": [],
+        "totalClues": 5,
+        "statusFlags": {
+          "alive": true,
+          "inCourt": true,
+          "inExile": false,
+          "imprisoned": false,
+          "promoted": false,
+          "demoted": false,
+          "suspicious": false,
+          "plotting": false
+        },
+        "eventIds": [
+          "huoguang_court_report",
+          "huoguang_military_advice"
+        ]
+      },
+      {
+        "id": "limu",
+        "name": "李牧",
+        "displayName": "将军",
+        "currentTitle": "将军",
+        "role": "将军",
+        "description": "一位英勇的年轻将军，身材魁梧，眼神坚毅，对皇帝忠心不二",
+        "identityRevealed": false,
+        "attributes": {
+          "power": 75,
+          "loyalty": 85,
+          "ambition": 50,
+          "competence": 70,
+          "reputation": 60,
+          "health": 90,
+          "age": 30
+        },
+        "relationshipWithEmperor": {
+          "affection": 65,
+          "trust": 78,
+          "fear": 5,
+          "respect": 80,
+          "dependency": 60,
+          "threat": 15
+        },
+        "relationshipNetwork": [
+          {
+            "targetCharacterId": "huoguang",
+            "relationType": "ally",
+            "relationshipStrength": 40,
+            "secretLevel": 20,
+            "historicalBasis": "同朝为官，互相尊重"
+          },
+          {
+            "targetCharacterId": "wuzetian",
+            "relationType": "neutral",
+            "relationshipStrength": 10,
+            "secretLevel": 30,
+            "historicalBasis": "保持距离，不愿卷入宫廷斗争"
+          }
+        ],
+        "factionInfo": {
+          "primaryFaction": "军事集团",
+          "secondaryFactions": [
+            "传统保守派"
+          ],
+          "factionLoyalty": 70,
+          "leadershipRole": "core"
+        },
+        "influence": {
+          "health": 35,
+          "authority": 40,
+          "treasury": 20,
+          "military": 85,
+          "popularity": 30
+        },
+        "revealedTraits": [],
+        "hiddenTraits": [
+          "勇武",
+          "忠诚",
+          "谨慎",
+          "有野心但克制",
+          "对政治不太敏感"
+        ],
+        "discoveredClues": [],
+        "totalClues": 5,
+        "statusFlags": {
+          "alive": true,
+          "inCourt": true,
+          "inExile": false,
+          "imprisoned": false,
+          "promoted": false,
+          "demoted": false,
+          "suspicious": false,
+          "plotting": false
+        },
+        "eventIds": [
+          "limu_border_defense",
+          "limu_simple_greeting",
+          "limu_training"
+        ]
+      },
+      {
+        "id": "wuzetian",
+        "name": "武则天",
+        "displayName": "母后",
+        "currentTitle": "母后",
+        "role": "母后",
+        "description": "一位威严的女性长者，眼神锐利，举止间透露着不凡的气度",
+        "identityRevealed": false,
+        "attributes": {
+          "power": 85,
+          "loyalty": 60,
+          "ambition": 95,
+          "competence": 90,
+          "reputation": 75,
+          "health": 70,
+          "age": 45
+        },
+        "relationshipWithEmperor": {
+          "affection": 48,
+          "trust": 35,
+          "fear": 20,
+          "respect": 60,
+          "dependency": 70,
+          "threat": 40
+        },
+        "relationshipNetwork": [
+          {
+            "targetCharacterId": "huoguang",
+            "relationType": "enemy",
+            "relationshipStrength": -60,
+            "secretLevel": 30,
+            "historicalBasis": "政治理念冲突，权力争夺"
+          },
+          {
+            "targetCharacterId": "weizhongxian",
+            "relationType": "ally",
+            "relationshipStrength": 40,
+            "secretLevel": 70,
+            "historicalBasis": "同为非传统权力集团，相互支持"
+          }
+        ],
+        "factionInfo": {
+          "primaryFaction": "女性政治集团",
+          "secondaryFactions": [
+            "皇室派系",
+            "宫廷保守派"
+          ],
+          "factionLoyalty": 80,
+          "leadershipRole": "leader"
+        },
+        "influence": {
+          "health": 0.8,
+          "authority": 1.3,
+          "treasury": 1.1,
+          "military": 0.9,
+          "popularity": 0.7
+        },
+        "revealedTraits": [],
+        "hiddenTraits": [
+          "权谋",
+          "强势",
+          "智慧",
+          "雄心",
+          "冷酷"
+        ],
+        "discoveredClues": [],
+        "totalClues": 5,
+        "statusFlags": {
+          "alive": true,
+          "inCourt": true,
+          "inExile": false,
+          "imprisoned": false,
+          "promoted": false,
+          "demoted": false,
+          "suspicious": false,
+          "plotting": false
+        },
+        "eventIds": [
+          "wuzetian_power_struggle",
+          "wuzetian_morning_tea"
+        ]
+      }
+    ],
+    "cardPools": {
+      "pending": [],
+      "active": [],
+      "discarded": [
+        {
+          "id": "limu_border_defense",
+          "characterId": "limu",
+          "title": "边境告急",
+          "description": "李牧将军匆忙入宫觐见，神色凝重",
+          "speaker": "李牧",
+          "dialogue": "陛下，边境敌军来犯，末将请求增派援军！",
+          "choices": [
+            {
+              "id": "send_reinforcements",
+              "text": "立即派遣援军",
+              "effects": {
+                "military": 10,
+                "treasury": -15,
+                "authority": 5
+              },
+              "consequences": "你迅速调动军队支援边境，李牧眼中闪过感激之色，军心大振",
+              "characterEffects": [
+                {
+                  "characterId": "limu",
+                  "relationshipChanges": {
+                    "trust": 15,
+                    "respect": 10
+                  },
+                  "attributeChanges": {
+                    "loyalty": 5
+                  }
+                }
+              ],
+              "interCharacterEffects": [],
+              "factionEffects": [],
+              "characterClues": [
+                "李牧指挥有方，深得士兵爱戴"
+              ],
+              "nextEvents": []
+            },
+            {
+              "id": "strategic_retreat",
+              "text": "战略性撤退，保存实力",
+              "effects": {
+                "military": -5,
+                "treasury": 5,
+                "authority": -3
+              },
+              "consequences": "你选择了保守策略，虽然减少了损失，但李牧显得有些失望",
+              "characterEffects": [
+                {
+                  "characterId": "limu",
+                  "relationshipChanges": {
+                    "trust": -5,
+                    "respect": -3
+                  }
+                }
+              ],
+              "interCharacterEffects": [],
+              "factionEffects": [],
+              "characterClues": [
+                "李牧似乎更倾向于主动出击"
+              ],
+              "nextEvents": []
+            },
+            {
+              "id": "diplomatic_solution",
+              "text": "尝试外交解决",
+              "effects": {
+                "military": 2,
+                "authority": 3,
+                "popularity": 5
+              },
+              "consequences": "你决定先尝试外交途径，李牧虽有疑虑但还是遵命执行",
+              "characterEffects": [
+                {
+                  "characterId": "limu",
+                  "relationshipChanges": {
+                    "trust": 2
+                  },
+                  "attributeChanges": {
+                    "competence": -2
+                  }
+                }
+              ],
+              "interCharacterEffects": [],
+              "factionEffects": [],
+              "characterClues": [
+                "李牧对外交手段不太熟悉，更相信武力"
+              ],
+              "nextEvents": []
+            }
+          ],
+          "activationConditions": {
+            "minReignYears": 1,
+            "maxReignYears": 20,
+            "attributeRequirements": {
+              "minMilitary": 20
+            }
+          },
+          "removalConditions": {
+            "maxMilitary": 20
+          },
+          "triggerConditions": {
+            "minMilitary": 30
+          },
+          "weight": 7,
+          "characterClues": {
+            "revealedTraits": [
+              "军事才能",
+              "忠诚"
+            ],
+            "personalityHints": [
+              "李牧说话直爽，不拐弯抹角",
+              "他的手上有明显的刀剑痕迹"
+            ],
+            "backgroundHints": [
+              "李牧对边境情况了如指掌",
+              "士兵们对他很尊敬"
+            ]
+          }
+        },
+        {
+          "id": "limu_training",
+          "characterId": "limu",
+          "title": "军队训练",
+          "description": "李牧将军向你汇报军队训练情况",
+          "speaker": "李牧",
+          "dialogue": "陛下，新兵训练进展顺利，但军费开支颇大，不知...",
+          "choices": [
+            {
+              "id": "increase_funding",
+              "text": "增加军费预算",
+              "effects": {
+                "military": 8,
+                "treasury": -10,
+                "authority": 3
+              },
+              "consequences": "你慷慨地增加了军费，李牧深表感激，军队战斗力显著提升",
+              "characterEffects": [
+                {
+                  "characterId": "limu",
+                  "relationshipChanges": {
+                    "affection": 10,
+                    "trust": 8
+                  },
+                  "attributeChanges": {
+                    "loyalty": 5,
+                    "competence": 3
+                  }
+                }
+              ],
+              "interCharacterEffects": [],
+              "factionEffects": [],
+              "characterClues": [
+                "李牧很会管理军队，资金利用效率很高"
+              ],
+              "nextEvents": []
+            },
+            {
+              "id": "maintain_budget",
+              "text": "维持现有预算",
+              "effects": {
+                "military": 2,
+                "treasury": 0,
+                "authority": 1
+              },
+              "consequences": "你选择了稳妥的做法，李牧表示理解并会合理安排",
+              "characterEffects": [
+                {
+                  "characterId": "limu",
+                  "relationshipChanges": {
+                    "respect": 3
+                  }
+                }
+              ],
+              "interCharacterEffects": [],
+              "factionEffects": [],
+              "characterClues": [
+                "李牧很能理解朝廷的难处"
+              ],
+              "nextEvents": []
+            },
+            {
+              "id": "cut_expenses",
+              "text": "削减军费开支",
+              "effects": {
+                "military": -5,
+                "treasury": 8,
+                "authority": -2
+              },
+              "consequences": "你要求节约开支，李牧虽有不满但还是遵命执行",
+              "characterEffects": [
+                {
+                  "characterId": "limu",
+                  "relationshipChanges": {
+                    "affection": -5,
+                    "trust": -3
+                  },
+                  "attributeChanges": {
+                    "loyalty": -2
+                  }
+                }
+              ],
+              "interCharacterEffects": [],
+              "factionEffects": [],
+              "characterClues": [
+                "李牧对削减军费很不满，但仍然忠诚"
+              ],
+              "nextEvents": []
+            }
+          ],
+          "activationConditions": {
+            "minReignYears": 2,
+            "maxReignYears": 15,
+            "attributeRequirements": {
+              "minMilitary": 40
+            }
+          },
+          "removalConditions": {
+            "maxMilitary": 30
+          },
+          "weight": 6,
+          "characterClues": {
+            "revealedTraits": [
+              "务实",
+              "节俭"
+            ],
+            "personalityHints": [
+              "李牧对军费管理很谨慎",
+              "他关心普通士兵的生活"
+            ],
+            "backgroundHints": [
+              "李牧亲自参与训练，深受士兵爱戴"
+            ]
+          }
+        },
+        {
+          "id": "limu_simple_greeting",
+          "characterId": "limu",
+          "title": "晨间请安",
+          "description": "李牧将军来到朝堂向你请安",
+          "speaker": "李牧",
+          "dialogue": "陛下，末将前来请安，愿陛下龙体安康！",
+          "choices": [
+            {
+              "id": "greet_warmly",
+              "text": "朕很高兴见到将军",
+              "effects": {
+                "authority": 2,
+                "popularity": 1
+              },
+              "consequences": "你热情地回应了李牧的问候，他看起来很开心",
+              "characterEffects": [
+                {
+                  "characterId": "limu",
+                  "relationshipChanges": {
+                    "affection": 5,
+                    "trust": 3
+                  }
+                }
+              ],
+              "interCharacterEffects": [],
+              "factionEffects": [],
+              "characterClues": [],
+              "nextEvents": []
+            },
+            {
+              "id": "greet_formally",
+              "text": "将军免礼平身",
+              "effects": {
+                "authority": 1
+              },
+              "consequences": "你正式地回应了李牧，他恭敬地行礼",
+              "characterEffects": [
+                {
+                  "characterId": "limu",
+                  "relationshipChanges": {
+                    "respect": 3
+                  }
+                }
+              ],
+              "interCharacterEffects": [],
+              "factionEffects": [],
+              "characterClues": [],
+              "nextEvents": []
+            },
+            {
+              "id": "dismiss_quickly",
+              "text": "朕知道了，将军请退下",
+              "effects": {
+                "authority": -1
+              },
+              "consequences": "你简单地回应后示意李牧退下，他显得有些失望",
+              "characterEffects": [
+                {
+                  "characterId": "limu",
+                  "relationshipChanges": {
+                    "affection": -2
+                  }
+                }
+              ],
+              "interCharacterEffects": [],
+              "factionEffects": [],
+              "characterClues": [],
+              "nextEvents": []
+            }
+          ],
+          "weight": 10,
+          "characterClues": {
+            "revealedTraits": [
+              "礼貌",
+              "忠诚"
+            ],
+            "personalityHints": [
+              "李牧很注重礼节",
+              "他对皇帝很恭敬"
+            ]
+          }
+        },
+        {
+          "id": "huoguang_court_report",
+          "characterId": "huoguang",
+          "title": "朝政汇报",
+          "description": "霍光大将军前来汇报朝政近况",
+          "speaker": "霍光",
+          "dialogue": "陛下，臣来向您汇报近日朝政情况，一切都在有序进行中。",
+          "choices": [
+            {
+              "id": "listen_carefully",
+              "text": "朕仔细听取汇报",
+              "effects": {
+                "authority": 3,
+                "treasury": 2
+              },
+              "consequences": "你认真听取了霍光的汇报，对朝政有了更清晰的了解",
+              "characterEffects": [
+                {
+                  "characterId": "huoguang",
+                  "relationshipChanges": {
+                    "trust": 5,
+                    "respect": 3
+                  }
+                }
+              ],
+              "interCharacterEffects": [],
+              "factionEffects": [],
+              "characterClues": [],
+              "nextEvents": []
+            },
+            {
+              "id": "ask_questions",
+              "text": "朕有几个问题要问",
+              "effects": {
+                "authority": 2,
+                "military": 1
+              },
+              "consequences": "你提出了一些问题，霍光详细地为你解答",
+              "characterEffects": [
+                {
+                  "characterId": "huoguang",
+                  "relationshipChanges": {
+                    "trust": 3,
+                    "respect": 5
+                  }
+                }
+              ],
+              "interCharacterEffects": [],
+              "factionEffects": [],
+              "characterClues": [],
+              "nextEvents": []
+            },
+            {
+              "id": "express_satisfaction",
+              "text": "霍将军辛苦了，朕很满意",
+              "effects": {
+                "authority": 1,
+                "popularity": 2
+              },
+              "consequences": "你表达了对霍光工作的满意，他显得很高兴",
+              "characterEffects": [
+                {
+                  "characterId": "huoguang",
+                  "relationshipChanges": {
+                    "affection": 6,
+                    "trust": 2
+                  }
+                }
+              ],
+              "interCharacterEffects": [],
+              "factionEffects": [],
+              "characterClues": [],
+              "nextEvents": []
+            }
+          ],
+          "weight": 9,
+          "characterClues": {
+            "revealedTraits": [
+              "尽职",
+              "可靠"
+            ],
+            "personalityHints": [
+              "霍光对朝政非常尽心",
+              "他很有条理地处理事务"
+            ]
+          }
+        },
+        {
+          "id": "huoguang_military_advice",
+          "characterId": "huoguang",
+          "title": "军政建议",
+          "description": "大将军向你汇报边境情况，并提出重要建议",
+          "speaker": "大将军",
+          "dialogue": "皇上，边境有异动，臣以为应当加强防备，以免贼寇趁虚而入。",
+          "choices": [
+            {
+              "id": "accept_advice",
+              "text": "爱卿所言极是，即刻加强边防",
+              "effects": {
+                "military": 8,
+                "treasury": -5,
+                "authority": 3
+              },
+              "consequences": "大将军满意地点头，立即着手安排边防事务。",
+              "characterEffects": [],
+              "interCharacterEffects": [],
+              "factionEffects": [],
+              "characterClues": [
+                "大将军执行命令时展现出卓越的组织能力"
+              ],
+              "nextEvents": []
+            },
+            {
+              "id": "dismiss_concern",
+              "text": "边境向来安稳，无需过虑",
+              "effects": {
+                "military": -3,
+                "popularity": 2,
+                "treasury": 3
+              },
+              "consequences": "大将军面露忧色，但还是遵从了你的决定。",
+              "characterEffects": [],
+              "interCharacterEffects": [],
+              "factionEffects": [],
+              "characterClues": [
+                "尽管不同意，大将军仍然表现出了军人的服从"
+              ],
+              "nextEvents": []
+            },
+            {
+              "id": "partial_measures",
+              "text": "适当加强即可，不必大动干戈",
+              "effects": {
+                "military": 3,
+                "treasury": -2,
+                "authority": 1
+              },
+              "consequences": "大将军认为这是个不错的折中方案。",
+              "characterEffects": [],
+              "interCharacterEffects": [],
+              "factionEffects": [],
+              "characterClues": [
+                "大将军善于接受合理的建议"
+              ],
+              "nextEvents": []
+            }
+          ],
+          "activationConditions": {
+            "minReignYears": 1,
+            "minAge": 18,
+            "attributeRequirements": {
+              "minMilitary": 30
+            }
+          },
+          "triggerConditions": {
+            "minAuthority": 20
+          },
+          "weight": 6,
+          "characterClues": {
+            "revealedTraits": [
+              "忠诚",
+              "军政"
+            ],
+            "personalityHints": [
+              "大将军对军事形势的分析极为准确",
+              "他的建议总是从国家大局考虑"
+            ],
+            "backgroundHints": [
+              "你感觉到他身上那种久经沙场的气质"
+            ]
+          }
+        },
+        {
+          "id": "wuzetian_morning_tea",
+          "characterId": "wuzetian",
+          "title": "母后茶话",
+          "description": "母后邀请你到她的宫中品茶聊天",
+          "speaker": "母后",
+          "dialogue": "皇儿，来母后这里喝杯茶，聊聊朝政如何？",
+          "choices": [
+            {
+              "id": "accept_invitation",
+              "text": "朕很乐意与母后聊天",
+              "effects": {
+                "health": 5,
+                "authority": 2
+              },
+              "consequences": "你接受了母后的邀请，在温馨的氛围中交流了朝政心得",
+              "characterEffects": [
+                {
+                  "characterId": "wuzetian",
+                  "relationshipChanges": {
+                    "affection": 8,
+                    "trust": 5
+                  }
+                }
+              ],
+              "interCharacterEffects": [],
+              "factionEffects": [],
+              "characterClues": [],
+              "nextEvents": []
+            },
+            {
+              "id": "polite_decline",
+              "text": "朕公务繁忙，改日再聊",
+              "effects": {
+                "authority": 1
+              },
+              "consequences": "你礼貌地拒绝了，母后表示理解但眼中闪过一丝失望",
+              "characterEffects": [
+                {
+                  "characterId": "wuzetian",
+                  "relationshipChanges": {
+                    "affection": -3,
+                    "respect": 2
+                  }
+                }
+              ],
+              "interCharacterEffects": [],
+              "factionEffects": [],
+              "characterClues": [],
+              "nextEvents": []
+            }
+          ],
+          "weight": 8,
+          "characterClues": {
+            "revealedTraits": [
+              "关怀",
+              "政治敏感"
+            ],
+            "personalityHints": [
+              "母后对朝政很关心",
+              "她喜欢与你交流政务"
+            ]
+          }
+        },
+        {
+          "id": "wuzetian_power_struggle",
+          "characterId": "wuzetian",
+          "title": "母后干政",
+          "description": "朝堂之上，母后公然质疑你的决策",
+          "speaker": "母后",
+          "dialogue": "皇上年幼，此等军国大事还需本宫来定夺才是。",
+          "choices": [
+            {
+              "id": "submit",
+              "text": "遵从母后教诲",
+              "effects": {
+                "authority": -8,
+                "popularity": 3,
+                "health": -2
+              },
+              "consequences": "你选择了退让，朝臣们窃窃私语，母后眼中闪过一丝满意...",
+              "characterEffects": [],
+              "interCharacterEffects": [],
+              "factionEffects": [],
+              "characterClues": [
+                "母后处理政务时显得游刃有余，仿佛久经此道"
+              ],
+              "nextEvents": []
+            },
+            {
+              "id": "resist",
+              "text": "朕意已决，不容更改",
+              "effects": {
+                "authority": 5,
+                "popularity": -5,
+                "health": -5
+              },
+              "consequences": "母后脸色铁青，朝堂气氛骤然紧张。你感受到了她眼中的寒意...",
+              "characterEffects": [],
+              "interCharacterEffects": [],
+              "factionEffects": [],
+              "characterClues": [
+                "母后的怒火让你想起了某些史书中的描述...",
+                "她控制情绪的方式显示出深厚的政治修养"
+              ],
+              "nextEvents": []
+            },
+            {
+              "id": "compromise",
+              "text": "容朕再思虑一番",
+              "effects": {
+                "authority": -2,
+                "treasury": -3
+              },
+              "consequences": "你巧妙地化解了当前的冲突，母后点头表示认可...",
+              "characterEffects": [],
+              "interCharacterEffects": [],
+              "factionEffects": [],
+              "characterClues": [
+                "母后似乎很欣赏你的政治智慧"
+              ],
+              "nextEvents": [],
+              "conditions": {
+                "minAuthority": 40
+              }
+            }
+          ],
+          "activationConditions": {
+            "minReignYears": 2,
+            "maxReignYears": 15,
+            "minAge": 20,
+            "maxAge": 50,
+            "attributeRequirements": {
+              "minAuthority": 20,
+              "maxAuthority": 70
+            }
+          },
+          "triggerConditions": {
+            "minAuthority": 30,
+            "maxAge": 35
+          },
+          "weight": 8,
+          "characterClues": {
+            "revealedTraits": [
+              "权谋",
+              "强势"
+            ],
+            "personalityHints": [
+              "母后似乎对朝政有着异乎寻常的熟悉",
+              "她的眼神中闪烁着政治家的精明"
+            ],
+            "backgroundHints": [
+              "你注意到大臣们对母后都颇为敬畏"
+            ]
+          }
+        }
+      ]
+    },
+    "gameHistory": [
+      {
+        "eventId": "limu_simple_greeting",
+        "eventTitle": "晨间请安",
+        "turn": 1,
+        "choiceId": "greet_warmly",
+        "chosenAction": "朕很高兴见到将军",
+        "effects": {
+          "authority": 2,
+          "popularity": 1
+        },
+        "consequences": "你热情地回应了李牧的问候，他看起来很开心",
+        "timestamp": 1753265027887,
+        "relationshipChanges": {
+          "limu": 5
+        },
+        "characterDiscoveries": [
+          "李牧很注重礼节",
+          "他对皇帝很恭敬"
+        ],
+        "importance": "normal"
+      },
+      {
+        "eventId": "huoguang_court_report",
+        "eventTitle": "朝政汇报",
+        "turn": 2,
+        "choiceId": "ask_questions",
+        "chosenAction": "朕有几个问题要问",
+        "effects": {
+          "authority": 2,
+          "military": 1
+        },
+        "consequences": "你提出了一些问题，霍光详细地为你解答",
+        "timestamp": 1753265043502,
+        "characterDiscoveries": [
+          "霍光对朝政非常尽心",
+          "他很有条理地处理事务"
+        ],
+        "importance": "normal"
+      },
+      {
+        "eventId": "huoguang_military_advice",
+        "eventTitle": "军政建议",
+        "turn": 3,
+        "choiceId": "accept_advice",
+        "chosenAction": "爱卿所言极是，即刻加强边防",
+        "effects": {
+          "military": 8,
+          "treasury": -5,
+          "authority": 3
+        },
+        "consequences": "大将军满意地点头，立即着手安排边防事务。",
+        "timestamp": 1753265052759,
+        "characterDiscoveries": [
+          "大将军对军事形势的分析极为准确",
+          "他的建议总是从国家大局考虑",
+          "你感觉到他身上那种久经沙场的气质"
+        ],
+        "importance": "normal"
+      },
+      {
+        "eventId": "wuzetian_morning_tea",
+        "eventTitle": "母后茶话",
+        "turn": 4,
+        "choiceId": "accept_invitation",
+        "chosenAction": "朕很乐意与母后聊天",
+        "effects": {
+          "health": 5,
+          "authority": 2
+        },
+        "consequences": "你接受了母后的邀请，在温馨的氛围中交流了朝政心得",
+        "timestamp": 1753265056229,
+        "relationshipChanges": {
+          "wuzetian": 8
+        },
+        "characterDiscoveries": [
+          "母后对朝政很关心",
+          "她喜欢与你交流政务"
+        ],
+        "importance": "normal"
+      },
+      {
+        "eventId": "wuzetian_power_struggle",
+        "eventTitle": "母后干政",
+        "turn": 5,
+        "choiceId": "compromise",
+        "chosenAction": "容朕再思虑一番",
+        "effects": {
+          "authority": -2,
+          "treasury": -3
+        },
+        "consequences": "你巧妙地化解了当前的冲突，母后点头表示认可...",
+        "timestamp": 1753265064065,
+        "characterDiscoveries": [
+          "母后似乎对朝政有着异乎寻常的熟悉",
+          "她的眼神中闪烁着政治家的精明",
+          "你注意到大臣们对母后都颇为敬畏"
+        ],
+        "importance": "normal"
+      }
+    ],
+    "currentEvent": null,
+    "characterStates": [
+      {
+        "characterId": "huoguang",
+        "alive": true,
+        "relationship": "neutral",
+        "influence": 50,
+        "identityProgress": {
+          "revealed": false,
+          "cluesFound": [],
+          "traitsRevealed": [],
+          "discoveryProgress": 0
+        },
+        "currentTitle": "大将军",
+        "titleHistory": [
+          {
+            "title": "大将军",
+            "changedAt": 1,
+            "reason": "初始称谓"
+          }
+        ]
+      },
+      {
+        "characterId": "limu",
+        "alive": true,
+        "relationship": "neutral",
+        "influence": 50,
+        "identityProgress": {
+          "revealed": false,
+          "cluesFound": [],
+          "traitsRevealed": [],
+          "discoveryProgress": 0
+        },
+        "currentTitle": "将军",
+        "titleHistory": [
+          {
+            "title": "将军",
+            "changedAt": 1,
+            "reason": "初始称谓"
+          }
+        ]
+      },
+      {
+        "characterId": "wuzetian",
+        "alive": true,
+        "relationship": "neutral",
+        "influence": 50,
+        "identityProgress": {
+          "revealed": false,
+          "cluesFound": [],
+          "traitsRevealed": [],
+          "discoveryProgress": 0
+        },
+        "currentTitle": "母后",
+        "titleHistory": [
+          {
+            "title": "母后",
+            "changedAt": 1,
+            "reason": "初始称谓"
+          }
+        ]
+      }
+    ],
+    "factionSystem": {
+      "activeFactions": [
+        {
+          "id": "传统官僚集团",
+          "name": "传统官僚集团",
+          "influence": 30,
+          "memberCharacterIds": [
+            "huoguang"
+          ],
+          "agenda": "维护派系利益",
+          "conflictingFactions": [],
+          "alliedFactions": [],
+          "leaderCharacterId": "huoguang"
+        },
+        {
+          "id": "军事集团",
+          "name": "军事集团",
+          "influence": 30,
+          "memberCharacterIds": [
+            "limu"
+          ],
+          "agenda": "维护派系利益",
+          "conflictingFactions": [],
+          "alliedFactions": []
+        },
+        {
+          "id": "女性政治集团",
+          "name": "女性政治集团",
+          "influence": 30,
+          "memberCharacterIds": [
+            "wuzetian"
+          ],
+          "agenda": "维护派系利益",
+          "conflictingFactions": [],
+          "alliedFactions": [],
+          "leaderCharacterId": "wuzetian"
+        }
+      ],
+      "factionBalance": 0
+    },
+    "courtPolitics": {
+      "tension": 8,
+      "stability": 100,
+      "corruption": 20,
+      "efficiency": 90,
+      "recentEvents": []
+    },
+    "gameOver": true,
+    "startTime": 1753264680619,
+    "currentTurn": 6,
+    "gameOverReason": "朝政平稳，皇帝安然退位",
+    "endTime": 1753265064065
+  },
+  "metadata": {
+    "totalPlayTime": 0,
+    "maxAuthority": 59,
+    "maxPopularity": 51,
+    "achievements": [],
+    "difficulty": "normal",
+    "version": "1.0.0"
+  }
+}
