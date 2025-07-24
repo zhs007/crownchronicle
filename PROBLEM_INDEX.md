@@ -59,7 +59,7 @@
 
 - **core** → [Next.js Workspace 解决方案](./NEXTJS_WORKSPACE_SOLUTION.md)
 - **editor** → [Next.js Workspace 解决方案](./NEXTJS_WORKSPACE_SOLUTION.md)
-- **prototype** → 暂无相关问题
+- **prototype** → [Next.js Workspace 解决方案](./NEXTJS_WORKSPACE_SOLUTION.md) (预防性修复)
 
 ## 📊 统计信息
 

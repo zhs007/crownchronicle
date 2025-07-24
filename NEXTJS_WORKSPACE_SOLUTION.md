@@ -89,7 +89,7 @@
 
 ### 2. 移除子项目中的本地依赖
 
-**editor/package.json**：
+**editor/package.json** 和 **prototype/package.json**：
 ```json
 {
   "dependencies": {
@@ -97,11 +97,13 @@
     // "crownchronicle-core": "file:../core",
     
     // ✅ 保留其他依赖
-    "next": "15.4.3",
-    "react": "19.1.0"
+    "next": "15.4.3", // 或 "14.0.3" (prototype)
+    "react": "19.1.0"  // 或 "^18" (prototype)
   }
 }
 ```
+
+> **注意**: `prototype` 项目使用 Next.js 14.x，虽然没有出现明显问题，但为了保持一致性和避免潜在问题，建议也应用相同的修复。
 
 ### 3. 统一模块格式
 
@@ -192,7 +194,11 @@ npm run dev --workspace=editor
    - package.json 中的 `type` 字段必须与构建输出格式匹配
    - 构建工具配置（如 rollup.config.js）也要使用对应格式
 
-3. **Next.js 的行为**：
+3. **Next.js 版本差异**：
+   - Next.js 15.x + Turbopack 对模块解析更严格，更容易出现问题
+   - Next.js 14.x 相对宽松，但建议统一使用 workspace 方案
+
+4. **Next.js 的行为**：
    - 在 workspace 环境中，Next.js 能够正确处理内部包
    - 无需特殊的 webpack 配置或模块解析设置
 
