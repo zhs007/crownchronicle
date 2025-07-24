@@ -20,7 +20,7 @@
 
 ```
 workspace/
-├── crownchronicle-core/           # 核心游戏逻辑项目
+├── core/                          # 核心游戏逻辑项目
 │   ├── src/
 │   │   ├── engine/                # 游戏引擎
 │   │   │   ├── GameEngine.ts
@@ -55,7 +55,7 @@ workspace/
 │   ├── jest.config.js
 │   └── README.md
 
-├── crownchronicle/                # 原型项目 (调整后)
+├── prototype/                     # 原型项目 (调整后)
 │   ├── src/
 │   │   ├── app/                   # Next.js 应用
 │   │   │   ├── api/               # API 路由 (简化)
@@ -97,7 +97,7 @@ workspace/
 │   ├── tsconfig.json
 │   └── next.config.js
 
-└── crownchronicle-editor/         # 编辑器项目
+└── editor/                       # 编辑器项目
     ├── src/
     │   ├── app/                   # Next.js 应用
     │   │   ├── api/
@@ -147,10 +147,10 @@ workspace/
 
 ##### 1.2 核心项目详细结构
 
-**crownchronicle-core 包配置**
+**core 包配置**
 
 ```json
-// crownchronicle-core/package.json
+// core/package.json
 {
   "name": "crownchronicle-core",
   "version": "1.0.0",
@@ -188,7 +188,7 @@ workspace/
 **构建配置**
 
 ```javascript
-// crownchronicle-core/rollup.config.js
+// core/rollup.config.js
 import typescript from '@rollup/plugin-typescript';
 
 export default {
@@ -245,10 +245,10 @@ src/types/
 
 **包依赖调整**
 ```json
-// crownchronicle/package.json 新增依赖
+// prototype/package.json 新增依赖
 {
   "dependencies": {
-    "crownchronicle-core": "file:../crownchronicle-core",
+    "crownchronicle-core": "file:../core",
     // ... 其他现有依赖
   }
 }
@@ -1008,7 +1008,7 @@ npm run build
 **原型项目 API 路由调整：**
 
 ```typescript
-// src/app/api/saves/route.ts - 适配核心逻辑
+// prototype/src/app/api/saves/route.ts - 适配核心逻辑
 import { GameAdapter } from '@/lib/gameAdapter';
 import { SaveAdapter } from '@/lib/saveAdapter';
 
@@ -1043,7 +1043,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// src/app/api/saves/[saveId]/action/route.ts - 适配选择处理
+// prototype/src/app/api/saves/[saveId]/action/route.ts - 适配选择处理
 export async function POST(request: NextRequest, { params }: { params: { saveId: string } }) {
   try {
     const { action, payload } = await request.json();
@@ -1082,7 +1082,7 @@ export async function POST(request: NextRequest, { params }: { params: { saveId:
 ##### 3.3 编辑器项目新增 API
 
 ```typescript
-// src/app/api/simulation/route.ts - 模拟测试 API
+// editor/src/app/api/simulation/route.ts - 模拟测试 API
 import { EditorCoreIntegration } from '@/lib/coreIntegration';
 
 export async function POST(request: NextRequest) {
@@ -1123,7 +1123,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// src/app/api/validation/route.ts - 配置验证 API
+// editor/src/app/api/validation/route.ts - 配置验证 API
 export async function POST(request: NextRequest) {
   try {
     const { gameData } = await request.json();
@@ -1861,7 +1861,7 @@ export class GameAdapter {
 ```
 依赖关系图:
                     ┌─────────────────────────┐
-                    │   crownchronicle-core   │
+                    │        core             │
                     │   (核心逻辑包)            │
                     │   - 无外部业务依赖        │
                     │   - 纯TypeScript逻辑     │
@@ -1871,13 +1871,12 @@ export class GameAdapter {
                     ┌─────────┴───┐   ┌─┴─────────────┐
                     │             │   │               │
             ┌───────▼─────────┐   │   │   ┌───────────▼────┐
-            │ crownchronicle  │   │   │   │ crownchronicle │
-            │ (原型项目)       │   │   │   │ -editor        │
-            │ - Next.js       │   │   │   │ (编辑器项目)     │
-            │ - UI组件         │   │   │   │ - Next.js      │
-            │ - 存档管理       │   │   │   │ - 编辑功能      │
-            └─────────────────┘   │   │   │ - 模拟测试      │
-                                  │   │   └────────────────┘
+            │   prototype     │   │   │   │     editor     │
+            │ (原型项目)       │   │   │   │ (编辑器项目)     │
+            │ - Next.js       │   │   │   │ - Next.js      │
+            │ - UI组件         │   │   │   │ - 编辑功能      │
+            │ - 存档管理       │   │   │   │ - 模拟测试      │
+            └─────────────────┘   │   │   └────────────────┘
                                   │   │
                           ┌───────▼───▼─────────┐
                           │ 可能的未来项目:      │
@@ -1957,11 +1956,11 @@ export class GameAdapter {
 - 完整的TypeScript类型定义
 - 无框架依赖，可在任何JavaScript环境运行
 
-**2. 原型项目 (crownchronicle)**
+**2. 原型项目 (prototype)**
 
 ```json
 {
-  "name": "crownchronicle",
+  "name": "crownchronicle-prototype",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -2000,7 +1999,7 @@ export class GameAdapter {
 - 专注于UI和用户体验
 - 通过适配器层与核心逻辑交互
 
-**3. 编辑器项目 (crownchronicle-editor)**
+**3. 编辑器项目 (editor)**
 
 ```json
 {
@@ -2057,36 +2056,36 @@ mkdir crown-chronicle-workspace
 cd crown-chronicle-workspace
 
 # 2. 克隆/创建各个项目
-git clone <core-repo> crownchronicle-core
-git clone <prototype-repo> crownchronicle  
-git clone <editor-repo> crownchronicle-editor
+git clone <core-repo> core
+git clone <prototype-repo> prototype
+git clone <editor-repo> editor
 
 # 3. 安装核心逻辑包依赖
-cd crownchronicle-core
+cd core
 npm install
 
 # 4. 开发模式：使用 npm link 进行本地链接
 npm link
 
 # 5. 在原型项目中链接核心包
-cd ../crownchronicle
+cd ../prototype
 npm install
 npm link crownchronicle-core
 
 # 6. 在编辑器项目中链接核心包  
-cd ../crownchronicle-editor
+cd ../editor
 npm install
 npm link crownchronicle-core
 
 # 7. 同时开发多个项目
 # 终端1: 核心逻辑监听模式
-cd crownchronicle-core && npm run build:watch
+cd core && npm run build:watch
 
 # 终端2: 原型项目开发
-cd crownchronicle && npm run dev
+cd prototype && npm run dev
 
 # 终端3: 编辑器项目开发
-cd crownchronicle-editor && npm run dev
+cd editor && npm run dev
 ```
 
 **package.json 脚本协调：**
@@ -2099,16 +2098,16 @@ cd crownchronicle-editor && npm run dev
   "scripts": {
     "bootstrap": "npm run install:all && npm run link:all",
     "install:all": "npm run install:core && npm run install:prototype && npm run install:editor",
-    "install:core": "cd crownchronicle-core && npm install",
-    "install:prototype": "cd crownchronicle && npm install", 
-    "install:editor": "cd crownchronicle-editor && npm install",
-    "link:all": "cd crownchronicle-core && npm link && cd ../crownchronicle && npm link crownchronicle-core && cd ../crownchronicle-editor && npm link crownchronicle-core",
-    "build:core": "cd crownchronicle-core && npm run build",
-    "build:all": "npm run build:core && cd crownchronicle && npm run build && cd ../crownchronicle-editor && npm run build",
-    "dev:core": "cd crownchronicle-core && npm run build:watch",
-    "dev:prototype": "cd crownchronicle && npm run dev",
-    "dev:editor": "cd crownchronicle-editor && npm run dev",
-    "test:all": "cd crownchronicle-core && npm test && cd ../crownchronicle && npm run type-check && cd ../crownchronicle-editor && npm run type-check"
+    "install:core": "cd core && npm install",
+    "install:prototype": "cd prototype && npm install", 
+    "install:editor": "cd editor && npm install",
+    "link:all": "cd core && npm link && cd ../prototype && npm link crownchronicle-core && cd ../editor && npm link crownchronicle-core",
+    "build:core": "cd core && npm run build",
+    "build:all": "npm run build:core && cd prototype && npm run build && cd ../editor && npm run build",
+    "dev:core": "cd core && npm run build:watch",
+    "dev:prototype": "cd prototype && npm run dev",
+    "dev:editor": "cd editor && npm run dev",
+    "test:all": "cd core && npm test && cd ../prototype && npm run type-check && cd ../editor && npm run type-check"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
@@ -2122,18 +2121,18 @@ cd crownchronicle-editor && npm run dev
 
 ```bash
 # 1. 核心逻辑包发布到npm
-cd crownchronicle-core
+cd core
 npm version patch  # 或 minor/major
 npm run build
 npm test
 npm publish
 
 # 2. 更新其他项目的依赖
-cd ../crownchronicle
+cd ../prototype
 npm update crownchronicle-core
 npm run build
 
-cd ../crownchronicle-editor  
+cd ../editor
 npm update crownchronicle-core
 npm run build
 ```
@@ -2189,7 +2188,7 @@ export { createGameEngine, createSimulator } from './utils/factory';
 **原型项目导入示例：**
 
 ```typescript
-// crownchronicle/src/lib/gameAdapter.ts
+// prototype/src/lib/gameAdapter.ts
 import { 
   GameEngine,
   FileSystemDataProvider,
@@ -2199,17 +2198,17 @@ import {
   type ValidationResult
 } from 'crownchronicle-core';
 
-// crownchronicle/src/components/EmperorStats.tsx
+// prototype/src/components/EmperorStats.tsx
 import type { EmperorStats } from 'crownchronicle-core';
 
-// crownchronicle/src/app/api/saves/route.ts
+// prototype/src/app/api/saves/route.ts
 import { GameEngine, FileSystemDataProvider } from 'crownchronicle-core';
 ```
 
 **编辑器项目导入示例：**
 
 ```typescript
-// crownchronicle-editor/src/lib/coreIntegration.ts
+// editor/src/lib/coreIntegration.ts
 import {
   GameEngine,
   GameSimulator,
@@ -2222,7 +2221,7 @@ import {
   type ValidationResult
 } from 'crownchronicle-core';
 
-// crownchronicle-editor/src/components/simulation/SimulationRunner.tsx
+// editor/src/components/simulation/SimulationRunner.tsx
 import { 
   type SimulationResult,
   type PlayerStrategy
@@ -2234,7 +2233,7 @@ import {
 **核心包构建产物：**
 
 ```
-crownchronicle-core/dist/
+core/dist/
 ├── index.js          # CommonJS 格式 (Node.js)
 ├── index.js.map      # Source map
 ├── index.esm.js      # ES Module 格式 (现代打包器)
@@ -2320,7 +2319,7 @@ import { GameEngine, RandomPlayerStrategy } from 'crownchronicle-core';
 **Bundle 分析：**
 
 ```json
-// crownchronicle-core/package.json
+// core/package.json
 {
   "scripts": {
     "analyze": "rollup -c --environment ANALYZE",
@@ -2523,10 +2522,10 @@ export class GameEngineError extends Error {
 
 ##### 7.3 不同场景的错误处理器
 
-**1. 原型项目错误处理器 (用户友好)**
+**原型项目错误处理器 (用户友好)**
 
 ```typescript
-// crownchronicle/src/lib/userErrorHandler.ts
+// prototype/src/lib/userErrorHandler.ts
 import { ErrorHandler, GameError, ErrorHandlingResult, ErrorSeverity } from 'crownchronicle-core';
 
 export class UserFriendlyErrorHandler implements ErrorHandler {
@@ -2628,7 +2627,7 @@ export class UserFriendlyErrorHandler implements ErrorHandler {
 **2. 编辑器项目错误处理器 (开发调试)**
 
 ```typescript
-// crownchronicle-editor/src/lib/editorErrorHandler.ts
+// editor/src/lib/editorErrorHandler.ts
 import { ErrorHandler, GameError, ErrorHandlingResult, ErrorSeverity } from 'crownchronicle-core';
 
 export class EditorErrorHandler implements ErrorHandler {
@@ -2813,7 +2812,7 @@ interface AgentErrorInfo {
 **原型项目适配器错误处理：**
 
 ```typescript
-// crownchronicle/src/lib/gameAdapter.ts
+// prototype/src/lib/gameAdapter.ts
 import { GameEngine, FileSystemDataProvider, GameEngineError } from 'crownchronicle-core';
 import { UserFriendlyErrorHandler } from './userErrorHandler';
 
@@ -2895,7 +2894,7 @@ export class GameAdapter {
 **编辑器项目适配器错误处理：**
 
 ```typescript
-// crownchronicle-editor/src/lib/coreIntegration.ts
+// editor/src/lib/coreIntegration.ts
 import { GameEngine, GameSimulator, MemoryDataProvider, GameEngineError } from 'crownchronicle-core';
 import { EditorErrorHandler, EditorErrorReport } from './editorErrorHandler';
 
