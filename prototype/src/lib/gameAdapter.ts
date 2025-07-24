@@ -9,6 +9,7 @@ import {
   CharacterCard,
   PlayerStrategy
 } from 'crownchronicle-core';
+import { GameConfigManager } from './configManager';
 
 // UI 玩家策略 - 通过回调函数让UI做选择
 export class UIPlayerStrategy implements PlayerStrategy {
@@ -30,8 +31,9 @@ export class GameAdapter {
   private playerStrategy: UIPlayerStrategy | null = null;
 
   constructor() {
-    // 使用相对路径指向数据目录
-    this.dataProvider = new FileSystemDataProvider('./src/data');
+    // 使用配置管理器获取数据路径
+    const dataPath = GameConfigManager.getConfigPath('prototype');
+    this.dataProvider = new FileSystemDataProvider(dataPath);
   }
 
   /**

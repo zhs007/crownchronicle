@@ -1,0 +1,32 @@
+{
+  "versions": {
+    "dev": {
+      "name": "开发版本",
+      "description": "用于编辑器开发和测试",
+      "path": "./versions/dev",
+      "active": true
+    },
+    "stable": {
+      "name": "稳定版本", 
+      "description": "用于原型演示",
+      "path": "./versions/stable",
+      "active": true
+    },
+    "release": {
+      "name": "发布版本",
+      "description": "生产环境使用",
+      "path": "./versions/release", 
+      "active": false
+    }
+  },
+  "projects": {
+    "editor": {
+      "defaultVersion": "dev",
+      "allowedVersions": ["dev", "stable"]
+    },
+    "prototype": {
+      "defaultVersion": "stable",
+      "allowedVersions": ["stable", "release"]
+    }
+  }
+}

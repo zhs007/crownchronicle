@@ -6,6 +6,7 @@ import {
   type CharacterConfig,
   type EventConfig
 } from 'crownchronicle-core';
+import { GameConfigManager } from './configManager';
 import { ValidationReport } from '@/types/editor';
 import { dump } from 'js-yaml';
 
@@ -13,8 +14,9 @@ export class EditorDataManager {
   private dataProvider: FileSystemDataProvider;
   private validator: ConfigValidator;
   
-  constructor(dataPath: string = './src/data') {
-    this.dataProvider = new FileSystemDataProvider(dataPath);
+  constructor(dataPath?: string) {
+    const actualDataPath = dataPath || GameConfigManager.getConfigPath('editor');
+    this.dataProvider = new FileSystemDataProvider(actualDataPath);
     this.validator = new ConfigValidator(this.dataProvider);
   }
   

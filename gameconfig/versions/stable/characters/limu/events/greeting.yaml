@@ -1,0 +1,54 @@
+id: "limu_simple_greeting"
+title: "晨间请安"
+description: "李牧将军来到朝堂向你请安"
+speaker: "李牧"
+dialogue: "陛下，末将前来请安，愿陛下龙体安康！"
+
+# 身份线索
+characterClues:
+  revealedTraits:
+    - "礼貌"
+    - "忠诚"
+  personalityHints:
+    - "李牧很注重礼节"
+    - "他对皇帝很恭敬"
+
+# 无激活条件，游戏开始就可用
+# activationConditions: 
+
+# 卡池权重
+weight: 10
+
+# 玩家选项
+choices:
+  - id: "greet_warmly"
+    text: "朕很高兴见到将军"
+    effects:
+      authority: 2
+      popularity: 1
+    consequences: "你热情地回应了李牧的问候，他看起来很开心"
+    characterEffects:
+      - characterId: "limu"
+        relationshipChanges:
+          affection: 5
+          trust: 3
+    
+  - id: "greet_formally"
+    text: "将军免礼平身"
+    effects:
+      authority: 1
+    consequences: "你正式地回应了李牧，他恭敬地行礼"
+    characterEffects:
+      - characterId: "limu"
+        relationshipChanges:
+          respect: 3
+    
+  - id: "dismiss_quickly"
+    text: "朕知道了，将军请退下"
+    effects:
+      authority: -1
+    consequences: "你简单地回应后示意李牧退下，他显得有些失望"
+    characterEffects:
+      - characterId: "limu"
+        relationshipChanges:
+          affection: -2

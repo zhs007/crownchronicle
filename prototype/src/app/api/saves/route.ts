@@ -6,6 +6,7 @@ import {
   ConfigConverter, 
   CardPoolManager 
 } from 'crownchronicle-core';
+import { GameConfigManager } from '../../../lib/configManager';
 import { CreateGameRequest } from '@/types/api';
 
 // GET /api/saves - 获取所有存档
@@ -45,8 +46,9 @@ export async function POST(request: NextRequest) {
     // 创建新游戏状态
     let gameState = GameEngine.createNewGame(difficulty);
 
-    // 创建数据提供器
-    const dataProvider = new FileSystemDataProvider('./src/data');
+    // 创建数据提供器，使用配置管理器
+    const dataPath = GameConfigManager.getConfigPath('prototype');
+    const dataProvider = new FileSystemDataProvider(dataPath);
     
     // 加载角色配置
     const allCharacters = await dataProvider.loadAllCharacters();

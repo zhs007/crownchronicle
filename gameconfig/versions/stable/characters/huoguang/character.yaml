@@ -1,0 +1,69 @@
+id: "huoguang"
+name: "霍光"
+displayName: "大将军"
+role: "大将军"
+description: "一位老成持重的将军，虽已年迈但威风犹存，对皇室忠心耿耿"
+category: "文臣"
+rarity: "epic"
+
+# 角色基础属性
+initialAttributes:
+  power: 80
+  loyalty: 90
+  ambition: 30
+  competence: 85
+  reputation: 95
+  health: 65
+  age: 55
+
+# 与皇帝的初始关系
+initialRelationshipWithEmperor:
+  affection: 70
+  trust: 80
+  fear: 10
+  respect: 90
+  dependency: 80
+  threat: 20
+
+# 派系信息
+factionInfo:
+  primaryFaction: "传统官僚集团"
+  secondaryFactions: 
+    - "皇室派系"
+    - "保守派"
+  factionLoyalty: 85
+  leadershipRole: "leader"
+
+# 角色关系网络
+relationshipNetwork:
+  - targetCharacter: "wuzetian"
+    relationType: "enemy"
+    relationshipStrength: -60
+    secretLevel: 30
+    historicalBasis: "政治理念冲突，权力争夺"
+
+# 角色对皇帝属性的影响系数
+influence:
+  health: 1.1
+  authority: 1.4
+  treasury: 1.0
+  military: 1.5
+  popularity: 1.2
+
+# 角色特性
+traits:
+  - "忠诚"
+  - "军政"
+  - "威望"
+
+hiddenTraits:
+  - "保守"
+  - "固执"
+
+# 角色背景线索
+backgroundClues:
+  appearance: "身材魁梧，虽已花甲之年但精神矍铄，举手投足间都有军人的干练"
+  mannerisms: "说话简洁有力，从不拖泥带水，习惯性地挺直腰板"
+  preferences: "对军政事务了如指掌，特别关心边境防务"
+  relationships: "在朝中威望极高，许多大臣都对他敬重有加"
+  secrets: "深得先帝信任，掌握着许多朝廷机密"

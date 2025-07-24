@@ -7,6 +7,7 @@ import {
   FileSystemDataProvider,
   GAME_CONSTANTS
 } from 'crownchronicle-core';
+import { GameConfigManager } from './configManager';
 import { 
   GeminiResponse, 
   GeminiFunctionResult, 
@@ -24,7 +25,7 @@ export class GeminiClient {
   private dataProvider: FileSystemDataProvider;
   private validator: ConfigValidator;
   
-  constructor(apiKey: string, dataPath: string = './src/data') {
+  constructor(apiKey: string, dataPath?: string) {
     this.genAI = new GoogleGenerativeAI(apiKey);
     this.model = this.genAI.getGenerativeModel({ 
       model: 'gemini-pro',
@@ -36,7 +37,8 @@ export class GeminiClient {
       }
     });
     
-    this.dataProvider = new FileSystemDataProvider(dataPath);
+    const actualDataPath = dataPath || GameConfigManager.getConfigPath('editor');
+    this.dataProvider = new FileSystemDataProvider(actualDataPath);
     this.validator = new ConfigValidator(this.dataProvider);
   }
   
