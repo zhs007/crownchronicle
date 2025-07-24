@@ -8,6 +8,17 @@
 
 类似一个 vibe coding ，但只能用来编辑这个游戏数据。
 
+#### 重构后的需求
+
+经过项目重构，现在我们已经有了独立的 `core` 游戏引擎包，它提供了完整的游戏逻辑、数据管理和验证功能。编辑器项目应该直接基于这个 core 包来开发，而不是重新实现游戏逻辑。
+
+核心要求：
+- 直接依赖 `crownchronicle-core` 包，复用其类型定义、数据管理和验证逻辑
+- 利用 core 包的 `ConfigValidator` 进行数据验证，确保生成的内容符合游戏引擎要求
+- 使用 core 包的 `DataProvider` 接口进行数据读写操作
+- 编辑器生成的数据应该能够通过 core 包的验证，确保游戏引擎兼容性
+- 保持与现有 prototype 项目相同的数据格式和目录结构
+
 ### 实现
 
 #### 1. 项目初始化
@@ -15,6 +26,9 @@
 ```bash
 npx create-next-app@latest crownchronicle-editor --typescript --tailwind --eslint --app
 cd crownchronicle-editor
+
+# 安装核心依赖
+npm install crownchronicle-core@file:../core  # 使用本地 core 包
 npm install js-yaml @types/js-yaml
 npm install @google/generative-ai
 npm install react-markdown
@@ -71,14 +85,19 @@ crownchronicle-editor/
 
 #### 3. 核心功能实现
 
-##### 3.1 基于现有格式的 Gemini 集成
+##### 3.1 基于 Core 包的 Gemini 集成
 
 ```typescript
 // src/lib/gemini.ts
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { ProxyAgent, setGlobalDispatcher } from 'undici';
-import { DataManager } from './dataManager';
-import { SchemaExtractor, FormatValidator } from './schemaValidator';
+import { 
+  FileSystemDataProvider, 
+  ConfigValidator, 
+  type CharacterCard, 
+  type EventCard,
+  type ValidationResult
+} from 'crownchronicle-core';
 
 // 设置代理（如果需要）
 if (process.env.HTTP_PROXY || process.env.HTTPS_PROXY) {
@@ -101,13 +120,14 @@ export class GeminiClient {
     }
   });
   
-  private dataManager = new DataManager();
+  private dataProvider = new FileSystemDataProvider('./src/data');
+  private validator = new ConfigValidator();
   private functionSchema: any = null;
   
   async initialize() {
-    // 启动时分析现有文件格式，构建严格的Function Call Schema
-    this.functionSchema = await SchemaExtractor.extractFromExistingFiles();
-    console.log('✅ 基于现有文件格式初始化完成');
+    // 基于 core 包的数据格式构建 Function Call Schema
+    this.functionSchema = await this.buildSchemaFromCore();
+    console.log('✅ 基于 Core 包初始化完成');
   }
   
   async chatWithContext(message: string, context: GameDataContext) {
@@ -139,14 +159,11 @@ export class GeminiClient {
     
     for (const call of functionCalls) {
       try {
-        // 验证函数调用参数是否符合现有格式
-        const validationResult = await FormatValidator.validateAgainstExisting(
-          call.args, 
-          this.getFunctionType(call.name)
-        );
+        // 使用 core 包的验证器验证数据
+        const validationResult = await this.validateWithCore(call.args, call.name);
         
-        if (!validationResult.valid) {
-          throw new Error(`数据格式不符合现有配置: ${validationResult.errors.join(', ')}`);
+        if (!validationResult.isValid) {
+          throw new Error(`数据验证失败: ${validationResult.issues.map(i => i.message).join(', ')}`);
         }
         
         // 执行函数调用
@@ -180,65 +197,210 @@ export class GeminiClient {
   }
   
   private async createCharacter(args: any) {
-    // 确保生成的数据完全符合现有YAML格式
-    const characterData = this.formatToExistingSchema(args, 'character');
+    // 转换为符合 Core 包类型的数据结构
+    const characterData: CharacterCard = this.convertToCharacterCard(args);
     
-    // 最终兼容性检查
-    const compatibility = await FormatValidator.ensureCompatibility(characterData);
-    if (!compatibility.isCompatible) {
-      throw new Error(`生成的角色数据与现有格式不兼容: ${compatibility.issues.join(', ')}`);
+    // 使用 Core 包验证器进行最终验证
+    const validationResult = await this.validator.validateCharacter(characterData);
+    if (!validationResult.isValid) {
+      throw new Error(`角色数据验证失败: ${validationResult.issues.map(i => i.message).join(', ')}`);
     }
     
-    await this.dataManager.saveCharacter(args.id, characterData);
+    // 使用 Core 包的数据提供器保存数据
+    await this.dataProvider.saveCharacter(args.id, characterData);
     
     return {
       type: 'success',
       action: 'create_character',
       data: characterData,
-      message: `角色 "${args.name}" 创建成功，格式完全兼容现有配置`
+      message: `角色 "${args.name}" 创建成功，已通过 Core 包验证`
     };
   }
   
   private async createEvent(args: any) {
-    // 确保生成的数据完全符合现有YAML格式
-    const eventData = this.formatToExistingSchema(args, 'event');
+    // 转换为符合 Core 包类型的数据结构
+    const eventData: EventCard = this.convertToEventCard(args);
     
-    // 验证事件是否符合现有游戏逻辑
-    const compatibility = await FormatValidator.ensureCompatibility(eventData);
-    if (!compatibility.isCompatible) {
-      throw new Error(`生成的事件数据与现有格式不兼容: ${compatibility.issues.join(', ')}`);
+    // 使用 Core 包验证器进行验证
+    const validationResult = await this.validator.validateEvent(eventData);
+    if (!validationResult.isValid) {
+      throw new Error(`事件数据验证失败: ${validationResult.issues.map(i => i.message).join(', ')}`);
     }
     
-    await this.dataManager.saveEvent(args.characterId, args.id, eventData);
+    // 使用 Core 包的数据提供器保存数据
+    await this.dataProvider.saveEvent(args.characterId, args.id, eventData);
     
     return {
       type: 'success',
       action: 'create_event',
       data: eventData,
-      message: `事件 "${args.title}" 创建成功，格式完全兼容现有配置`
+      message: `事件 "${args.title}" 创建成功，已通过 Core 包验证`
     };
   }
   
-  private formatToExistingSchema(data: any, type: 'character' | 'event') {
-    // 将AI生成的数据转换为完全符合现有YAML格式的结构
-    const template = this.dataManager.getTemplate(type);
+  private convertToCharacterCard(args: any): CharacterCard {
+    // 将 AI 生成的数据转换为 Core 包定义的 CharacterCard 类型
+    return {
+      id: args.id,
+      name: args.name,
+      displayName: args.displayName,
+      role: args.role,
+      description: args.description,
+      category: args.category,
+      rarity: args.rarity,
+      initialAttributes: args.initialAttributes,
+      initialRelationshipWithEmperor: args.initialRelationshipWithEmperor,
+      factionInfo: args.factionInfo,
+      relationshipNetwork: args.relationshipNetwork || [],
+      influence: args.influence
+    };
+  }
+  
+  private convertToEventCard(args: any): EventCard {
+    // 将 AI 生成的数据转换为 Core 包定义的 EventCard 类型
+    return {
+      id: args.id,
+      title: args.title,
+      description: args.description,
+      speaker: args.speaker,
+      dialogue: args.dialogue,
+      characterClues: args.characterClues,
+      activationConditions: args.activationConditions,
+      weight: args.weight,
+      choices: args.choices
+    };
+  }
+  
+  private async validateWithCore(data: any, functionName: string): Promise<ValidationResult> {
+    // 使用 Core 包的验证器进行预验证
+    if (functionName.includes('character')) {
+      const characterData = this.convertToCharacterCard(data);
+      return await this.validator.validateCharacter(characterData);
+    } else if (functionName.includes('event')) {
+      const eventData = this.convertToEventCard(data);
+      return await this.validator.validateEvent(eventData);
+    }
     
-    // 严格按照现有字段结构组织数据
-    const formatted = { ...template };
-    
-    // 只修改值，不修改结构
-    Object.keys(data).forEach(key => {
-      if (key in formatted) {
-        if (typeof formatted[key] === 'object' && !Array.isArray(formatted[key])) {
-          // 递归处理嵌套对象
-          formatted[key] = { ...formatted[key], ...data[key] };
-        } else {
-          formatted[key] = data[key];
+    return { isValid: true, issues: [] };
+  }
+  
+  private async buildSchemaFromCore() {
+    // 基于 Core 包的类型定义构建 Function Call Schema
+    return {
+      create_character: {
+        name: 'create_character',
+        description: '创建角色卡牌，数据将通过 Core 包验证器验证',
+        parameters: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', description: '角色唯一标识' },
+            name: { type: 'string', description: '角色真实姓名' },
+            displayName: { type: 'string', description: '游戏显示称谓' },
+            role: { type: 'string', description: '角色身份' },
+            description: { type: 'string', description: '角色描述' },
+            category: { 
+              type: 'string', 
+              enum: ['emperor_family', 'court_official', 'military', 'eunuch', 'consort'],
+              description: '角色类别'
+            },
+            rarity: { 
+              type: 'string', 
+              enum: ['common', 'uncommon', 'rare', 'epic', 'legendary'],
+              description: '稀有度'
+            },
+            initialAttributes: {
+              type: 'object',
+              properties: {
+                power: { type: 'number', minimum: 0, maximum: 100 },
+                loyalty: { type: 'number', minimum: 0, maximum: 100 },
+                ambition: { type: 'number', minimum: 0, maximum: 100 },
+                competence: { type: 'number', minimum: 0, maximum: 100 },
+                reputation: { type: 'number', minimum: 0, maximum: 100 },
+                health: { type: 'number', minimum: 0, maximum: 100 },
+                age: { type: 'number', minimum: 10, maximum: 100 }
+              },
+              required: ['power', 'loyalty', 'ambition', 'competence', 'reputation', 'health', 'age']
+            },
+            initialRelationshipWithEmperor: {
+              type: 'object',
+              properties: {
+                affection: { type: 'number', minimum: -100, maximum: 100 },
+                trust: { type: 'number', minimum: -100, maximum: 100 },
+                fear: { type: 'number', minimum: 0, maximum: 100 },
+                respect: { type: 'number', minimum: 0, maximum: 100 },
+                dependency: { type: 'number', minimum: 0, maximum: 100 },
+                threat: { type: 'number', minimum: 0, maximum: 100 }
+              },
+              required: ['affection', 'trust', 'fear', 'respect', 'dependency', 'threat']
+            },
+            factionInfo: {
+              type: 'object',
+              properties: {
+                primaryFaction: { type: 'string' },
+                secondaryFactions: { type: 'array', items: { type: 'string' } },
+                factionLoyalty: { type: 'number', minimum: 0, maximum: 100 },
+                leadershipRole: { 
+                  type: 'string', 
+                  enum: ['leader', 'core', 'member', 'sympathizer']
+                }
+              },
+              required: ['secondaryFactions', 'factionLoyalty', 'leadershipRole']
+            },
+            influence: {
+              type: 'object',
+              properties: {
+                health: { type: 'number', minimum: -10, maximum: 10 },
+                authority: { type: 'number', minimum: -10, maximum: 10 },
+                treasury: { type: 'number', minimum: -10, maximum: 10 },
+                military: { type: 'number', minimum: -10, maximum: 10 },
+                popularity: { type: 'number', minimum: -10, maximum: 10 }
+              },
+              required: ['health', 'authority', 'treasury', 'military', 'popularity']
+            }
+          },
+          required: ['id', 'name', 'displayName', 'role', 'description', 'category', 'rarity', 'initialAttributes', 'initialRelationshipWithEmperor', 'factionInfo', 'influence']
+        }
+      },
+      create_event: {
+        name: 'create_event',
+        description: '创建事件卡牌，数据将通过 Core 包验证器验证',
+        parameters: {
+          type: 'object',
+          properties: {
+            characterId: { type: 'string', description: '所属角色ID' },
+            id: { type: 'string', description: '事件唯一标识' },
+            title: { type: 'string', description: '事件标题' },
+            description: { type: 'string', description: '事件描述' },
+            speaker: { type: 'string', description: '说话角色的称谓' },
+            dialogue: { type: 'string', description: '角色对话内容' },
+            weight: { type: 'number', minimum: 1, maximum: 20, description: '事件权重' },
+            choices: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  id: { type: 'string' },
+                  text: { type: 'string' },
+                  effects: {
+                    type: 'object',
+                    properties: {
+                      health: { type: 'number', minimum: -20, maximum: 20 },
+                      authority: { type: 'number', minimum: -20, maximum: 20 },
+                      treasury: { type: 'number', minimum: -20, maximum: 20 },
+                      military: { type: 'number', minimum: -20, maximum: 20 },
+                      popularity: { type: 'number', minimum: -20, maximum: 20 }
+                    }
+                  },
+                  consequences: { type: 'string' }
+                },
+                required: ['id', 'text', 'effects']
+              }
+            }
+          },
+          required: ['characterId', 'id', 'title', 'description', 'speaker', 'dialogue', 'weight', 'choices']
         }
       }
-    });
-    
-    return formatted;
+    };
   }
   
   private buildPrompt(message: string, context: GameDataContext): string {
@@ -246,9 +408,10 @@ export class GeminiClient {
       你是《皇冠编年史》游戏的内容编辑助手。
       
       重要约束：
-      1. 你只能生成符合现有YAML配置格式的数据
-      2. 不能创建新的字段或修改现有的数据结构
-      3. 所有生成的内容必须与现有游戏引擎完全兼容
+      1. 你生成的数据将通过 crownchronicle-core 包的验证器验证
+      2. 必须严格遵循 Core 包定义的数据类型和格式
+      3. 所有生成的内容必须与游戏引擎完全兼容
+      4. 数值范围必须在规定的最小值和最大值之间
       
       当前项目状态：
       已有角色: ${context.characters.map(c => c.name).join(', ')}
@@ -257,47 +420,9 @@ export class GeminiClient {
       
       用户请求: ${message}
       
-      请严格按照现有的角色和事件配置格式来生成内容。
-      使用提供的工具函数来创建或修改数据。
+      请使用提供的工具函数来创建或修改数据，确保生成的内容能够通过 Core 包的验证。
     `;
   }
-  
-  private handleApiError(error: any) {
-    console.error('Gemini API Error:', error);
-    if (error.message?.includes('proxy')) {
-      throw new Error('代理连接失败，请检查 HTTP_PROXY 或 HTTPS_PROXY 环境变量');
-    }
-    if (error.message?.includes('API key')) {
-      throw new Error('Gemini API 密钥无效，请检查 GEMINI_API_KEY 环境变量');
-    }
-    throw new Error(`Gemini API 调用失败: ${error.message}`);
-  }
-  
-  private getFunctionType(functionName: string): 'character' | 'event' {
-    if (functionName.includes('character')) return 'character';
-    if (functionName.includes('event')) return 'event';
-    throw new Error(`无法确定函数类型: ${functionName}`);
-  }
-}
-
-// 代理配置检查函数
-export function checkProxyConfiguration(): ProxyStatus {
-  const httpProxy = process.env.HTTP_PROXY;
-  const httpsProxy = process.env.HTTPS_PROXY;
-  
-  return {
-    enabled: !!(httpProxy || httpsProxy),
-    httpProxy,
-    httpsProxy,
-    status: httpProxy || httpsProxy ? 'configured' : 'disabled'
-  };
-}
-
-interface ProxyStatus {
-  enabled: boolean;
-  httpProxy?: string;
-  httpsProxy?: string;
-  status: 'configured' | 'disabled' | 'error';
 }
 
 interface GameDataContext {
@@ -307,437 +432,332 @@ interface GameDataContext {
 }
 ```
 
-##### 3.2 数据管理系统
+##### 3.2 基于 Core 包的数据管理系统
 
 ```typescript
 // src/lib/dataManager.ts
-import { load, dump } from 'js-yaml';
-import { promises as fs } from 'fs';
-import path from 'path';
-
-// 导入现有的游戏类型定义
 import { 
-  CharacterCard, 
-  EventCard, 
-  CharacterAttributes,
-  RelationshipWithEmperor,
-  CharacterRelationship,
-  FactionInfo,
-  CharacterInfluence
-} from '../types/game';
+  FileSystemDataProvider, 
+  ConfigConverter,
+  type CharacterCard, 
+  type EventCard 
+} from 'crownchronicle-core';
+import { dump } from 'js-yaml';
 
-export class DataManager {
-  private dataPath = './src/data';
+export class EditorDataManager {
+  private dataProvider: FileSystemDataProvider;
   
-  async saveCharacter(characterId: string, data: CharacterYamlData) {
-    const characterDir = path.join(this.dataPath, 'characters', characterId);
-    await fs.mkdir(characterDir, { recursive: true });
-    
-    const yamlContent = dump(data, {
+  constructor(dataPath: string = './src/data') {
+    this.dataProvider = new FileSystemDataProvider(dataPath);
+  }
+  
+  async saveCharacter(characterId: string, data: CharacterCard) {
+    // 使用 Core 包的数据提供器保存角色数据
+    await this.dataProvider.saveCharacter(characterId, data);
+  }
+  
+  async loadCharacter(characterId: string): Promise<CharacterCard> {
+    return await this.dataProvider.loadCharacter(characterId);
+  }
+  
+  async saveEvent(characterId: string, eventId: string, data: EventCard) {
+    // 使用 Core 包的数据提供器保存事件数据
+    await this.dataProvider.saveEvent(characterId, eventId, data);
+  }
+  
+  async loadEvent(characterId: string, eventId: string): Promise<EventCard> {
+    return await this.dataProvider.loadEvent(characterId, eventId);
+  }
+  
+  async getAllCharacters(): Promise<CharacterCard[]> {
+    return await this.dataProvider.getAllCharacters();
+  }
+  
+  async getCharacterEvents(characterId: string): Promise<EventCard[]> {
+    return await this.dataProvider.getCharacterEvents(characterId);
+  }
+  
+  async exportCharacterAsYaml(characterId: string): Promise<string> {
+    const character = await this.loadCharacter(characterId);
+    // 使用 Core 包的转换器转换为 YAML 格式
+    const yamlData = ConfigConverter.characterToYaml(character);
+    return dump(yamlData, {
       indent: 2,
       quotingType: '"',
       lineWidth: -1
     });
-    
-    await fs.writeFile(
-      path.join(characterDir, 'character.yaml'),
-      yamlContent,
-      'utf-8'
-    );
   }
   
-  async loadCharacter(characterId: string): Promise<CharacterYamlData> {
-    const filePath = path.join(this.dataPath, 'characters', characterId, 'character.yaml');
-    const content = await fs.readFile(filePath, 'utf-8');
-    return load(content) as CharacterYamlData;
-  }
-  
-  async saveEvent(characterId: string, eventId: string, data: EventYamlData) {
-    const eventsDir = path.join(this.dataPath, 'characters', characterId, 'events');
-    await fs.mkdir(eventsDir, { recursive: true });
-    
-    const yamlContent = dump(data, {
+  async exportEventAsYaml(characterId: string, eventId: string): Promise<string> {
+    const event = await this.loadEvent(characterId, eventId);
+    // 使用 Core 包的转换器转换为 YAML 格式
+    const yamlData = ConfigConverter.eventToYaml(event);
+    return dump(yamlData, {
       indent: 2,
       quotingType: '"',
       lineWidth: -1
     });
-    
-    await fs.writeFile(
-      path.join(eventsDir, `${eventId}.yaml`),
-      yamlContent,
-      'utf-8'
-    );
-  }
-  
-  async loadEvent(characterId: string, eventId: string): Promise<EventYamlData> {
-    const filePath = path.join(this.dataPath, 'characters', characterId, 'events', `${eventId}.yaml`);
-    const content = await fs.readFile(filePath, 'utf-8');
-    return load(content) as EventYamlData;
-  }
-  
-  async loadExistingSchema(): Promise<GameDataSchema> {
-    // 分析现有文件结构，提取配置模式
-    const schema = await this.analyzeExistingFiles();
-    return schema;
-  }
-  
-  async validateData(data: any, type: 'character' | 'event'): Promise<ValidationResult> {
-    const schema = await this.loadExistingSchema();
-    return this.validateAgainstSchema(data, schema[type]);
   }
   
   async exportProject(): Promise<Blob> {
-    // 导出为与原项目兼容的目录结构
+    // 导出整个项目为与原项目兼容的格式
     const archiver = require('archiver');
     const archive = archiver('zip');
     
-    // 只导出data目录，保持与原项目相同的结构
-    archive.directory(this.dataPath, 'data');
-    archive.finalize();
+    const characters = await this.getAllCharacters();
     
+    for (const character of characters) {
+      // 导出角色配置
+      const characterYaml = await this.exportCharacterAsYaml(character.id);
+      archive.append(characterYaml, { 
+        name: `data/characters/${character.id}/character.yaml` 
+      });
+      
+      // 导出角色事件
+      const events = await this.getCharacterEvents(character.id);
+      for (const event of events) {
+        const eventYaml = await this.exportEventAsYaml(character.id, event.id);
+        archive.append(eventYaml, { 
+          name: `data/characters/${character.id}/events/${event.id}.yaml` 
+        });
+      }
+    }
+    
+    archive.finalize();
     return new Blob([archive], { type: 'application/zip' });
   }
   
-  private async analyzeExistingFiles(): Promise<GameDataSchema> {
-    // 读取现有的字符配置文件，分析其结构
-    const existingChars = await this.getExistingCharacters();
-    const existingEvents = await this.getExistingEvents();
-    
-    return {
-      character: this.extractCharacterSchema(existingChars),
-      event: this.extractEventSchema(existingEvents)
+  async validateAllData(): Promise<ValidationReport> {
+    const report: ValidationReport = {
+      characters: [],
+      events: [],
+      isValid: true
     };
+    
+    const characters = await this.getAllCharacters();
+    
+    for (const character of characters) {
+      // 使用 Core 包的验证器验证角色数据
+      const characterValidation = await this.dataProvider.validateCharacter(character);
+      report.characters.push({
+        id: character.id,
+        name: character.name,
+        isValid: characterValidation.isValid,
+        issues: characterValidation.issues
+      });
+      
+      if (!characterValidation.isValid) {
+        report.isValid = false;
+      }
+      
+      // 验证角色的所有事件
+      const events = await this.getCharacterEvents(character.id);
+      for (const event of events) {
+        const eventValidation = await this.dataProvider.validateEvent(event);
+        report.events.push({
+          id: event.id,
+          characterId: character.id,
+          title: event.title,
+          isValid: eventValidation.isValid,
+          issues: eventValidation.issues
+        });
+        
+        if (!eventValidation.isValid) {
+          report.isValid = false;
+        }
+      }
+    }
+    
+    return report;
   }
 }
 
-// 严格基于现有文件格式的类型定义
-interface CharacterYamlData {
-  id: string;
-  name: string;
-  displayName: string;
-  role: string;
-  description: string;
-  category: string;
-  rarity: string;
-  
-  initialAttributes: {
-    power: number;
-    loyalty: number;
-    ambition: number;
-    competence: number;
-    reputation: number;
-    health: number;
-    age: number;
-  };
-  
-  initialRelationshipWithEmperor: {
-    affection: number;
-    trust: number;
-    fear: number;
-    respect: number;
-    dependency: number;
-    threat: number;
-  };
-  
-  factionInfo: {
-    primaryFaction: string;
-    secondaryFactions: string[];
-    factionLoyalty: number;
-    leadershipRole: string;
-  };
-  
-  relationshipNetwork: Array<{
-    targetCharacter: string;
-    relationType: string;
-    relationshipStrength: number;
-    secretLevel: number;
-    historicalBasis: string;
+interface ValidationReport {
+  characters: Array<{
+    id: string;
+    name: string;
+    isValid: boolean;
+    issues: Array<{ field: string; message: string }>;
   }>;
+  events: Array<{
+    id: string;
+    characterId: string;
+    title: string;
+    isValid: boolean;
+    issues: Array<{ field: string; message: string }>;
+  }>;
+  isValid: boolean;
+}
+```
+
+##### 3.3 基于 Core 包的验证和类型系统
+
+```typescript
+// src/lib/coreIntegration.ts
+import { 
+  ConfigValidator, 
+  GameEngine,
+  GameSimulator,
+  type CharacterCard, 
+  type EventCard,
+  type ValidationResult,
+  type GameConfig,
+  type SimulationResult
+} from 'crownchronicle-core';
+
+export class CoreIntegration {
+  private validator: ConfigValidator;
+  private gameEngine: GameEngine;
+  private simulator: GameSimulator;
   
-  influence: {
+  constructor() {
+    this.validator = new ConfigValidator();
+    this.gameEngine = new GameEngine();
+    this.simulator = new GameSimulator();
+  }
+  
+  async validateCharacter(character: CharacterCard): Promise<ValidationResult> {
+    return await this.validator.validateCharacter(character);
+  }
+  
+  async validateEvent(event: EventCard): Promise<ValidationResult> {
+    return await this.validator.validateEvent(event);
+  }
+  
+  async validateGameConfig(config: GameConfig): Promise<ValidationResult> {
+    return await this.validator.validateGameConfig(config);
+  }
+  
+  async simulateCharacterBalance(characters: CharacterCard[]): Promise<BalanceAnalysis> {
+    const config: GameConfig = {
+      characters,
+      events: [],
+      settings: {
+        maxReignYears: 50,
+        startingAge: 25,
+        difficultyLevel: 'normal'
+      }
+    };
+    
+    const simulationResult = await this.simulator.simulate(config, 100);
+    
+    return this.analyzeBalance(simulationResult);
+  }
+  
+  async testEventFlow(character: CharacterCard, events: EventCard[]): Promise<EventFlowAnalysis> {
+    // 使用游戏引擎测试事件流
+    const engine = new GameEngine();
+    const config: GameConfig = {
+      characters: [character],
+      events,
+      settings: {
+        maxReignYears: 20,
+        startingAge: 25,
+        difficultyLevel: 'normal'
+      }
+    };
+    
+    await engine.initialize(config);
+    
+    const flowAnalysis: EventFlowAnalysis = {
+      totalEvents: events.length,
+      activatableEvents: 0,
+      weightDistribution: {},
+      potentialDeadlocks: [],
+      recommendations: []
+    };
+    
+    // 分析事件权重分布
+    events.forEach(event => {
+      const weight = event.weight || 1;
+      flowAnalysis.weightDistribution[weight] = 
+        (flowAnalysis.weightDistribution[weight] || 0) + 1;
+    });
+    
+    // 检查可激活事件数量
+    const gameState = engine.getCurrentState();
+    for (const event of events) {
+      if (this.canEventActivate(event, gameState)) {
+        flowAnalysis.activatableEvents++;
+      }
+    }
+    
+    // 生成建议
+    if (flowAnalysis.activatableEvents < 3) {
+      flowAnalysis.recommendations.push('建议增加更多可激活的事件以确保游戏流畅性');
+    }
+    
+    return flowAnalysis;
+  }
+  
+  private canEventActivate(event: EventCard, gameState: any): boolean {
+    if (!event.activationConditions) return true;
+    
+    const conditions = event.activationConditions;
+    const emperor = gameState.emperor;
+    
+    if (conditions.minAge && emperor.age < conditions.minAge) return false;
+    if (conditions.maxAge && emperor.age > conditions.maxAge) return false;
+    if (conditions.minReignYears && emperor.reignYears < conditions.minReignYears) return false;
+    if (conditions.maxReignYears && emperor.reignYears > conditions.maxReignYears) return false;
+    
+    return true;
+  }
+  
+  private analyzeBalance(simulation: SimulationResult): BalanceAnalysis {
+    return {
+      averageGameLength: simulation.averageGameLength,
+      survivalRate: simulation.survivalRate,
+      attributeDistribution: simulation.finalStates.reduce((acc, state) => {
+        acc.health = (acc.health || 0) + state.emperor.health;
+        acc.authority = (acc.authority || 0) + state.emperor.authority;
+        acc.treasury = (acc.treasury || 0) + state.emperor.treasury;
+        acc.military = (acc.military || 0) + state.emperor.military;
+        acc.popularity = (acc.popularity || 0) + state.emperor.popularity;
+        return acc;
+      }, {} as any),
+      recommendations: this.generateBalanceRecommendations(simulation)
+    };
+  }
+  
+  private generateBalanceRecommendations(simulation: SimulationResult): string[] {
+    const recommendations: string[] = [];
+    
+    if (simulation.survivalRate < 0.3) {
+      recommendations.push('游戏难度过高，建议降低事件的负面效果');
+    } else if (simulation.survivalRate > 0.8) {
+      recommendations.push('游戏难度偏低，建议增加挑战性事件');
+    }
+    
+    if (simulation.averageGameLength < 15) {
+      recommendations.push('游戏时长偏短，建议优化事件激活条件');
+    } else if (simulation.averageGameLength > 35) {
+      recommendations.push('游戏时长偏长，建议增加终局触发条件');
+    }
+    
+    return recommendations;
+  }
+}
+
+interface BalanceAnalysis {
+  averageGameLength: number;
+  survivalRate: number;
+  attributeDistribution: {
     health: number;
     authority: number;
     treasury: number;
     military: number;
     popularity: number;
   };
-  
-  // 其他字段完全按照现有格式...
+  recommendations: string[];
 }
 
-interface EventYamlData {
-  id: string;
-  title: string;
-  description: string;
-  speaker: string;
-  dialogue: string;
-  
-  characterClues?: {
-    revealedTraits?: string[];
-    personalityHints?: string[];
-    backgroundHints?: string[];
-  };
-  
-  activationConditions?: {
-    minReignYears?: number;
-    maxReignYears?: number;
-    minAge?: number;
-    maxAge?: number;
-    // 其他条件按现有格式...
-  };
-  
-  weight: number;
-  
-  choices: Array<{
-    id: string;
-    text: string;
-    effects: {
-      health?: number;
-      authority?: number;
-      treasury?: number;
-      military?: number;
-      popularity?: number;
-    };
-    consequences?: string;
-    // 其他字段按现有格式...
-  }>;
-}
-```
-
-##### 3.3 基于现有格式的 Function Calls 定义
-
-```typescript
-// Gemini Function Calls 工具定义 - 严格基于现有的YAML配置格式
-// 通过分析现有文件提取准确的字段定义
-
-export class SchemaExtractor {
-  static async extractFromExistingFiles(): Promise<FunctionCallSchema> {
-    // 读取现有的角色和事件文件，提取准确的字段结构
-    const existingCharacter = await this.loadSampleCharacter();
-    const existingEvent = await this.loadSampleEvent();
-    
-    return {
-      createCharacter: this.buildCharacterSchema(existingCharacter),
-      createEvent: this.buildEventSchema(existingEvent),
-      modifyCharacter: this.buildModificationSchema('character'),
-      modifyEvent: this.buildModificationSchema('event')
-    };
-  }
-  
-  private static buildCharacterSchema(sample: any) {
-    return {
-      name: 'create_character',
-      description: '基于现有格式创建角色卡牌，严格遵循YAML配置结构',
-      parameters: {
-        type: 'object',
-        properties: {
-          // 基本信息 - 从现有文件提取字段
-          id: { 
-            type: 'string', 
-            description: '角色唯一标识，格式如现有文件',
-            pattern: '^[a-z]+$'
-          },
-          name: { 
-            type: 'string', 
-            description: '角色真实姓名，如"武则天"'
-          },
-          displayName: { 
-            type: 'string', 
-            description: '游戏显示称谓，如"母后"'
-          },
-          role: { 
-            type: 'string', 
-            description: '角色身份，如"母后"、"宰相"等'
-          },
-          description: { 
-            type: 'string', 
-            description: '角色外观行为描述，不透露真实身份'
-          },
-          category: { 
-            type: 'string', 
-            enum: this.extractEnumValues(sample, 'category'),
-            description: '角色类别，使用现有分类'
-          },
-          rarity: {
-            type: 'string',
-            enum: this.extractEnumValues(sample, 'rarity'),
-            description: '稀有度，使用现有等级'
-          },
-          
-          // 初始属性 - 完全按照现有结构
-          initialAttributes: {
-            type: 'object',
-            properties: this.extractObjectSchema(sample.initialAttributes),
-            required: Object.keys(sample.initialAttributes),
-            additionalProperties: false
-          },
-          
-          // 与皇帝关系 - 完全按照现有结构
-          initialRelationshipWithEmperor: {
-            type: 'object',
-            properties: this.extractObjectSchema(sample.initialRelationshipWithEmperor),
-            required: Object.keys(sample.initialRelationshipWithEmperor),
-            additionalProperties: false
-          },
-          
-          // 派系信息 - 完全按照现有结构
-          factionInfo: {
-            type: 'object',
-            properties: this.extractObjectSchema(sample.factionInfo),
-            required: Object.keys(sample.factionInfo),
-            additionalProperties: false
-          },
-          
-          // 关系网络 - 完全按照现有结构
-          relationshipNetwork: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: this.extractObjectSchema(sample.relationshipNetwork[0]),
-              required: Object.keys(sample.relationshipNetwork[0]),
-              additionalProperties: false
-            }
-          },
-          
-          // 影响系数 - 完全按照现有结构
-          influence: {
-            type: 'object',
-            properties: this.extractObjectSchema(sample.influence),
-            required: Object.keys(sample.influence),
-            additionalProperties: false
-          }
-        },
-        required: this.extractRequiredFields(sample),
-        additionalProperties: false  // 严格禁止额外字段
-      }
-    };
-  }
-  
-  private static buildEventSchema(sample: any) {
-    return {
-      name: 'create_event',
-      description: '基于现有格式创建事件卡牌，严格遵循YAML配置结构',
-      parameters: {
-        type: 'object',
-        properties: {
-          characterId: { 
-            type: 'string', 
-            description: '所属角色ID，必须是已存在的角色'
-          },
-          id: { 
-            type: 'string', 
-            description: '事件唯一标识'
-          },
-          title: { 
-            type: 'string', 
-            description: '事件标题'
-          },
-          description: { 
-            type: 'string', 
-            description: '事件描述'
-          },
-          speaker: { 
-            type: 'string', 
-            description: '说话角色的称谓（非真实姓名）'
-          },
-          dialogue: { 
-            type: 'string', 
-            description: '角色对话内容'
-          },
-          
-          // 角色线索 - 按现有格式（可选）
-          characterClues: sample.characterClues ? {
-            type: 'object',
-            properties: this.extractObjectSchema(sample.characterClues),
-            additionalProperties: false
-          } : undefined,
-          
-          // 激活条件 - 按现有格式（可选）
-          activationConditions: sample.activationConditions ? {
-            type: 'object',
-            properties: this.extractObjectSchema(sample.activationConditions),
-            additionalProperties: false
-          } : undefined,
-          
-          // 权重 - 按现有格式
-          weight: {
-            type: 'number',
-            minimum: 1,
-            maximum: 20,
-            description: '事件权重'
-          },
-          
-          // 选项 - 完全按照现有结构
-          choices: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: this.extractObjectSchema(sample.choices[0]),
-              required: Object.keys(sample.choices[0]),
-              additionalProperties: false
-            },
-            minItems: 1
-          }
-        },
-        required: this.extractRequiredFields(sample),
-        additionalProperties: false
-      }
-    };
-  }
-}
-
-// 配置验证器 - 确保生成的数据与现有格式完全兼容
-export class FormatValidator {
-  static async validateAgainstExisting(
-    data: any, 
-    type: 'character' | 'event'
-  ): Promise<ValidationResult> {
-    const existingFiles = await this.loadExistingFiles(type);
-    const schema = this.buildSchemaFromExisting(existingFiles);
-    
-    return this.validate(data, schema);
-  }
-  
-  static async ensureCompatibility(generatedData: any): Promise<CompatibilityReport> {
-    // 检查生成的数据是否与现有游戏引擎兼容
-    const compatibility = {
-      fieldCompatibility: this.checkFieldCompatibility(generatedData),
-      typeCompatibility: this.checkTypeCompatibility(generatedData),
-      structureCompatibility: this.checkStructureCompatibility(generatedData),
-      valueRangeCompatibility: this.checkValueRanges(generatedData)
-    };
-    
-    return compatibility;
-  }
-}
-
-// 严格的数据生成器 - 只生成符合现有格式的数据
-export class StrictDataGenerator {
-  constructor(private schema: ExistingGameSchema) {}
-  
-  generateCharacterData(requirements: any): CharacterYamlData {
-    // 基于现有schema和用户需求生成数据
-    const template = this.schema.characterTemplate;
-    return {
-      ...template,
-      // 只修改值，不修改结构
-      id: this.generateValidId(requirements.name),
-      name: requirements.name,
-      displayName: requirements.displayName,
-      // ... 其他字段严格按照模板结构
-    };
-  }
-  
-  generateEventData(requirements: any): EventYamlData {
-    const template = this.schema.eventTemplate;
-    return {
-      ...template,
-      // 只修改值，不修改结构
-      id: this.generateValidId(requirements.title),
-      characterId: requirements.characterId,
-      // ... 其他字段严格按照模板结构
-    };
-  }
+interface EventFlowAnalysis {
+  totalEvents: number;
+  activatableEvents: number;
+  weightDistribution: Record<number, number>;
+  potentialDeadlocks: string[];
+  recommendations: string[];
 }
 ```
 
@@ -846,58 +866,59 @@ const intelligentFeatures = [
    - 可以直接复制替换到原游戏项目中使用
    - 无需任何格式转换或适配工作
 
-#### 6. 技术特性（严格基于现有格式）
+#### 6. 技术特性（基于 Core 包约束）
 
-- **格式锁定系统**: 自动分析现有YAML文件，锁定数据结构，防止格式变更
-- **兼容性检测引擎**: 实时验证生成数据与现有游戏引擎的100%兼容性
-- **模式驱动生成**: 基于提取的数据模式智能生成内容，确保格式一致性
-- **无侵入式编辑**: 只修改数据值，绝不改变字段结构或添加新字段
-- **原生YAML输出**: 生成的文件与手写YAML完全一致，保持原有风格
-- **批量格式验证**: 支持批量检查所有生成内容的格式合规性
-- **向后兼容保证**: 确保新生成的数据不会破坏现有游戏逻辑
-- **零配置集成**: 生成的数据可直接复制到原项目，无需任何修改
-- **格式演进跟踪**: 当原项目格式更新时，自动适配新的数据结构
-- **质量一致性**: 生成的内容在格式和质量上与原有数据保持一致
+- **Core 包集成**: 直接使用 `crownchronicle-core` 包的所有功能，确保与游戏引擎的完全兼容性
+- **类型安全**: 基于 Core 包的 TypeScript 类型定义，编译时即可发现类型错误
+- **内置验证**: 利用 Core 包的 `ConfigValidator` 进行实时数据验证，确保生成的内容符合游戏规则
+- **引擎兼容性**: 使用 Core 包的 `GameEngine` 和 `GameSimulator` 进行游戏逻辑测试
+- **数据提供器**: 复用 Core 包的 `FileSystemDataProvider` 进行统一的数据管理
+- **格式转换**: 利用 Core 包的 `ConfigConverter` 确保 YAML 格式的一致性
+- **模拟测试**: 通过 Core 包的模拟器验证角色平衡性和事件流程合理性
+- **零配置集成**: 生成的数据直接兼容原项目，无需任何格式转换
+- **实时反馈**: 基于 Core 包的验证结果提供即时的错误提示和修改建议
+- **版本兼容**: 随着 Core 包的更新自动获得最新的游戏特性支持
 
-#### 7. 核心算法和验证规则
+#### 7. 核心算法和验证规则（基于 Core 包）
 
-##### 7.1 三卡池流转验证
+##### 7.1 使用 Core 包的游戏引擎验证
 ```typescript
-// 验证事件激活条件的合理性
-interface PoolValidation {
-  checkActivationLogic(event: EventConfig): ValidationResult;
-  simulatePoolFlow(characters: CharacterConfig[]): PoolSimulation;
-  detectDeadlocks(gameState: SimulatedGameState): DeadlockReport;
+// 利用 Core 包的游戏引擎进行完整的游戏流程验证
+interface GameFlowValidation {
+  validateEventActivation(event: EventCard, gameState: GameState): boolean;
+  simulateGameProgression(config: GameConfig): SimulationResult;
+  detectGameEndConditions(state: GameState): EndCondition[];
+  validateCardPoolBalance(characters: CharacterCard[]): PoolBalance;
 }
 
-// 确保游戏始终有可用事件
-const poolHealthCheck = {
-  minActiveEvents: 3,        // 主卡池最少事件数
-  maxPendingEvents: 50,      // 待定卡池最大事件数
-  emergencyEvents: ['daily_court', 'health_check'],  // 紧急事件
-  balanceThreshold: 0.7      // 平衡阈值
+// 使用 Core 包的内置规则
+const coreValidationRules = {
+  attributeRanges: { min: 0, max: 100 },      // 来自 Core 包常量
+  relationshipRanges: { min: -100, max: 100 }, // 来自 Core 包常量
+  eventWeightRange: { min: 1, max: 20 },       // 来自 Core 包常量
+  influenceRange: { min: -10, max: 10 }        // 来自 Core 包常量
 };
 ```
 
-##### 7.2 关系网络一致性检查
+##### 7.2 基于 Core 包的关系网络验证
 ```typescript
-// 检查角色关系的逻辑一致性
-interface RelationshipValidator {
-  validateBidirectional(char1: string, char2: string): boolean;
-  checkHistoricalAccuracy(relationship: Relationship): AccuracyScore;
-  detectConflicts(network: RelationshipNetwork): Conflict[];
-  suggestOptimizations(network: RelationshipNetwork): Suggestion[];
+// 使用 Core 包的关系验证器
+interface CoreRelationshipValidator {
+  validateRelationshipLogic(network: CharacterRelationship[]): ValidationResult;
+  checkFactionConsistency(characters: CharacterCard[]): FactionAnalysis;
+  validateHistoricalAccuracy(character: CharacterCard): AccuracyReport;
+  optimizeRelationshipBalance(network: CharacterRelationship[]): OptimizationSuggestion[];
 }
 ```
 
-##### 7.3 数值平衡分析
+##### 7.3 Core 包集成的数值平衡系统
 ```typescript
-// 游戏数值平衡验证
-interface BalanceAnalyzer {
-  analyzeAttributeRanges(characters: CharacterConfig[]): BalanceReport;
-  validateEventEffects(events: EventConfig[]): EffectAnalysis;
-  simulateGameProgression(setup: GameSetup): ProgressionAnalysis;
-  recommendAdjustments(analysis: BalanceReport): Adjustment[];
+// 利用 Core 包的模拟器进行平衡分析
+interface CoreBalanceSystem {
+  runGameSimulation(config: GameConfig, iterations: number): SimulationResult;
+  analyzeCharacterPowerLevel(character: CharacterCard): PowerAnalysis;
+  validateEventImpact(event: EventCard): ImpactAnalysis;
+  generateBalanceReport(characters: CharacterCard[]): BalanceReport;
 }
 ```
 
@@ -1159,21 +1180,31 @@ curl -x $HTTP_PROXY https://generativelanguage.googleapis.com/v1/models
 
 这个编辑器将成为一个专门为《皇冠编年史》游戏设计的内容生成工具。通过与 Gemini 的深度集成，它能够智能生成符合现有格式的游戏内容，同时严格确保与原项目的完全兼容性。
 
-## 🔒 核心约束保证：
+## 🔒 核心约束保证（基于 Core 包）：
 
-### 1. **格式不可变性**
-- 编辑器只生成数据内容，绝不修改现有的YAML结构
-- 严格按照现有字段定义生成内容
-- 保持与原项目100%的格式兼容性
+### 1. **Core 包依赖性**
+- 编辑器完全基于 `crownchronicle-core` 包构建，复用所有类型定义和验证逻辑
+- 使用 Core 包的 `ConfigValidator` 确保数据格式的严格一致性
+- 利用 Core 包的 `GameEngine` 验证游戏逻辑的正确性
 
-### 2. **无缝集成**
-- 生成的文件可直接复制到原游戏项目使用
-- 无需任何格式转换或适配工作
-- 保持原有的代码风格和命名约定
+### 2. **类型安全保证**
+- 基于 Core 包的 TypeScript 类型定义，编译时发现类型错误
+- 使用 Core 包的 `CharacterCard` 和 `EventCard` 接口确保数据结构正确
+- 通过 Core 包的类型系统防止无效的数据组合
 
-### 3. **智能内容创作**
-- 基于现有格式约束进行创意设计
-- 利用AI的创造力在既定框架内生成高质量内容
-- 确保历史准确性和游戏平衡性
+### 3. **验证机制集成**
+- 集成 Core 包的完整验证体系，包括数据格式、游戏逻辑和平衡性验证
+- 利用 Core 包的 `GameSimulator` 进行游戏流程模拟测试
+- 通过 Core 包的验证结果提供实时反馈和修改建议
 
-这样的设计确保了编辑器作为一个纯粹的内容生成工具，专注于在现有技术框架内提供创作支持，而不会对原项目的架构产生任何影响。
+### 4. **引擎兼容性**
+- 生成的数据直接兼容 Core 包的游戏引擎，无需任何转换
+- 使用 Core 包的 `DataProvider` 接口进行数据读写，保持格式一致性
+- 确保编辑器生成的内容能够被游戏引擎正确解析和执行
+
+### 5. **智能内容创作**
+- 在 Core 包定义的约束范围内进行创意设计
+- 利用 AI 的创造力生成符合游戏引擎要求的高质量内容
+- 基于 Core 包的历史数据和规则确保内容的合理性和一致性
+
+这样的设计确保了编辑器作为基于 Core 包的专业内容生成工具，不仅能够充分利用现有的游戏引擎功能，还能保证生成的内容与整个游戏生态系统的完美集成。通过 Core 包的约束和验证体系，编辑器能够在保持创作自由度的同时，确保内容质量和系统兼容性。
