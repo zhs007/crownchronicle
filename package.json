@@ -7,11 +7,13 @@
   "license": "MIT",
   "workspaces": [
     "core",
+    "editor",
     "prototype"
   ],
   "scripts": {
-    "build": "npm run build --workspace=core && npm run build --workspace=prototype",
+    "build": "npm run build --workspace=core && npm run build --workspace=editor && npm run build --workspace=prototype",
     "dev:core": "npm run dev --workspace=core",
+    "dev:editor": "npm run dev --workspace=editor",
     "dev:prototype": "npm run dev --workspace=prototype",
     "test": "npm test --workspace=core",
     "clean": "npm run clean --workspace=core && npm run clean --workspace=prototype",

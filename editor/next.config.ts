@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Core package is installed as a file dependency, no webpack alias needed
+  // In a workspace, core is automatically available
 };
 
 export default nextConfig;
