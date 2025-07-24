@@ -1,0 +1,45 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "启动编辑器开发服务器",
+      "type": "shell",
+      "command": "npm run dev",
+      "group": "build",
+      "isBackground": true,
+      "args": [],
+      "problemMatcher": ["$tsc"],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      }
+    },
+    {
+      "label": "构建编辑器",
+      "type": "shell",
+      "command": "npm run build",
+      "group": "build",
+      "args": [],
+      "problemMatcher": ["$tsc"]
+    },
+    {
+      "label": "安装依赖",
+      "type": "shell",
+      "command": "npm install",
+      "group": "build",
+      "args": []
+    },
+    {
+      "label": "类型检查",
+      "type": "shell",
+      "command": "npx tsc --noEmit",
+      "group": "build",
+      "args": [],
+      "problemMatcher": ["$tsc"]
+    }
+  ]
+}

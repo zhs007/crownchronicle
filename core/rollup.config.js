@@ -14,7 +14,7 @@ export default {
       sourcemap: true
     }
   ],
-  external: ['js-yaml'],
+  external: ['js-yaml', 'fs', 'path'],
   plugins: [
     typescript({
       tsconfig: './tsconfig.json',
