@@ -1,3 +1,5 @@
+import { SchemaType } from '@google/generative-ai';
+
 // Gemini API related types
 export interface GeminiMessage {
   role: 'user' | 'model';
@@ -35,8 +37,8 @@ export interface FunctionCallSchema {
   name: string;
   description: string;
   parameters: {
-    type: string;
-    properties: Record<string, unknown>;
+    type: SchemaType;
+    properties: Record<string, any>;
     required: string[];
   };
 }

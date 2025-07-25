@@ -60,13 +60,15 @@ export default function ChatInterface({ onCharacterCreated, onEventCreated }: Ch
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: '您好！我是《皇冠编年史》游戏的内容编辑助手。我可以帮助您创建和修改角色卡片、事件卡片。\n\n您可以：\n- 创建新的角色：例如"创建一个文臣角色张仪"\n- 设计事件：例如"为霍光添加一个军事训练事件"\n- 修改现有内容：例如"调整武则天的权力值"\n- 验证数据完整性\n\n请告诉我您想要做什么？',
+      content: '您好！我是《皇冠编年史》内容设计师，精通中国古代历史。�\n\n告诉我您想要什么类型的角色或事件，我会为您推荐具体的历史人物和方案：\n\n- 🏛️ **权臣**：如严嵩、和珅、董卓等\n- ⚔️ **武将**：如白起、韩信、岳飞等  \n- � **后妃**：如窦太后、吕后、慈禧等\n- 📚 **文臣**：如诸葛亮、范仲淹、张居正等\n\n直接说出您的需求即可！',
       timestamp: new Date()
     }
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'unknown' | 'connected' | 'error'>('unknown');
+  const [useSession, setUseSession] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -108,13 +110,23 @@ export default function ChatInterface({ onCharacterCreated, onEventCreated }: Ch
       const response = await fetch('/api/gemini', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: inputValue })
+        body: JSON.stringify({ 
+          message: inputValue,
+          history: useSession ? undefined : messages, // 会话模式时不传递历史
+          sessionId: useSession ? sessionId : undefined,
+          useSession: useSession
+        })
       });
 
       const data = await response.json();
 
       if (!response.ok) {
         throw new Error(data.error || 'API request failed');
+      }
+
+      // 如果使用会话模式，更新会话ID
+      if (useSession && data.sessionId) {
+        setSessionId(data.sessionId);
       }
 
       const assistantMessage: Message = {
@@ -151,6 +163,28 @@ export default function ChatInterface({ onCharacterCreated, onEventCreated }: Ch
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const clearSession = async () => {
+    if (useSession && sessionId) {
+      try {
+        await fetch('/api/session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'delete', sessionId })
+        });
+      } catch (error) {
+        console.error('清除会话失败:', error);
+      }
+    }
+    
+    // 重置本地状态
+    setSessionId(null);
+    setMessages([{
+      role: 'assistant',
+      content: '您好！我是《皇冠编年史》内容设计师，精通中国古代历史。\n\n告诉我您想要什么类型的角色或事件，我会为您推荐具体的历史人物和方案：\n\n- 🏛️ **权臣**：如严嵩、和珅、董卓等\n- ⚔️ **武将**：如白起、韩信、岳飞等  \n- 👑 **后妃**：如窦太后、吕后、慈禧等\n- 📚 **文臣**：如诸葛亮、范仲淹、张居正等\n\n直接说出您的需求即可！',
+      timestamp: new Date()
+    }]);
   };
 
   const formatGeminiResponse = (data: ApiResponse): string => {
@@ -191,15 +225,50 @@ export default function ChatInterface({ onCharacterCreated, onEventCreated }: Ch
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b bg-gray-50">
         <h2 className="text-lg font-semibold text-gray-800">AI 编辑助手</h2>
-        <div className="flex items-center space-x-2">
-          <div className={`w-2 h-2 rounded-full ${
-            connectionStatus === 'connected' ? 'bg-green-500' : 
-            connectionStatus === 'error' ? 'bg-red-500' : 'bg-yellow-500'
-          }`}></div>
-          <span className="text-sm text-gray-600">
-            {connectionStatus === 'connected' ? '已连接' : 
-             connectionStatus === 'error' ? '连接失败' : '检查中...'}
-          </span>
+        <div className="flex items-center space-x-4">
+          {/* 会话模式切换 */}
+          <div className="flex items-center space-x-2">
+            <label className="text-sm text-gray-600">
+              <input
+                type="checkbox"
+                checked={useSession}
+                onChange={(e) => {
+                  setUseSession(e.target.checked);
+                  if (!e.target.checked) {
+                    setSessionId(null);
+                  }
+                }}
+                className="mr-1"
+              />
+              会话缓存
+            </label>
+            {useSession && sessionId && (
+              <>
+                <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                  ID: {sessionId.slice(-8)}
+                </span>
+                <button
+                  onClick={clearSession}
+                  className="text-xs text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 px-2 py-1 rounded"
+                  title="清除会话"
+                >
+                  清除
+                </button>
+              </>
+            )}
+          </div>
+          
+          {/* 连接状态 */}
+          <div className="flex items-center space-x-2">
+            <div className={`w-2 h-2 rounded-full ${
+              connectionStatus === 'connected' ? 'bg-green-500' : 
+              connectionStatus === 'error' ? 'bg-red-500' : 'bg-yellow-500'
+            }`}></div>
+            <span className="text-sm text-gray-600">
+              {connectionStatus === 'connected' ? '已连接' : 
+               connectionStatus === 'error' ? '连接失败' : '检查中...'}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -265,7 +334,7 @@ export default function ChatInterface({ onCharacterCreated, onEventCreated }: Ch
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="输入您的需求，例如：创建一个新的文臣角色..."
+            placeholder="告诉我您想要什么类型的角色或事件，例如：我想要一个权臣角色、为霍光加个事件..."
             className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
             rows={2}
             disabled={isLoading}

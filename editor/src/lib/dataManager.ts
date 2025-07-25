@@ -9,22 +9,57 @@ import {
 import { GameConfigManager } from './configManager';
 import { ValidationReport } from '@/types/editor';
 import { dump } from 'js-yaml';
+import { promises as fs } from 'fs';
+import path from 'path';
 
 export class EditorDataManager {
   private dataProvider: FileSystemDataProvider;
   private validator: ConfigValidator;
+  private dataPath: string;
   
   constructor(dataPath?: string) {
     const actualDataPath = dataPath || GameConfigManager.getConfigPath('editor');
+    this.dataPath = actualDataPath;
     this.dataProvider = new FileSystemDataProvider(actualDataPath);
     this.validator = new ConfigValidator(this.dataProvider);
   }
   
-  async saveCharacter(characterId: string, data: CharacterCard) {
-    // 由于 Core 包的 FileSystemDataProvider 主要用于读取，
-    // 我们需要自己实现保存功能
-    // TODO: 实现文件保存逻辑
-    console.log('Saving character:', characterId, data);
+  async saveCharacter(characterName: string, data: CharacterCard) {
+    try {
+      // 根据角色名称自动生成规范的ID
+      const characterId = this.generateCharacterId(characterName);
+      
+      // 将生成的ID设置到数据中
+      data.id = characterId;
+      
+      // 将 CharacterCard 转换为 CharacterConfig 格式以兼容 YAML 结构
+      const characterConfig: CharacterConfig = this.convertCardToConfig(data);
+      
+      // 创建角色目录
+      const characterDir = path.join(this.dataPath, 'characters', characterId);
+      await fs.mkdir(characterDir, { recursive: true });
+      
+      // 创建 events 子目录
+      const eventsDir = path.join(characterDir, 'events');
+      await fs.mkdir(eventsDir, { recursive: true });
+      
+      // 保存角色配置文件
+      const characterFile = path.join(characterDir, 'character.yaml');
+      const yamlContent = dump(characterConfig, {
+        indent: 2,
+        quotingType: '"',
+        lineWidth: -1
+      });
+      
+      await fs.writeFile(characterFile, yamlContent, 'utf8');
+      console.log(`✅ 角色文件已保存: ${characterFile}`);
+      
+      return characterId;
+      
+    } catch (error) {
+      console.error('保存角色文件失败:', error);
+      throw new Error(`保存角色 ${characterName} 失败: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
   
   async loadCharacter(characterId: string): Promise<CharacterCard | null> {
@@ -35,11 +70,50 @@ export class EditorDataManager {
     return this.convertConfigToCard(config);
   }
   
-  async saveEvent(characterId: string, eventId: string, data: EventCard) {
-    // 由于 Core 包的 FileSystemDataProvider 主要用于读取，
-    // 我们需要自己实现保存功能
-    // TODO: 实现文件保存逻辑
-    console.log('Saving event:', characterId, eventId, data);
+  async saveEvent(characterId: string, eventTitle: string, data: EventCard) {
+    try {
+      // 获取角色的现有事件，计算下一个序号
+      const existingEvents = await this.getCharacterEvents(characterId);
+      const nextNumber = existingEvents.length + 1;
+      
+      // 根据角色ID和序号自动生成规范的事件ID
+      const eventId = this.generateEventId(characterId, nextNumber);
+      
+      // 将生成的ID设置到数据中
+      data.id = eventId;
+      data.characterId = characterId;
+      
+      // 自动生成选项ID
+      if (data.choices && Array.isArray(data.choices)) {
+        data.choices.forEach((choice, index) => {
+          choice.id = this.generateChoiceId(characterId, nextNumber, index);
+        });
+      }
+      
+      // 将 EventCard 转换为 EventConfig 格式以兼容 YAML 结构
+      const eventConfig: EventConfig = this.convertEventCardToConfig(data);
+      
+      // 确保角色目录和 events 子目录存在
+      const eventsDir = path.join(this.dataPath, 'characters', characterId, 'events');
+      await fs.mkdir(eventsDir, { recursive: true });
+      
+      // 保存事件配置文件
+      const eventFile = path.join(eventsDir, `${eventId}.yaml`);
+      const yamlContent = dump(eventConfig, {
+        indent: 2,
+        quotingType: '"',
+        lineWidth: -1
+      });
+      
+      await fs.writeFile(eventFile, yamlContent, 'utf8');
+      console.log(`✅ 事件文件已保存: ${eventFile}`);
+      
+      return eventId;
+      
+    } catch (error) {
+      console.error('保存事件文件失败:', error);
+      throw new Error(`保存事件 ${eventTitle} 失败: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
   
   async loadEvent(characterId: string, eventId: string): Promise<EventCard | null> {
@@ -176,5 +250,104 @@ export class EditorDataManager {
     // 将 EventConfig 转换为 EventCard
     // 这个转换需要根据实际的类型定义来实现
     return config as unknown as EventCard;
+  }
+
+  private convertCardToConfig(card: CharacterCard): CharacterConfig {
+    // 将 CharacterCard 转换回 CharacterConfig 格式以保存为 YAML
+    return {
+      id: card.id,
+      name: card.name,
+      displayName: card.displayName,
+      role: card.role,
+      description: card.description,
+      category: '权臣', // 默认分类，应该从 card 中获取
+      rarity: 'common', // 默认稀有度，应该从 card 中获取
+      
+      initialAttributes: card.attributes,
+      initialRelationshipWithEmperor: card.relationshipWithEmperor,
+      relationshipNetwork: card.relationshipNetwork.map(rel => ({
+        targetCharacter: rel.targetCharacterId,
+        relationType: rel.relationType,
+        relationshipStrength: rel.relationshipStrength,
+        secretLevel: rel.secretLevel,
+        historicalBasis: rel.historicalBasis
+      })),
+      factionInfo: card.factionInfo,
+      influence: card.influence,
+      
+      // 必需字段设为默认值
+      traits: card.revealedTraits || [],
+      hiddenTraits: card.hiddenTraits || [],
+      backgroundClues: {
+        appearance: '',
+        mannerisms: '',
+        preferences: '',
+        relationships: '',
+        secrets: ''
+      }
+    };
+  }
+
+  private convertEventCardToConfig(card: EventCard): EventConfig {
+    // 将 EventCard 转换回 EventConfig 格式以保存为 YAML
+    return {
+      id: card.id,
+      title: card.title,
+      description: card.description,
+      speaker: card.speaker,
+      dialogue: card.dialogue,
+      weight: card.weight,
+      choices: card.choices,
+      activationConditions: card.activationConditions,
+      characterClues: card.characterClues
+    } as EventConfig;
+  }
+
+  /**
+   * 根据角色名生成规范的角色ID
+   * 规则：
+   * 1. 将中文名转为拼音（如果有特殊映射规则）
+   * 2. 移除空格和标点符号
+   * 3. 转换为小写
+   * 4. 保持简洁明了
+   */
+  private generateCharacterId(characterName: string): string {
+    // 简单的字符串处理：移除空格、标点，转小写
+    // 实际项目中可能需要更复杂的拼音转换逻辑
+    const cleanName = characterName
+      .replace(/[\s\-_，。！？、]/g, '') // 移除空格和常见标点
+      .toLowerCase();
+    
+    // 特殊字符映射（可以根据需要扩展）
+    const charMap: { [key: string]: string } = {
+      '武则天': 'wuzetian',
+      '李隆基': 'lilongji',
+      '杨贵妃': 'yangguifei',
+      '霍光': 'huoguang',
+      '李牧': 'limu',
+      '安禄山': 'anlushan',
+      '狄仁杰': 'direnjie',
+      '上官婉儿': 'shangguanwaner'
+    };
+    
+    return charMap[characterName] || cleanName;
+  }
+
+  /**
+   * 根据角色ID和事件序号生成事件ID
+   * 格式：{characterId}_event_{number}
+   */
+  private generateEventId(characterId: string, eventNumber: number): string {
+    return `${characterId}_event_${eventNumber.toString().padStart(3, '0')}`;
+  }
+
+  /**
+   * 根据角色ID、事件序号和选项索引生成选项ID
+   * 格式：{characterId}_event_{number}_choice_{index}
+   */
+  private generateChoiceId(characterId: string, eventNumber: number, choiceIndex: number): string {
+    const eventNum = eventNumber.toString().padStart(3, '0');
+    const choiceNum = (choiceIndex + 1).toString().padStart(2, '0');
+    return `${characterId}_event_${eventNum}_choice_${choiceNum}`;
   }
 }

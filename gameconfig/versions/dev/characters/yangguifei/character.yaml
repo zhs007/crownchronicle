@@ -1,0 +1,42 @@
+id: yangguifei
+name: 杨玉环
+displayName: 杨贵妃
+role: 后妃
+description: 唐玄宗的宠妃，以其美貌和才情著称，对皇帝有深远的影响力。
+category: 权臣
+rarity: common
+initialAttributes:
+  power: 75
+  age: 30
+  competence: 60
+  health: 85
+  loyalty: 95
+  ambition: 70
+  reputation: 80
+initialRelationshipWithEmperor:
+  trust: 85
+  threat: 5
+  fear: 10
+  affection: 90
+  dependency: 70
+  respect: 80
+relationshipNetwork: []
+factionInfo:
+  leadershipRole: core
+  primaryFaction: 后宫集团
+  secondaryFactions: []
+  factionLoyalty: 90
+influence:
+  health: 8
+  treasury: 3
+  authority: 5
+  popularity: 7
+  military: -2
+traits: []
+hiddenTraits: []
+backgroundClues:
+  appearance: ""
+  mannerisms: ""
+  preferences: ""
+  relationships: ""
+  secrets: ""

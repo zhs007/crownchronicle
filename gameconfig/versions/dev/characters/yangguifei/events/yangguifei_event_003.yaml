@@ -1,0 +1,28 @@
+id: yangguifei_event_003
+characterId: yangguifei
+title: 霓裳羽衣曲
+description: 贵妃为陛下献上新编舞曲《霓裳羽衣》，舞姿曼妙，令人陶醉。
+speaker: 杨贵妃
+dialogue: 陛下，妾身特为陛下创此舞，愿陛下龙心大悦。
+weight: 10
+activationConditions: {}
+characterClues: {}
+choices:
+  - consequences: 贵妃喜悦，民心大涨，但国库支出增加。
+    id: yangguifei_event_003_choice_01
+    text: 大加赞赏，重赏贵妃。
+    effects:
+      popularity: 10
+      treasury: -10
+  - consequences: 君臣同乐，民心和陛下威望均有提升。
+    effects:
+      authority: 5
+      popularity: 5
+    id: yangguifei_event_003_choice_02
+    text: 邀请文武百官共赏。
+  - text: 趁机提出军事改革。
+    consequences: 军事力量有所提升，但因时机不当，民心略有下降。
+    id: yangguifei_event_003_choice_03
+    effects:
+      military: 5
+      popularity: -5
