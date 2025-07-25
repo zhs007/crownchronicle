@@ -132,9 +132,44 @@ export class EditorDataManager {
   }
   
   private convertConfigToCard(config: CharacterConfig): CharacterCard {
-    // 将 CharacterConfig 转换为 CharacterCard
-    // 这个转换需要根据实际的类型定义来实现
-    return config as unknown as CharacterCard;
+    // 将 CharacterConfig 转换为 CharacterCard，正确映射字段名
+    return {
+      id: config.id,
+      name: config.name,
+      displayName: config.displayName,
+      currentTitle: config.displayName, // 如果没有单独的 currentTitle，使用 displayName
+      role: config.role,
+      description: config.description,
+      identityRevealed: false, // 默认值
+      
+      attributes: config.initialAttributes, // 将 initialAttributes 映射到 attributes
+      relationshipWithEmperor: config.initialRelationshipWithEmperor, // 映射关系字段
+      relationshipNetwork: (config.relationshipNetwork || []).map(rel => ({
+        targetCharacterId: rel.targetCharacter, // 映射字段名
+        relationType: rel.relationType,
+        relationshipStrength: rel.relationshipStrength,
+        secretLevel: rel.secretLevel,
+        historicalBasis: rel.historicalBasis
+      })),
+      factionInfo: config.factionInfo,
+      influence: config.influence,
+      
+      revealedTraits: [], // 默认空数组
+      hiddenTraits: [], // 默认空数组
+      discoveredClues: [], // 默认空数组
+      totalClues: 0, // 默认值
+      statusFlags: {
+        alive: true,
+        inCourt: true,
+        inExile: false,
+        imprisoned: false,
+        promoted: false,
+        demoted: false,
+        suspicious: false,
+        plotting: false
+      }, // 默认状态标志
+      eventIds: [] // 默认空数组
+    };
   }
   
   private convertEventConfigToCard(config: EventConfig): EventCard {

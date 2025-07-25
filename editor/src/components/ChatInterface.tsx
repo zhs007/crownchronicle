@@ -1,10 +1,31 @@
-'use client';
-
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { CharacterCard, EventCard } from '@/types/game';
+
+// Utility function for consistent time formatting
+const formatTime = (date: Date): string => {
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  const seconds = date.getSeconds().toString().padStart(2, '0');
+  return `${hours}:${minutes}:${seconds}`;
+};
+
+// Client-only timestamp component to avoid hydration issues
+const ClientTimestamp: React.FC<{ timestamp: Date }> = ({ timestamp }) => {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <span>--:--:--</span>;
+  }
+
+  return <span>{formatTime(timestamp)}</span>;
+};
 
 interface Message {
   role: 'user' | 'assistant';
@@ -219,7 +240,7 @@ export default function ChatInterface({ onCharacterCreated, onEventCreated }: Ch
                 </ReactMarkdown>
               </div>
               <div className="text-xs opacity-70 mt-2">
-                {message.timestamp.toLocaleTimeString()}
+                <ClientTimestamp timestamp={message.timestamp} />
               </div>
             </div>
           </div>

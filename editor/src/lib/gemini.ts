@@ -27,8 +27,9 @@ export class GeminiClient {
   
   constructor(apiKey: string, dataPath?: string) {
     this.genAI = new GoogleGenerativeAI(apiKey);
+    const modelName = process.env.GEMINI_MODEL || 'gemini-1.5-pro';
     this.model = this.genAI.getGenerativeModel({ 
-      model: 'gemini-pro',
+      model: modelName,
       generationConfig: {
         temperature: 0.7,
         topK: 40,
@@ -36,6 +37,8 @@ export class GeminiClient {
         maxOutputTokens: 8192,
       }
     });
+    
+    console.log(`✅ Gemini client initialized with model: ${modelName}`);
     
     const actualDataPath = dataPath || GameConfigManager.getConfigPath('editor');
     this.dataProvider = new FileSystemDataProvider(actualDataPath);

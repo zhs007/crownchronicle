@@ -65,7 +65,7 @@ export default function DataPreview({ selectedFile }: DataPreviewProps) {
       <div className="bg-white rounded-lg p-4 shadow-sm border">
         <h3 className="text-lg font-semibold mb-3 text-gray-800">初始属性</h3>
         <div className="grid grid-cols-2 gap-4">
-          {Object.entries(character.attributes).map(([key, value]) => (
+          {character.attributes && Object.entries(character.attributes).map(([key, value]) => (
             <div key={key} className="flex items-center justify-between">
               <span className="text-sm font-medium text-gray-600">{getAttributeLabel(key)}</span>
               <div className="flex items-center space-x-2">
@@ -86,7 +86,7 @@ export default function DataPreview({ selectedFile }: DataPreviewProps) {
       <div className="bg-white rounded-lg p-4 shadow-sm border">
         <h3 className="text-lg font-semibold mb-3 text-gray-800">与皇帝关系</h3>
         <div className="grid grid-cols-2 gap-4">
-          {Object.entries(character.relationshipWithEmperor).map(([key, value]) => (
+          {character.relationshipWithEmperor && Object.entries(character.relationshipWithEmperor).map(([key, value]) => (
             <div key={key} className="flex items-center justify-between">
               <span className="text-sm font-medium text-gray-600">{getRelationshipLabel(key)}</span>
               <div className="flex items-center space-x-2">
@@ -185,7 +185,7 @@ export default function DataPreview({ selectedFile }: DataPreviewProps) {
               <div className="mb-2">
                 <span className="text-sm font-medium text-gray-600">效果:</span>
                 <div className="flex flex-wrap gap-2 mt-1">
-                  {Object.entries(choice.effects).map(([key, value]) => (
+                  {choice.effects && Object.entries(choice.effects).map(([key, value]) => (
                     value !== 0 && (
                       <span key={key} className={`px-2 py-1 rounded text-xs ${
                         value > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
