@@ -61,7 +61,7 @@ export default function HomePage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-imperial-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600"></div>
       </div>
     );
   }
@@ -69,16 +69,16 @@ export default function HomePage() {
   return (
     <div className="min-h-screen">
       {/* 头部 */}
-      <header className="bg-gradient-to-r from-imperial-600 to-imperial-800 text-white py-8">
+      <header className="bg-gradient-to-r from-yellow-600 to-yellow-800 text-white py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl md:text-6xl font-bold mb-4">
               皇帝编年史
             </h1>
-            <p className="text-xl md:text-2xl text-imperial-200">
+            <p className="text-xl md:text-2xl text-yellow-200">
               Crown Chronicle
             </p>
-            <p className="text-lg text-imperial-300 mt-2">
+            <p className="text-lg text-yellow-300 mt-2">
               执掌朝政，御驾亲征，看你能在波诡云谲的朝堂中生存多久
             </p>
           </div>
@@ -112,11 +112,11 @@ export default function HomePage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">最高威望：</span>
-                  <span className="font-semibold text-imperial-600">{stats.bestAuthority}</span>
+                  <span className="font-semibold text-yellow-600">{Number.isFinite(stats.bestAuthority) ? stats.bestAuthority : '--'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">最高民心：</span>
-                  <span className="font-semibold text-dragon-600">{stats.bestPopularity}</span>
+                  <span className="font-semibold text-dragon-600">{Number.isFinite(stats.bestPopularity) ? stats.bestPopularity : '--'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">最长在位：</span>
@@ -152,7 +152,7 @@ export default function HomePage() {
                   <span>影响皇帝寿命，降至0将驾崩</span>
                 </div>
                 <div className="flex items-start">
-                  <span className="font-semibold text-imperial-600 mr-2">威望：</span>
+                  <span className="font-semibold text-yellow-600 mr-2">威望：</span>
                   <span>皇帝权威，降至0将被迫退位</span>
                 </div>
                 <div className="flex items-start">

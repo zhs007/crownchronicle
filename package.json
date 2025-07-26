@@ -19,7 +19,9 @@
     "clean": "npm run clean --workspace=core && npm run clean --workspace=prototype",
     "install-all": "npm install --workspaces"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.11"
+  },
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=8.0.0"

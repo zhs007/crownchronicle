@@ -67,7 +67,7 @@ export default function CharacterPanel({ characters }: CharacterPanelProps) {
                     {character.role}
                   </div>
                   {character.identityRevealed && (
-                    <div className="text-xs text-imperial-600 font-medium">
+                    <div className="text-xs text-yellow-600 font-medium">
                       真实身份：{character.name}
                     </div>
                   )}
@@ -129,7 +129,7 @@ export default function CharacterPanel({ characters }: CharacterPanelProps) {
                     {character.revealedTraits.map((trait, index) => (
                       <span 
                         key={index}
-                        className="bg-imperial-100 text-imperial-700 text-xs px-2 py-1 rounded"
+                        className="bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded"
                       >
                         {trait}
                       </span>

@@ -93,7 +93,7 @@ export default function SaveManager({ saves, onSavesUpdate, error }: SaveManager
               value={newGameName}
               onChange={(e) => setNewGameName(e.target.value)}
               placeholder="请输入存档名称..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-imperial-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
               maxLength={50}
             />
           </div>
@@ -109,8 +109,8 @@ export default function SaveManager({ saves, onSavesUpdate, error }: SaveManager
                   key={option.value}
                   className={`p-3 border rounded-lg cursor-pointer transition-colors ${
                     selectedDifficulty === option.value
-                      ? 'border-imperial-500 bg-imperial-50'
-                      : 'border-gray-300 hover:border-imperial-300'
+                      ? 'border-yellow-500 bg-yellow-50'
+                      : 'border-gray-300 hover:border-yellow-300'
                   }`}
                   onClick={() => setSelectedDifficulty(option.value as any)}
                 >

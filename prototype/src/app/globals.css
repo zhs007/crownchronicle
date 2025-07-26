@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -10,7 +12,7 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-imperial-600 hover:bg-imperial-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+    @apply bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
   }
   
   .btn-secondary {
@@ -22,11 +24,11 @@
   }
   
   .card-imperial {
-    @apply bg-gradient-to-br from-imperial-50 to-imperial-100 border-imperial-200 shadow-lg;
+    @apply bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200 shadow-lg;
   }
   
   .text-imperial {
-    @apply text-imperial-700;
+    @apply text-yellow-700;
   }
   
   .progress-bar {

@@ -28,15 +28,15 @@ export default function EventDisplay({ event, onChoice, loading = false, gameOve
       </div>
 
       {/* 角色对话 */}
-      <div className="mb-8 p-4 bg-gradient-to-r from-imperial-50 to-dragon-50 rounded-lg border-l-4 border-imperial-500">
+      <div className="mb-8 p-4 bg-gradient-to-r from-yellow-50 to-blue-50 rounded-lg border-l-4 border-yellow-500">
         <div className="flex items-start space-x-3">
           <div className="flex-shrink-0">
-            <div className="w-10 h-10 bg-imperial-600 rounded-full flex items-center justify-center text-white font-bold">
+            <div className="w-10 h-10 bg-yellow-600 rounded-full flex items-center justify-center text-white font-bold">
               {event.speaker.charAt(0)}
             </div>
           </div>
           <div className="flex-1">
-            <div className="font-semibold text-imperial-700 mb-2">
+            <div className="font-semibold text-yellow-700 mb-2">
               {event.speaker}
             </div>
             <div className="text-gray-700 leading-relaxed">
@@ -61,11 +61,11 @@ export default function EventDisplay({ event, onChoice, loading = false, gameOve
               className={`w-full text-left p-4 border-2 rounded-lg transition-all duration-200 ${
                 loading 
                   ? 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-50'
-                  : 'border-gray-200 hover:border-imperial-400 hover:bg-imperial-50 cursor-pointer'
+                  : 'border-gray-200 hover:border-yellow-400 hover:bg-yellow-50 cursor-pointer'
               }`}
             >
               <div className="flex items-start space-x-3">
-                <div className="flex-shrink-0 w-6 h-6 bg-imperial-100 rounded-full flex items-center justify-center text-imperial-700 text-sm font-bold">
+                <div className="flex-shrink-0 w-6 h-6 bg-yellow-100 rounded-full flex items-center justify-center text-yellow-700 text-sm font-bold">
                   {String.fromCharCode(65 + index)}
                 </div>
                 <div className="flex-1">
@@ -112,7 +112,7 @@ export default function EventDisplay({ event, onChoice, loading = false, gameOve
       {/* 加载状态 */}
       {loading && (
         <div className="mt-6 flex items-center justify-center py-4">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-imperial-600 mr-3"></div>
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-yellow-600 mr-3"></div>
           <span className="text-gray-600">处理中...</span>
         </div>
       )}

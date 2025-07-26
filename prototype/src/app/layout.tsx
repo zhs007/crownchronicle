@@ -14,7 +14,7 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <body className="font-chinese antialiased">
-        <div className="min-h-screen bg-gradient-to-br from-imperial-50 to-dragon-50">
+        <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-dragon-50">
           {children}
         </div>
       </body>

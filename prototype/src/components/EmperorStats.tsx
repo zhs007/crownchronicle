@@ -46,7 +46,7 @@ export default function EmperorStats({ stats }: EmperorStatsProps) {
       
       {/* 基本信息 */}
       <div className="text-center mb-6 p-4 bg-white bg-opacity-50 rounded-lg">
-        <div className="text-2xl font-bold text-imperial-700 mb-2">
+        <div className="text-2xl font-bold text-yellow-700 mb-2">
           {statItems.find(item => item.key === 'age')?.value} 岁
         </div>
       </div>

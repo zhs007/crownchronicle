@@ -1,16 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SaveManager } from '@/lib/saveManager';
 
-interface RouteParams {
-  params: {
-    saveId: string;
-  };
-}
+
 
 // GET /api/saves/[saveId] - 加载存档
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export async function GET(request: NextRequest) {
+  const segments = request.nextUrl.pathname.split('/');
+  const saveId = segments[segments.length - 1];
   try {
-    const { saveId } = params;
     
     const saveFile = await SaveManager.loadSave(saveId);
     if (!saveFile) {
@@ -40,9 +37,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 }
 
 // PUT /api/saves/[saveId] - 保存游戏
-export async function PUT(request: NextRequest, { params }: RouteParams) {
+export async function PUT(request: NextRequest) {
+  const segments = request.nextUrl.pathname.split('/');
+  const saveId = segments[segments.length - 1];
   try {
-    const { saveId } = params;
     const body = await request.json();
     const { gameState, playTime = 0 } = body;
 
@@ -80,9 +78,10 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 }
 
 // DELETE /api/saves/[saveId] - 删除存档
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
+export async function DELETE(request: NextRequest) {
+  const segments = request.nextUrl.pathname.split('/');
+  const saveId = segments[segments.length - 1];
   try {
-    const { saveId } = params;
     
     const success = await SaveManager.deleteSave(saveId);
     

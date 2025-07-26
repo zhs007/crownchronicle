@@ -3,16 +3,15 @@ import { SaveManager } from '@/lib/saveManager';
 import { GameEngine, CardPoolManager } from 'crownchronicle-core';
 import { GameActionRequest } from '@/types/api';
 
-interface RouteParams {
-  params: {
-    saveId: string;
-  };
-}
+
 
 // POST /api/saves/[saveId]/action - 执行游戏行动
-export async function POST(request: NextRequest, { params }: RouteParams) {
+export async function POST(request: NextRequest) {
+  // 兼容 Next.js 15 动态 API 路由参数
+  const segments = request.nextUrl.pathname.split('/');
+  // /api/saves/[saveId]/action -> ['','api','saves','[saveId]','action']
+  const saveId = segments[segments.length - 2];
   try {
-    const { saveId } = params;
     const body = await request.json();
     
     // 支持两种格式：
@@ -90,7 +89,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
         // 收集角色发现 (从角色线索推断)
         const characterDiscoveries: string[] = [];
-        if (gameState.currentEvent.characterClues) {
+        if (gameState.currentEvent && gameState.currentEvent.characterClues) {
           if (gameState.currentEvent.characterClues.personalityHints) {
             characterDiscoveries.push(...gameState.currentEvent.characterClues.personalityHints);
           }
@@ -100,13 +99,15 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         }
 
         // 记录游戏事件
-        GameEngine.recordGameEvent(
-          gameState, 
-          gameState.currentEvent, 
-          choice,
-          Object.keys(relationshipChanges).length > 0 ? relationshipChanges : undefined,
-          characterDiscoveries.length > 0 ? characterDiscoveries : undefined
-        );
+        if (gameState.currentEvent) {
+          GameEngine.recordGameEvent(
+            gameState, 
+            gameState.currentEvent, 
+            choice,
+            Object.keys(relationshipChanges).length > 0 ? relationshipChanges : undefined,
+            characterDiscoveries.length > 0 ? characterDiscoveries : undefined
+          );
+        }
 
         // 处理回合结束
         gameState = GameEngine.processTurnEnd(gameState);
@@ -119,7 +120,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           gameState.endTime = Date.now();
           gameOverInfo = {
             gameOver: true,
-            gameOverReason: gameOverCheck.reason
+          gameOverReason: gameOverCheck.reason as any
           };
         } else {
           // 更新卡池并选择下一个事件
@@ -137,7 +138,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             gameState.endTime = Date.now();
             gameOverInfo = {
               gameOver: true,
-              gameOverReason: '朝政平稳，皇帝安然退位'
+              gameOverReason: undefined
             };
           }
         }
