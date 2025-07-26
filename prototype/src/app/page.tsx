@@ -34,9 +34,9 @@ export default function HomePage() {
         setStats({
           totalSaves: savesData.length,
           totalPlayTime: savesData.reduce((sum, save) => sum + save.metadata.totalPlayTime, 0),
-          bestAuthority: savesData.length > 0 ? Math.max(...savesData.map(save => save.metadata.maxAuthority)) : 0,
+          bestAuthority: savesData.length > 0 ? Math.max(...savesData.map(save => save.metadata.maxPower)) : 0,
           bestPopularity: savesData.length > 0 ? Math.max(...savesData.map(save => save.metadata.maxPopularity)) : 0,
-          longestReign: savesData.length > 0 ? Math.max(...savesData.map(save => save.reignYears)) : 0
+          longestReign: savesData.length > 0 ? Math.max(...savesData.map(save => save.emperorAge)) : 0
         });
       } else {
         setError(response.error || '加载存档失败');

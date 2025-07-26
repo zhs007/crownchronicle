@@ -4,8 +4,7 @@ import {
   type CharacterCard, 
   type EventCard, 
   ConfigValidator,
-  FileSystemDataProvider,
-  GAME_CONSTANTS
+  FileSystemDataProvider
 } from 'crownchronicle-core';
 import { GameConfigManager } from './configManager';
 import { EditorDataManager } from './dataManager';
@@ -151,7 +150,7 @@ export class GeminiClient {
       case 'get_character_info':
         return await this.getCharacterInfo(args);
       case 'list_characters':
-        return await this.listCharacters(args);
+        return await this.listCharacters();
       case 'modify_character':
         return await this.modifyCharacter(args);
       case 'modify_event':
@@ -165,11 +164,9 @@ export class GeminiClient {
     try {
       // 转换为符合 Core 包类型的数据结构
       const characterData: CharacterCard = this.convertToCharacterCard(args);
-      
       // 使用角色名称进行保存，系统将自动生成ID
       const characterName = String(args.name);
       await this.dataManager.saveCharacter(characterName, characterData);
-      
       return {
         type: 'success',
         action: 'create_character',
@@ -192,10 +189,8 @@ export class GeminiClient {
       const eventData: EventCard = this.convertToEventCard(args);
       const characterId = String(args.characterId);
       const eventTitle = String(args.title);
-      
       // 使用事件标题进行保存，系统将自动生成ID
       await this.dataManager.saveEvent(characterId, eventTitle, eventData);
-      
       return {
         type: 'success',
         action: 'create_event',
@@ -247,7 +242,7 @@ export class GeminiClient {
     }
   }
 
-  private async listCharacters(args: Record<string, unknown>): Promise<GeminiFunctionResult> {
+  private async listCharacters(): Promise<GeminiFunctionResult> {
     try {
       const characters = await this.dataManager.getAllCharacters();
       
@@ -383,7 +378,7 @@ export class GeminiClient {
   
   private buildFunctionSchema(): Record<string, FunctionCallSchema> {
     // 基于 Core 包的常量和约束构建 Schema
-    const constants = GAME_CONSTANTS;
+    // const constants = GAME_CONSTANTS; // 移除未使用变量
     
     return {
       create_character: {
@@ -427,8 +422,9 @@ export class GeminiClient {
                 secondaryFactions: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING }, description: '次要派系' },
                 factionLoyalty: { type: SchemaType.NUMBER, description: '派系忠诚度 (0-100)' },
                 leadershipRole: { 
-                  type: SchemaType.STRING, 
+                  type: SchemaType.STRING,
                   enum: ['leader', 'core', 'member', 'sympathizer'],
+                  format: 'enum',
                   description: '在派系中的角色'
                 }
               },

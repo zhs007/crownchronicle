@@ -23,7 +23,6 @@ export {
 export type {
   // 游戏状态相关
   GameState,
-  EmperorStats,
   GameEvent,
   
   // 角色相关

@@ -7,7 +7,7 @@ export interface SessionMessage {
   content: string;
   timestamp: Date;
   type?: string;
-  results?: any[];
+  results?: unknown[];
 }
 
 export interface ChatSession {

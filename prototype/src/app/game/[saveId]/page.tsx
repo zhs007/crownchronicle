@@ -125,8 +125,7 @@ export default function GamePage() {
               </button>
               <div className="text-sm text-gray-600">
                 第 {gameState.currentTurn} 回合 | 
-                年龄 {gameState.emperor.age} 岁 | 
-                在位 {gameState.emperor.reignYears} 年
+                年龄 {gameState.emperor.age} 岁
               </div>
             </div>
             

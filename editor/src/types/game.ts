@@ -7,7 +7,6 @@ export {
   type RelationshipWithEmperor,
   type CharacterRelationship,
   type FactionInfo,
-  type EmperorStats,
   type GameState,
   type GameConfig,
   type EventConditions,

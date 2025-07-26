@@ -92,7 +92,7 @@ export default function SaveCard({ save, onContinue, onDelete }: SaveCardProps) 
         </div>
         <div>
           <div className="text-gray-600">在位年数</div>
-          <div className="font-semibold">{save.reignYears} 年</div>
+          <div className="font-semibold">{save.emperorAge} 年</div>
         </div>
         <div>
           <div className="text-gray-600">游戏回合</div>
@@ -108,7 +108,7 @@ export default function SaveCard({ save, onContinue, onDelete }: SaveCardProps) 
       <div className="mt-3 grid grid-cols-2 gap-4 text-sm">
         <div>
           <div className="text-gray-600">最高威望</div>
-          <div className="font-semibold text-imperial-600">{save.metadata.maxAuthority}</div>
+          <div className="font-semibold text-imperial-600">{save.metadata.maxPower}</div>
         </div>
         <div>
           <div className="text-gray-600">最高民心</div>

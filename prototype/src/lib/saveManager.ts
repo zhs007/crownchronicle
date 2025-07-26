@@ -48,7 +48,7 @@ export class SaveManager {
     
     const metadata: SaveMetadata = {
       totalPlayTime: 0,
-      maxAuthority: gameState.emperor.authority,
+      maxPower: gameState.emperor.power,
       maxPopularity: gameState.emperor.popularity,
       achievements: [],
       difficulty,
@@ -96,7 +96,7 @@ export class SaveManager {
       saveFile.gameState = gameState;
       saveFile.lastSavedAt = new Date().toISOString();
       saveFile.metadata.totalPlayTime += playTime;
-      saveFile.metadata.maxAuthority = Math.max(saveFile.metadata.maxAuthority, gameState.emperor.authority);
+      saveFile.metadata.maxPower = Math.max(saveFile.metadata.maxPower, gameState.emperor.power);
       saveFile.metadata.maxPopularity = Math.max(saveFile.metadata.maxPopularity, gameState.emperor.popularity);
       
       const filePath = this.getSaveFilePath(saveId);
@@ -148,7 +148,6 @@ export class SaveManager {
             lastSavedAt: saveFile.lastSavedAt,
             currentTurn: saveFile.gameState.currentTurn,
             emperorAge: saveFile.gameState.emperor.age,
-            reignYears: saveFile.gameState.emperor.reignYears,
             gameOver: saveFile.gameState.gameOver,
             metadata: saveFile.metadata
           };
@@ -205,9 +204,9 @@ export class SaveManager {
     return {
       totalSaves: saves.length,
       totalPlayTime: saves.reduce((sum, save) => sum + save.metadata.totalPlayTime, 0),
-      bestAuthority: Math.max(...saves.map(save => save.metadata.maxAuthority)),
+      bestAuthority: Math.max(...saves.map(save => save.metadata.maxPower)),
       bestPopularity: Math.max(...saves.map(save => save.metadata.maxPopularity)),
-      longestReign: Math.max(...saves.map(save => save.reignYears))
+      longestReign: Math.max(...saves.map(save => save.emperorAge))
     };
   }
 
