@@ -142,11 +142,12 @@ export class GameSimulator {
     averageDuration: number;
     gameOverReasons: Record<string, number>;
     averageStats: {
-      health: number;
-      authority: number;
-      treasury: number;
+      power: number;
       military: number;
+      wealth: number;
       popularity: number;
+      health: number;
+      age: number;
     };
   } {
     if (results.length === 0) {
@@ -156,11 +157,12 @@ export class GameSimulator {
         averageDuration: 0,
         gameOverReasons: {},
         averageStats: {
-          health: 0,
-          authority: 0,
-          treasury: 0,
+          power: 0,
           military: 0,
-          popularity: 0
+          wealth: 0,
+          popularity: 0,
+          health: 0,
+          age: 0
         }
       };
     }
@@ -181,13 +183,14 @@ export class GameSimulator {
     const totalStats = results.reduce((acc, r) => {
       const { emperor } = r.gameState;
       return {
-        health: acc.health + emperor.health,
-        authority: acc.authority + emperor.authority,
-        treasury: acc.treasury + emperor.treasury,
+        power: acc.power + emperor.power,
         military: acc.military + emperor.military,
-        popularity: acc.popularity + emperor.popularity
+        wealth: acc.wealth + emperor.wealth,
+        popularity: acc.popularity + emperor.popularity,
+        health: acc.health + emperor.health,
+        age: acc.age + emperor.age
       };
-    }, { health: 0, authority: 0, treasury: 0, military: 0, popularity: 0 });
+    }, { power: 0, military: 0, wealth: 0, popularity: 0, health: 0, age: 0 });
 
     return {
       successRate: successCount / results.length,
@@ -195,11 +198,12 @@ export class GameSimulator {
       averageDuration: totalDuration / results.length,
       gameOverReasons,
       averageStats: {
-        health: totalStats.health / results.length,
-        authority: totalStats.authority / results.length,
-        treasury: totalStats.treasury / results.length,
+        power: totalStats.power / results.length,
         military: totalStats.military / results.length,
-        popularity: totalStats.popularity / results.length
+        wealth: totalStats.wealth / results.length,
+        popularity: totalStats.popularity / results.length,
+        health: totalStats.health / results.length,
+        age: totalStats.age / results.length
       }
     };
   }

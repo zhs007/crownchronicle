@@ -3,7 +3,7 @@ import { GameState } from 'crownchronicle-core';
 // 存档元数据
 export interface SaveMetadata {
   totalPlayTime: number;    // 总游戏时间(秒)
-  maxAuthority: number;     // 历史最高威望
+  maxPower: number;         // 历史最高权势
   maxPopularity: number;    // 历史最高民心
   achievements: string[];   // 成就列表
   difficulty: 'easy' | 'normal' | 'hard';
@@ -28,7 +28,6 @@ export interface SaveSummary {
   lastSavedAt: string;
   currentTurn: number;
   emperorAge: number;
-  reignYears: number;
   gameOver: boolean;
   thumbnail?: string;       // 存档缩略图(可选)
   metadata: SaveMetadata;

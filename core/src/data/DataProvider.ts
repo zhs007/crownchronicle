@@ -196,10 +196,9 @@ export class ConfigConverter {
       
       attributes: {
         power: config.initialAttributes.power,
-        loyalty: config.initialAttributes.loyalty,
-        ambition: config.initialAttributes.ambition,
-        competence: config.initialAttributes.competence,
-        reputation: config.initialAttributes.reputation,
+        military: config.initialAttributes.military,
+        wealth: config.initialAttributes.wealth,
+        popularity: config.initialAttributes.popularity,
         health: config.initialAttributes.health,
         age: config.initialAttributes.age
       },

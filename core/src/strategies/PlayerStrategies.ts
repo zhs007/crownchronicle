@@ -15,8 +15,8 @@ export class RandomPlayerStrategy implements PlayerStrategy {
       const { emperor } = gameState;
       
       if (choice.conditions.minHealth && emperor.health < choice.conditions.minHealth) return false;
-      if (choice.conditions.minAuthority && emperor.authority < choice.conditions.minAuthority) return false;
-      if (choice.conditions.maxAuthority && emperor.authority > choice.conditions.maxAuthority) return false;
+      if (choice.conditions.minPower && emperor.power < choice.conditions.minPower) return false;
+      if (choice.conditions.maxPower && emperor.power > choice.conditions.maxPower) return false;
       
       return true;
     });
@@ -44,8 +44,8 @@ export class ConservativePlayerStrategy implements PlayerStrategy {
       if (!choice.conditions) return true;
       
       if (choice.conditions.minHealth && emperor.health < choice.conditions.minHealth) return false;
-      if (choice.conditions.minAuthority && emperor.authority < choice.conditions.minAuthority) return false;
-      if (choice.conditions.maxAuthority && emperor.authority > choice.conditions.maxAuthority) return false;
+      if (choice.conditions.minPower && emperor.power < choice.conditions.minPower) return false;
+      if (choice.conditions.maxPower && emperor.power > choice.conditions.maxPower) return false;
       
       return true;
     });
@@ -105,8 +105,8 @@ export class AggressivePlayerStrategy implements PlayerStrategy {
       if (!choice.conditions) return true;
       
       if (choice.conditions.minHealth && emperor.health < choice.conditions.minHealth) return false;
-      if (choice.conditions.minAuthority && emperor.authority < choice.conditions.minAuthority) return false;
-      if (choice.conditions.maxAuthority && emperor.authority > choice.conditions.maxAuthority) return false;
+      if (choice.conditions.minPower && emperor.power < choice.conditions.minPower) return false;
+      if (choice.conditions.maxPower && emperor.power > choice.conditions.maxPower) return false;
       
       return true;
     });
@@ -160,8 +160,8 @@ export class BalancedPlayerStrategy implements PlayerStrategy {
       if (!choice.conditions) return true;
       
       if (choice.conditions.minHealth && emperor.health < choice.conditions.minHealth) return false;
-      if (choice.conditions.minAuthority && emperor.authority < choice.conditions.minAuthority) return false;
-      if (choice.conditions.maxAuthority && emperor.authority > choice.conditions.maxAuthority) return false;
+      if (choice.conditions.minPower && emperor.power < choice.conditions.minPower) return false;
+      if (choice.conditions.maxPower && emperor.power > choice.conditions.maxPower) return false;
       
       return true;
     });

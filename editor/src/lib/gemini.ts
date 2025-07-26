@@ -399,15 +399,14 @@ export class GeminiClient {
             initialAttributes: {
               type: SchemaType.OBJECT,
               properties: {
-                power: { type: SchemaType.NUMBER, description: '权力值 (0-100)' },
-                loyalty: { type: SchemaType.NUMBER, description: '忠诚度 (0-100)' },
-                ambition: { type: SchemaType.NUMBER, description: '野心值 (0-100)' },
-                competence: { type: SchemaType.NUMBER, description: '能力值 (0-100)' },
-                reputation: { type: SchemaType.NUMBER, description: '声望值 (0-100)' },
-                health: { type: SchemaType.NUMBER, description: '健康状况 (0-100)' },
+                power: { type: SchemaType.NUMBER, description: '权势 (0-100)' },
+                military: { type: SchemaType.NUMBER, description: '军队 (0-100)' },
+                wealth: { type: SchemaType.NUMBER, description: '财富 (0-100)' },
+                popularity: { type: SchemaType.NUMBER, description: '民心 (0-100)' },
+                health: { type: SchemaType.NUMBER, description: '健康 (0-100)' },
                 age: { type: SchemaType.NUMBER, description: '年龄' }
               },
-              required: ['power', 'loyalty', 'ambition', 'competence', 'reputation', 'health', 'age']
+              required: ['power', 'military', 'wealth', 'popularity', 'health', 'age']
             },
             initialRelationshipWithEmperor: {
               type: SchemaType.OBJECT,
@@ -438,13 +437,13 @@ export class GeminiClient {
             influence: {
               type: SchemaType.OBJECT,
               properties: {
-                health: { type: SchemaType.NUMBER, description: '对皇帝健康的影响 (-10 到 10)' },
-                authority: { type: SchemaType.NUMBER, description: '对皇帝威望的影响 (-10 到 10)' },
-                treasury: { type: SchemaType.NUMBER, description: '对国库的影响 (-10 到 10)' },
-                military: { type: SchemaType.NUMBER, description: '对军事的影响 (-10 到 10)' },
-                popularity: { type: SchemaType.NUMBER, description: '对民心的影响 (-10 到 10)' }
+                power: { type: SchemaType.NUMBER, description: '对皇帝权势的影响 (-10 到 10)' },
+                military: { type: SchemaType.NUMBER, description: '对军队的影响 (-10 到 10)' },
+                wealth: { type: SchemaType.NUMBER, description: '对财富的影响 (-10 到 10)' },
+                popularity: { type: SchemaType.NUMBER, description: '对民心的影响 (-10 到 10)' },
+                health: { type: SchemaType.NUMBER, description: '对健康的影响 (-10 到 10)' }
               },
-              required: ['health', 'authority', 'treasury', 'military', 'popularity']
+              required: ['power', 'military', 'wealth', 'popularity', 'health']
             }
           },
           required: ['name', 'displayName', 'role', 'description', 'initialAttributes', 'initialRelationshipWithEmperor', 'factionInfo', 'influence']

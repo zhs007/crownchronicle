@@ -290,20 +290,15 @@ export default function DataPreview({ selectedFile }: DataPreviewProps) {
 
 // 辅助函数
 function getAttributeLabel(key: string): string {
-  const labels = {
-    power: '权力',
-    loyalty: '忠诚',
-    ambition: '野心',
-    competence: '能力',
-    reputation: '声望',
+  const labels: Record<string, string> = {
+    power: '权势',
+    military: '军队',
+    wealth: '财富',
+    popularity: '民心',
     health: '健康',
-    age: '年龄',
-    authority: '威望',
-    treasury: '财政',
-    military: '军事',
-    popularity: '民望'
+    age: '年龄'
   };
-  return labels[key as keyof typeof labels] || key;
+  return labels[key] || key;
 }
 
 function getRelationshipLabel(key: string): string {

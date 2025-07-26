@@ -1,21 +1,17 @@
-id: "wuzetian_power_struggle"
-title: "母后干政"
-description: "朝堂之上，母后公然质疑你的决策"
-speaker: "母后"
-dialogue: "皇上年幼，此等军国大事还需本宫来定夺才是。"
-
-# 身份线索
+id: wuzetian_power_struggle
+title: 母后干政
+description: 朝堂之上，母后公然质疑你的决策
+speaker: 母后
+dialogue: 皇上年幼，此等军国大事还需本宫来定夺才是。
 characterClues:
   revealedTraits:
-    - "权谋"
-    - "强势"
+    - 权谋
+    - 强势
   personalityHints:
-    - "母后似乎对朝政有着异乎寻常的熟悉"
-    - "她的眼神中闪烁着政治家的精明"
+    - 母后似乎对朝政有着异乎寻常的熟悉
+    - 她的眼神中闪烁着政治家的精明
   backgroundHints:
-    - "你注意到大臣们对母后都颇为敬畏"
-
-# 事件激活条件
+    - 你注意到大臣们对母后都颇为敬畏
 activationConditions:
   minReignYears: 2
   maxReignYears: 15
@@ -24,45 +20,37 @@ activationConditions:
   attributeRequirements:
     minAuthority: 20
     maxAuthority: 70
-
-# 事件触发条件
 triggerConditions:
   minAuthority: 30
   maxAge: 35
-
-# 卡池权重
 weight: 8
-
-# 玩家选项
 choices:
-  - id: "submit"
-    text: "遵从母后教诲"
+  - id: submit
+    text: 遵从母后教诲
     effects:
-      authority: -8
       popularity: 3
       health: -2
-    consequences: "你选择了退让，朝臣们窃窃私语，母后眼中闪过一丝满意..."
+      power: -8
+    consequences: 你选择了退让，朝臣们窃窃私语，母后眼中闪过一丝满意...
     characterClues:
-      - "母后处理政务时显得游刃有余，仿佛久经此道"
-    
-  - id: "resist"
-    text: "朕意已决，不容更改"
+      - 母后处理政务时显得游刃有余，仿佛久经此道
+  - id: resist
+    text: 朕意已决，不容更改
     effects:
-      authority: 5
       popularity: -5
       health: -5
-    consequences: "母后脸色铁青，朝堂气氛骤然紧张。你感受到了她眼中的寒意..."
+      power: 5
+    consequences: 母后脸色铁青，朝堂气氛骤然紧张。你感受到了她眼中的寒意...
     characterClues:
-      - "母后的怒火让你想起了某些史书中的描述..."
-      - "她控制情绪的方式显示出深厚的政治修养"
-    
-  - id: "compromise"
-    text: "容朕再思虑一番"
+      - 母后的怒火让你想起了某些史书中的描述...
+      - 她控制情绪的方式显示出深厚的政治修养
+  - id: compromise
+    text: 容朕再思虑一番
     conditions:
       minAuthority: 40
     effects:
-      authority: -2
-      treasury: -3
-    consequences: "你巧妙地化解了当前的冲突，母后点头表示认可..."
+      power: -2
+      wealth: -3
+    consequences: 你巧妙地化解了当前的冲突，母后点头表示认可...
     characterClues:
-      - "母后似乎很欣赏你的政治智慧"
+      - 母后似乎很欣赏你的政治智慧

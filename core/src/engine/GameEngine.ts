@@ -1,4 +1,4 @@
-import { EmperorStats, EventCard, GameState, CharacterCard, EventChoice, GameEvent } from '../types/game';
+import { CharacterAttributes, EventCard, GameState, CharacterCard, EventChoice, GameEvent } from '../types/game';
 import { GAME_CONSTANTS, DIFFICULTY_CONFIG } from '../utils/constants';
 
 export class GameEngine {
@@ -51,11 +51,11 @@ export class GameEngine {
     if (emperor.health <= 0) {
       return { gameOver: true, reason: '皇帝因健康问题驾崩' };
     }
-    if (emperor.authority <= 0) {
-      return { gameOver: true, reason: '皇帝威望尽失，被迫退位' };
+    if (emperor.power <= 0) {
+      return { gameOver: true, reason: '皇帝权势尽失，被迫退位' };
     }
-    if (emperor.treasury <= 0) {
-      return { gameOver: true, reason: '国库空虚，民不聊生，政权覆灭' };
+    if (emperor.wealth <= 0) {
+      return { gameOver: true, reason: '财富耗尽，国库空虚，政权覆灭' };
     }
     if (emperor.military <= 0) {
       return { gameOver: true, reason: '军队哗变，皇帝被推翻' };
@@ -87,7 +87,7 @@ export class GameEngine {
     if (choice.effects) {
       Object.entries(choice.effects).forEach(([key, value]) => {
         if (value !== undefined && key in newGameState.emperor) {
-          const currentValue = newGameState.emperor[key as keyof EmperorStats] as number;
+          const currentValue = newGameState.emperor[key as keyof CharacterAttributes] as number;
           const newValue = Math.max(0, Math.min(100, currentValue + value));
           (newGameState.emperor as any)[key] = newValue;
         }
@@ -186,7 +186,7 @@ export class GameEngine {
     
     // 年龄+1
     newGameState.emperor.age += 1;
-    newGameState.emperor.reignYears += 1;
+    // newGameState.emperor.reignYears += 1; // 已移除 reignYears 字段，如需统计可用 currentTurn 或事件实现
     newGameState.currentTurn += 1;
     
     // 清除当前事件
@@ -243,12 +243,11 @@ export class GameEngine {
     
     // 检查皇帝属性条件
     if (conditions.minHealth && emperor.health < conditions.minHealth) return false;
-    if (conditions.minAuthority && emperor.authority < conditions.minAuthority) return false;
-    if (conditions.maxAuthority && emperor.authority > conditions.maxAuthority) return false;
+    if (conditions.minPower && emperor.power < conditions.minPower) return false;
+    if (conditions.maxPower && emperor.power > conditions.maxPower) return false;
     if (conditions.minAge && emperor.age < conditions.minAge) return false;
     if (conditions.maxAge && emperor.age > conditions.maxAge) return false;
-    if (conditions.minReignYears && emperor.reignYears < conditions.minReignYears) return false;
-    if (conditions.maxReignYears && emperor.reignYears > conditions.maxReignYears) return false;
+    // 已移除 reignYears 字段，如需判断可用 currentTurn 或其他机制
     
     // 检查事件历史
     if (conditions.requiredEvents) {
@@ -311,7 +310,7 @@ export class GameEngine {
     // 应用动态权重
     if (event.dynamicWeight) {
       Object.entries(event.dynamicWeight).forEach(([attribute, ranges]) => {
-        const currentValue = gameState.emperor[attribute as keyof EmperorStats] as number;
+        const currentValue = gameState.emperor[attribute as keyof CharacterAttributes] as number;
         
         for (const range of ranges) {
           if (currentValue >= range.range[0] && currentValue <= range.range[1]) {

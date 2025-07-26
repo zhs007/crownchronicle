@@ -1,9 +1,15 @@
 'use client';
 
-import { EmperorStats as EmperorStatsType } from 'crownchronicle-core';
 
 interface EmperorStatsProps {
-  stats: EmperorStatsType;
+  stats: {
+    power: number;
+    military: number;
+    wealth: number;
+    popularity: number;
+    health: number;
+    age: number;
+  };
 }
 
 export default function EmperorStats({ stats }: EmperorStatsProps) {
@@ -24,11 +30,12 @@ export default function EmperorStats({ stats }: EmperorStatsProps) {
   };
 
   const statItems = [
+    { key: 'power', label: '权势', value: stats.power, icon: '👑' },
+    { key: 'military', label: '军队', value: stats.military, icon: '⚔️' },
+    { key: 'wealth', label: '财富', value: stats.wealth, icon: '💰' },
+    { key: 'popularity', label: '民心', value: stats.popularity, icon: '👥' },
     { key: 'health', label: '健康', value: stats.health, icon: '❤️' },
-    { key: 'authority', label: '威望', value: stats.authority, icon: '👑' },
-    { key: 'treasury', label: '国库', value: stats.treasury, icon: '💰' },
-    { key: 'military', label: '军事', value: stats.military, icon: '⚔️' },
-    { key: 'popularity', label: '民心', value: stats.popularity, icon: '👥' }
+    { key: 'age', label: '年龄', value: stats.age, icon: '🎂' }
   ];
 
   return (
@@ -40,10 +47,7 @@ export default function EmperorStats({ stats }: EmperorStatsProps) {
       {/* 基本信息 */}
       <div className="text-center mb-6 p-4 bg-white bg-opacity-50 rounded-lg">
         <div className="text-2xl font-bold text-imperial-700 mb-2">
-          {stats.age} 岁
-        </div>
-        <div className="text-sm text-gray-600">
-          在位 {stats.reignYears} 年
+          {statItems.find(item => item.key === 'age')?.value} 岁
         </div>
       </div>
 

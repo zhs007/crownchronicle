@@ -1,13 +1,12 @@
 export const GAME_CONSTANTS = {
   // 皇帝初始属性
   INITIAL_EMPEROR_STATS: {
-    health: 50,
-    authority: 50,
-    treasury: 50,
+    power: 50,
     military: 50,
+    wealth: 50,
     popularity: 50,
-    age: 20, // 将在初始化时随机调整为18-25
-    reignYears: 0
+    health: 50,
+    age: 20 // 将在初始化时随机调整为18-25
   },
   
   // 年龄范围

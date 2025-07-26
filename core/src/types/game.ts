@@ -1,23 +1,11 @@
-// 皇帝属性
-export interface EmperorStats {
-  health: number;      // 健康值 (0-100)
-  authority: number;   // 威望值 (0-100)
-  treasury: number;    // 国库 (0-100)
-  military: number;    // 军事力量 (0-100)
-  popularity: number;  // 民心 (0-100)
-  age: number;         // 年龄
-  reignYears: number;  // 在位年数
-}
-
-// 角色属性
+// 角色属性（包括皇帝和所有角色，六项核心属性）
 export interface CharacterAttributes {
-  power: number;          // 权力值 (0-100)
-  loyalty: number;        // 忠诚度 (0-100)
-  ambition: number;       // 野心值 (0-100)
-  competence: number;     // 能力值 (0-100)
-  reputation: number;     // 声望值 (0-100)
-  health: number;         // 健康状况 (0-100)
-  age: number;           // 年龄
+  power: number;        // 权势
+  military: number;     // 军队
+  wealth: number;       // 财富
+  popularity: number;   // 民心
+  health: number;       // 健康（0-100）
+  age: number;          // 年龄
 }
 
 // 与皇帝的关系
@@ -47,13 +35,14 @@ export interface FactionInfo {
   leadershipRole: 'leader' | 'core' | 'member' | 'sympathizer';
 }
 
-// 角色对皇帝属性的影响
+// 角色对皇帝属性的影响（与主属性结构一致）
 export interface CharacterInfluence {
-  health: number;
-  authority: number;
-  treasury: number;
+  power: number;
   military: number;
+  wealth: number;
   popularity: number;
+  health: number;
+  age: number;
 }
 
 // 角色状态标记
@@ -96,7 +85,7 @@ export interface CharacterCard {
 export interface EventChoice {
   id: string;
   text: string;         // 选项文本
-  effects: Partial<EmperorStats>; // 选择后的属性变化
+  effects: Partial<CharacterAttributes>; // 选择后的属性变化
   consequences?: string; // 选择后的结果描述
   characterEffects?: CharacterEffect[]; // 对角色的影响
   interCharacterEffects?: InterCharacterEffect[]; // 角色间关系影响
@@ -131,15 +120,13 @@ export interface FactionEffect {
 // 事件条件
 export interface EventConditions {
   minHealth?: number;
-  minAuthority?: number;
-  maxAuthority?: number;
+  minPower?: number;
+  maxPower?: number;
   minAge?: number;
   maxAge?: number;
-  minReignYears?: number;
-  maxReignYears?: number;
   requiredEvents?: string[];
   excludedEvents?: string[];
-  attributeRequirements?: Partial<EmperorStats>;
+  attributeRequirements?: Partial<CharacterAttributes>;
   characterRelationships?: CharacterRelationshipCondition[];
   interCharacterRelations?: InterCharacterRelationCondition[];
   factionRequirements?: FactionRequirement[];
@@ -276,7 +263,7 @@ export interface GameEvent {
   turn: number;
   choiceId: string;
   chosenAction: string;          // 选择的行动描述
-  effects: Partial<EmperorStats>;
+  effects: Partial<CharacterAttributes>;
   consequences: string;
   timestamp: number;
   relationshipChanges?: Record<string, number>; // 角色关系变化
@@ -286,7 +273,7 @@ export interface GameEvent {
 
 // 游戏状态
 export interface GameState {
-  emperor: EmperorStats;
+  emperor: CharacterAttributes;
   activeCharacters: CharacterCard[];  // 当前出场的角色
   cardPools: CardPools;               // 三卡池系统
   gameHistory: GameEvent[];           // 游戏历史记录
@@ -363,10 +350,9 @@ export interface CharacterConfig {
   
   initialAttributes: {
     power: number;
-    loyalty: number;
-    ambition: number;
-    competence: number;
-    reputation: number;
+    military: number;
+    wealth: number;
+    popularity: number;
     health: number;
     age: number;
   };
@@ -396,11 +382,12 @@ export interface CharacterConfig {
   }>;
   
   influence: {
-    health: number;
-    authority: number;
-    treasury: number;
+    power: number;
     military: number;
+    wealth: number;
     popularity: number;
+    health: number;
+    age: number;
   };
   
   traits: string[];

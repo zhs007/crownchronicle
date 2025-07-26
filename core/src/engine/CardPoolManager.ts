@@ -184,12 +184,11 @@ export class CardPoolManager {
     
     // 检查皇帝属性条件
     if (conditions.minHealth && emperor.health < conditions.minHealth) return false;
-    if (conditions.minAuthority && emperor.authority < conditions.minAuthority) return false;
-    if (conditions.maxAuthority && emperor.authority > conditions.maxAuthority) return false;
+    if (conditions.minPower && emperor.power < conditions.minPower) return false;
+    if (conditions.maxPower && emperor.power > conditions.maxPower) return false;
     if (conditions.minAge && emperor.age < conditions.minAge) return false;
     if (conditions.maxAge && emperor.age > conditions.maxAge) return false;
-    if (conditions.minReignYears && emperor.reignYears < conditions.minReignYears) return false;
-    if (conditions.maxReignYears && emperor.reignYears > conditions.maxReignYears) return false;
+    // 已移除 reignYears 字段，如需判断可用 currentTurn 或其他机制
     
     // 检查属性要求
     if (conditions.attributeRequirements) {

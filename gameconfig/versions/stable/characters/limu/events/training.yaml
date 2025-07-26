@@ -1,81 +1,66 @@
-id: "limu_training"
-title: "军队训练"
-description: "李牧将军向你汇报军队训练情况"
-speaker: "李牧"
-dialogue: "陛下，新兵训练进展顺利，但军费开支颇大，不知..."
-
-# 身份线索
+id: limu_training
+title: 军队训练
+description: 李牧将军向你汇报军队训练情况
+speaker: 李牧
+dialogue: 陛下，新兵训练进展顺利，但军费开支颇大，不知...
 characterClues:
   revealedTraits:
-    - "务实"
-    - "节俭"
+    - 务实
+    - 节俭
   personalityHints:
-    - "李牧对军费管理很谨慎"
-    - "他关心普通士兵的生活"
+    - 李牧对军费管理很谨慎
+    - 他关心普通士兵的生活
   backgroundHints:
-    - "李牧亲自参与训练，深受士兵爱戴"
-
-# 事件激活条件
+    - 李牧亲自参与训练，深受士兵爱戴
 activationConditions:
   minReignYears: 2
   maxReignYears: 15
   attributeRequirements:
     minMilitary: 40
-
-# 卡池权重
 weight: 6
-
-# 玩家选项
 choices:
-  - id: "increase_funding"
-    text: "增加军费预算"
+  - id: increase_funding
+    text: 增加军费预算
     effects:
       military: 8
-      treasury: -10
-      authority: 3
-    consequences: "你慷慨地增加了军费，李牧深表感激，军队战斗力显著提升"
+      wealth: -10
+      power: 3
+    consequences: 你慷慨地增加了军费，李牧深表感激，军队战斗力显著提升
     characterEffects:
-      - characterId: "limu"
+      - characterId: limu
         relationshipChanges:
           affection: 10
           trust: 8
-        attributeChanges:
-          loyalty: 5
-          competence: 3
+        attributeChanges: {}
     characterClues:
-      - "李牧很会管理军队，资金利用效率很高"
-    
-  - id: "maintain_budget"
-    text: "维持现有预算"
+      - 李牧很会管理军队，资金利用效率很高
+  - id: maintain_budget
+    text: 维持现有预算
     effects:
       military: 2
-      treasury: 0
-      authority: 1
-    consequences: "你选择了稳妥的做法，李牧表示理解并会合理安排"
+      wealth: 0
+      power: 1
+    consequences: 你选择了稳妥的做法，李牧表示理解并会合理安排
     characterEffects:
-      - characterId: "limu"
+      - characterId: limu
         relationshipChanges:
           respect: 3
     characterClues:
-      - "李牧很能理解朝廷的难处"
-    
-  - id: "cut_expenses"
-    text: "削减军费开支"
+      - 李牧很能理解朝廷的难处
+  - id: cut_expenses
+    text: 削减军费开支
     effects:
       military: -5
-      treasury: 8
-      authority: -2
-    consequences: "你要求节约开支，李牧虽有不满但还是遵命执行"
+      wealth: 8
+      power: -2
+    consequences: 你要求节约开支，李牧虽有不满但还是遵命执行
     characterEffects:
-      - characterId: "limu"
+      - characterId: limu
         relationshipChanges:
           affection: -5
           trust: -3
-        attributeChanges:
-          loyalty: -2
+        attributeChanges: {}
     characterClues:
-      - "李牧对削减军费很不满，但仍然忠诚"
-
-# 移除条件
+      - 李牧对削减军费很不满，但仍然忠诚
 removalConditions:
   maxMilitary: 30
