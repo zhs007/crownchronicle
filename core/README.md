@@ -1,6 +1,32 @@
 # Crown Chronicle Core
 
-Crown Chronicle 的核心游戏逻辑库。这个包包含了游戏的核心引擎、数据处理、角色管理、事件系统等功能，可以独立运行游戏逻辑，也可以被其他项目（如原型项目和编辑器项目）引用。
+Crown Chronicle 的核心游戏逻辑库，采用模块化架构，便于维护和扩展。该包包含游戏主流程、卡牌系统、配置校验、类型定义等核心功能，可独立运行或被 prototype/editor 等项目引用。
+
+## 目录结构与模块边界
+
+```
+src/
+  engine/
+    game/         # 游戏主流程与状态管理（GameStateManager, GameActionHandler）
+    card/         # 卡牌相关逻辑（CardPoolManager, CardEffectHandler）
+    validation/   # 配置与数据校验（ConfigValidator, SchemaValidator）
+  types/          # 按领域拆分的类型定义（gamecore, card, config, event, character, faction 等）
+  utils/          # 通用工具函数
+```
+
+### 设计原则
+- 各模块通过类型和接口交互，严禁跨层直接依赖
+- core 不引入任何配置管理、UI、文件系统等外部依赖
+- 类型定义集中管理，所有模块统一从 `types/` 导入
+
+### 迁移与重构说明
+- 详见 `plan-006.md` 和 `plan-006-report.md`，包含每次迁移 checklist、遇到的问题及解决方案
+- 旧文件已归档，遗留适配器已清理，详见迁移报告
+
+### 文档与协作建议
+- 关键设计决策、模块边界、接口说明需补充注释和文档
+- 拆分和重构过程全程记录在 `plan-006-report.md`，并同步到本 README
+- 定期评审迁移进度，及时调整方案
 
 ## 功能特性
 
@@ -58,7 +84,6 @@ while (!gameState.gameOver) {
     GameEngine.recordGameEvent(gameState, nextEvent, choice);
   }
   
-  // 移除已使用的事件
   CardPoolManager.discardEvent(gameState, nextEvent.id);
   
   // 处理回合结束

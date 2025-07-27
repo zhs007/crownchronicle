@@ -1,4 +1,6 @@
-import { GameState, EventCard, PlayerStrategy } from '../types/game';
+import type { GameState, PlayerStrategy } from '../types/gamecore';
+import type { EventCard, EventChoice } from '../types/event';
+import type { CharacterAttributes } from '../types/character';
 
 /**
  * 随机选择策略
@@ -69,24 +71,20 @@ export class ConservativePlayerStrategy implements PlayerStrategy {
     return bestChoice.id;
   }
 
-  private calculateNegativeImpact(choice: any, emperor: any): number {
+  private calculateNegativeImpact(choice: EventChoice, emperor: CharacterAttributes): number {
     let impact = 0;
-    
     if (choice.effects) {
-      // 计算负面效果的总和
       Object.entries(choice.effects).forEach(([key, value]) => {
         if (typeof value === 'number' && value < 0) {
-          // 根据当前属性值权衡影响
-          const currentValue = emperor[key] || 50;
+          const currentValue = (emperor as any)[key] ?? 50;
           if (currentValue + value < 20) {
-            impact += Math.abs(value) * 2; // 如果会导致属性过低，增加惩罚
+            impact += Math.abs(value) * 2;
           } else {
             impact += Math.abs(value);
           }
         }
       });
     }
-    
     return impact;
   }
 }
@@ -130,18 +128,15 @@ export class AggressivePlayerStrategy implements PlayerStrategy {
     return bestChoice.id;
   }
 
-  private calculatePositiveImpact(choice: any): number {
+  private calculatePositiveImpact(choice: EventChoice): number {
     let impact = 0;
-    
     if (choice.effects) {
-      // 计算正面效果的总和
       Object.entries(choice.effects).forEach(([key, value]) => {
         if (typeof value === 'number' && value > 0) {
           impact += value;
         }
       });
     }
-    
     return impact;
   }
 }
@@ -185,23 +180,19 @@ export class BalancedPlayerStrategy implements PlayerStrategy {
     return bestChoice.id;
   }
 
-  private calculateScore(choice: any, emperor: any): number {
+  private calculateScore(choice: EventChoice, emperor: CharacterAttributes): number {
     let score = 0;
-    
     if (choice.effects) {
       Object.entries(choice.effects).forEach(([key, value]) => {
         if (typeof value === 'number') {
-          const currentValue = emperor[key] || 50;
-          
+          const currentValue = (emperor as any)[key] ?? 50;
           if (value > 0) {
-            // 正面效果，但如果属性已经很高则收益递减
             if (currentValue > 80) {
               score += value * 0.5;
             } else {
               score += value;
             }
           } else {
-            // 负面效果，如果属性已经很低则惩罚加重
             if (currentValue < 30) {
               score += value * 2;
             } else {
@@ -211,7 +202,6 @@ export class BalancedPlayerStrategy implements PlayerStrategy {
         }
       });
     }
-    
     return score;
   }
 }

@@ -1,5 +1,7 @@
+
 import { CharacterAttributes, EventCard, GameState, CharacterCard, EventChoice, GameEvent } from '../types/game';
 import { GAME_CONSTANTS, DIFFICULTY_CONFIG } from '../utils/constants';
+import { GameStateManager } from './game/GameStateManager';
 
 export class GameEngine {
 
@@ -27,135 +29,28 @@ export class GameEngine {
    * 创建新游戏状态
    */
   static createNewGame(difficulty: 'easy' | 'normal' | 'hard' = 'normal'): GameState {
-    const initialAge = Math.floor(Math.random() * (GAME_CONSTANTS.MAX_INITIAL_AGE - GAME_CONSTANTS.MIN_INITIAL_AGE + 1)) + GAME_CONSTANTS.MIN_INITIAL_AGE;
-    
-    const gameState: GameState = {
-      emperor: {
-        ...GAME_CONSTANTS.INITIAL_EMPEROR_STATS,
-        age: initialAge
-      },
-      activeCharacters: [],
-      cardPools: {
-        pending: [],
-        active: [],
-        discarded: []
-      },
-      gameHistory: [],
-      currentEvent: null,
-      characterStates: [],
-      factionSystem: {
-        activeFactions: [],
-        factionBalance: 0
-      },
-      courtPolitics: {
-        tension: 30,
-        stability: 70,
-        corruption: 20,
-        efficiency: 60,
-        recentEvents: []
-      },
-      gameOver: false,
-      startTime: Date.now(),
-      currentTurn: 1
-    };
-
-    return gameState;
+    return GameStateManager.createNewGame(difficulty);
   }
 
   /**
    * 检查游戏结束条件
    */
   static checkGameOver(gameState: GameState): { gameOver: boolean; reason?: string } {
-    const { emperor, cardPools } = gameState;
-    
-    // 检查属性是否降到0或以下
-    if (emperor.health <= 0) {
-      return { gameOver: true, reason: '皇帝因健康问题驾崩' };
-    }
-    if (emperor.power <= 0) {
-      return { gameOver: true, reason: '皇帝权势尽失，被迫退位' };
-    }
-    if (emperor.wealth <= 0) {
-      return { gameOver: true, reason: '财富耗尽，国库空虚，政权覆灭' };
-    }
-    if (emperor.military <= 0) {
-      return { gameOver: true, reason: '军队哗变，皇帝被推翻' };
-    }
-    if (emperor.popularity <= 0) {
-      return { gameOver: true, reason: '民心尽失，起义四起，王朝覆灭' };
-    }
-    
-    // 检查年龄
-    if (emperor.age >= GAME_CONSTANTS.MAX_AGE) {
-      return { gameOver: true, reason: '皇帝寿终正寝，享年' + emperor.age + '岁' };
-    }
-    
-    // 检查是否还有可用事件
-    if (cardPools.active.length === 0 && cardPools.pending.length === 0) {
-      return { gameOver: true, reason: '朝政平稳，皇帝安然退位' };
-    }
-    
-    return { gameOver: false };
+    return GameStateManager.checkGameOver(gameState);
   }
 
   /**
    * 应用选择效果
    */
   static applyChoiceEffects(gameState: GameState, choice: EventChoice): GameState {
-    const newGameState = JSON.parse(JSON.stringify(gameState)) as GameState;
-    
-    // 应用皇帝属性变化
-    if (choice.effects) {
-      Object.entries(choice.effects).forEach(([key, value]) => {
-        if (value !== undefined && key in newGameState.emperor) {
-          const currentValue = newGameState.emperor[key as keyof CharacterAttributes] as number;
-          const newValue = Math.max(0, Math.min(100, currentValue + value));
-          (newGameState.emperor as any)[key] = newValue;
-        }
-      });
-    }
-    
-    // 应用角色效果
-    if (choice.characterEffects) {
-      choice.characterEffects.forEach(effect => {
-        const character = newGameState.activeCharacters.find(c => c.id === effect.characterId);
-        if (character && effect.attributeChanges) {
-          Object.entries(effect.attributeChanges).forEach(([key, value]) => {
-            if (value !== undefined && key in character.attributes) {
-              const currentValue = character.attributes[key as keyof typeof character.attributes] as number;
-              const newValue = Math.max(0, Math.min(100, currentValue + value));
-              (character.attributes as any)[key] = newValue;
-            }
-          });
-        }
-      });
-    }
-    
-    // ...已移除角色间关系效果处理...
-    
-    // ...已移除派系效果处理...
-    
-    return newGameState;
+    return GameStateManager.applyChoiceEffects(gameState, choice);
   }
 
   /**
    * 执行回合结束处理
    */
   static processTurnEnd(gameState: GameState): GameState {
-    const newGameState = JSON.parse(JSON.stringify(gameState)) as GameState;
-    
-    // 年龄+1
-    newGameState.emperor.age += 1;
-    // newGameState.emperor.reignYears += 1; // 已移除 reignYears 字段，如需统计可用 currentTurn 或事件实现
-    newGameState.currentTurn += 1;
-    
-    // 清除当前事件
-    newGameState.currentEvent = null;
-    
-    // 更新朝堂政治状态
-    this.updateCourtPolitics(newGameState);
-    
-    return newGameState;
+    return GameStateManager.processTurnEnd(gameState);
   }
 
   /**
@@ -183,60 +78,14 @@ export class GameEngine {
    * 检查事件条件
    */
   static checkEventConditions(event: EventCard, gameState: GameState): boolean {
-    const conditions = event.triggerConditions;
-    if (!conditions) return true;
-    
-    const { emperor } = gameState;
-    
-    // 检查皇帝属性条件
-    if (conditions.minHealth && emperor.health < conditions.minHealth) return false;
-    if (conditions.minPower && emperor.power < conditions.minPower) return false;
-    if (conditions.maxPower && emperor.power > conditions.maxPower) return false;
-    if (conditions.minAge && emperor.age < conditions.minAge) return false;
-    if (conditions.maxAge && emperor.age > conditions.maxAge) return false;
-    // 已移除 reignYears 字段，如需判断可用 currentTurn 或其他机制
-    
-    // 检查事件历史
-    if (conditions.requiredEvents) {
-      const pastEvents = gameState.gameHistory.map(h => h.eventId);
-      if (!conditions.requiredEvents.every(reqEvent => pastEvents.includes(reqEvent))) {
-        return false;
-      }
-    }
-    
-    if (conditions.excludedEvents) {
-      const pastEvents = gameState.gameHistory.map(h => h.eventId);
-      if (conditions.excludedEvents.some(excludedEvent => pastEvents.includes(excludedEvent))) {
-        return false;
-      }
-    }
-    
-    // ...已移除角色关系条件判断...
-    
-    return true;
+    return GameStateManager.checkEventConditions(event, gameState);
   }
 
   /**
    * 计算事件权重
    */
   static calculateEventWeight(event: EventCard, gameState: GameState): number {
-    let weight = event.weight || GAME_CONSTANTS.DEFAULT_EVENT_WEIGHT;
-    
-    // 应用动态权重
-    if (event.dynamicWeight) {
-      Object.entries(event.dynamicWeight).forEach(([attribute, ranges]) => {
-        const currentValue = gameState.emperor[attribute as keyof CharacterAttributes] as number;
-        
-        for (const range of ranges) {
-          if (currentValue >= range.range[0] && currentValue <= range.range[1]) {
-            weight *= range.multiplier;
-            break;
-          }
-        }
-      });
-    }
-    
-    return Math.max(0, weight);
+    return GameStateManager.calculateEventWeight(event, gameState);
   }
 
   /**
@@ -249,20 +98,6 @@ export class GameEngine {
     relationshipChanges?: Record<string, number>,
     characterDiscoveries?: string[]
   ): void {
-    const gameEvent: GameEvent = {
-      eventId: event.id,
-      eventTitle: event.title,
-      turn: gameState.currentTurn,
-      choiceId: choice.id,
-      chosenAction: choice.text,
-      effects: choice.effects,
-      consequences: choice.consequences || '',
-      timestamp: Date.now(),
-      relationshipChanges,
-      characterDiscoveries,
-      importance: event.importance || 'normal'
-    };
-
-    gameState.gameHistory.push(gameEvent);
+    return GameStateManager.recordGameEvent(gameState, event, choice, relationshipChanges, characterDiscoveries);
   }
 }

@@ -1,6 +1,29 @@
+
 # Crown Chronicle Core 单元测试指南
 
 本指南介绍 core 包的单元测试环境、运行方法及编写规范。
+
+## 模块化与测试建议
+
+- 各 engine 子模块（game/card/validation）均应有独立的测试用例，覆盖主流程、边界和异常情况
+- 类型定义已按领域拆分，所有测试文件统一从 `types/` 目录导入类型
+- 拆分和重构过程中，迁移的每个类/函数都应补充或完善单元测试，确保无回退
+- 迁移相关问题和解决方案详见 `plan-006-report.md`
+
+## 目录结构示例
+
+```
+src/
+  engine/
+    game/
+    card/
+    validation/
+  types/
+__tests__/
+  gameAttributes.test.ts
+  commonCard.test.ts
+  ...
+```
 
 ## 1. 测试环境
 - 测试框架：Jest（TypeScript 支持 ts-jest）

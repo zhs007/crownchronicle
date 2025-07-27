@@ -1,4 +1,6 @@
-import { GameState, EventCard, GameConfig, PlayerStrategy, DataProvider } from '../types/game';
+import type { GameState, GameConfig, PlayerStrategy } from '../types/gamecore';
+import type { EventCard } from '../types/event';
+import type { DataProvider } from '../types/config';
 import { GameEngine } from './GameEngine';
 import { CardPoolManager } from './CardPoolManager';
 import { ConfigConverter } from '../data/DataProvider';
@@ -242,7 +244,7 @@ export class GameSimulator {
       const allEvents: EventCard[] = [];
       for (const character of selectedCharacters) {
         const events = await this.dataProvider.loadCharacterEvents(character.id);
-        events.forEach(eventConfig => {
+        events.forEach((eventConfig: import('../types/event').EventConfig) => {
           const eventCard = ConfigConverter.configToEventCard(eventConfig, character.id);
           allEvents.push(eventCard);
         });
