@@ -250,43 +250,21 @@ export class EditorDataManager {
   }
   
   private convertConfigToCard(config: CharacterConfig): CharacterCard {
-    // 将 CharacterConfig 转换为 CharacterCard，正确映射字段名
+    // 将 CharacterConfig 转换为 CharacterCard，仅保留有效字段
     return {
       id: config.id,
       name: config.name,
       displayName: config.displayName,
-      currentTitle: config.displayName, // 如果没有单独的 currentTitle，使用 displayName
+      currentTitle: config.displayName,
       role: config.role,
       description: config.description,
-      identityRevealed: false, // 默认值
-      
-      attributes: config.initialAttributes, // 将 initialAttributes 映射到 attributes
-      relationshipWithEmperor: config.initialRelationshipWithEmperor, // 映射关系字段
-      relationshipNetwork: (config.relationshipNetwork || []).map(rel => ({
-        targetCharacterId: rel.targetCharacter, // 映射字段名
-        relationType: rel.relationType,
-        relationshipStrength: rel.relationshipStrength,
-        secretLevel: rel.secretLevel,
-        historicalBasis: rel.historicalBasis
-      })),
-      factionInfo: config.factionInfo,
-      influence: config.influence,
-      
-      revealedTraits: [], // 默认空数组
-      hiddenTraits: [], // 默认空数组
-      discoveredClues: [], // 默认空数组
-      totalClues: 0, // 默认值
-      statusFlags: {
-        alive: true,
-        inCourt: true,
-        inExile: false,
-        imprisoned: false,
-        promoted: false,
-        demoted: false,
-        suspicious: false,
-        plotting: false
-      }, // 默认状态标志
-      eventIds: [] // 默认空数组
+      identityRevealed: false,
+      attributes: config.initialAttributes,
+      revealedTraits: [],
+      hiddenTraits: [],
+      discoveredClues: [],
+      totalClues: 0,
+      eventIds: []
     };
   }
   
@@ -297,29 +275,16 @@ export class EditorDataManager {
   }
 
   private convertCardToConfig(card: CharacterCard): CharacterConfig {
-    // 将 CharacterCard 转换回 CharacterConfig 格式以保存为 YAML
+    // 将 CharacterCard 转换回 CharacterConfig，仅保留有效字段
     return {
       id: card.id,
       name: card.name,
       displayName: card.displayName,
       role: card.role,
       description: card.description,
-      category: '权臣', // 默认分类，应该从 card 中获取
-      rarity: 'common', // 默认稀有度，应该从 card 中获取
-      
+      category: '权臣',
+      rarity: 'common',
       initialAttributes: card.attributes,
-      initialRelationshipWithEmperor: card.relationshipWithEmperor,
-      relationshipNetwork: card.relationshipNetwork.map(rel => ({
-        targetCharacter: rel.targetCharacterId,
-        relationType: rel.relationType,
-        relationshipStrength: rel.relationshipStrength,
-        secretLevel: rel.secretLevel,
-        historicalBasis: rel.historicalBasis
-      })),
-      factionInfo: card.factionInfo,
-      influence: card.influence,
-      
-      // 必需字段设为默认值
       traits: card.revealedTraits || [],
       hiddenTraits: card.hiddenTraits || [],
       backgroundClues: {

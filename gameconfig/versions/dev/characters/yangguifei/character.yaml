@@ -13,25 +13,6 @@ initialAttributes:
   loyalty: 95
   ambition: 70
   reputation: 80
-initialRelationshipWithEmperor:
-  trust: 85
-  threat: 5
-  fear: 10
-  affection: 90
-  dependency: 70
-  respect: 80
-relationshipNetwork: []
-factionInfo:
-  leadershipRole: core
-  primaryFaction: 后宫集团
-  secondaryFactions: []
-  factionLoyalty: 90
-influence:
-  health: 8
-  treasury: 3
-  authority: 5
-  popularity: 7
-  military: -2
 traits: []
 hiddenTraits: []
 backgroundClues:

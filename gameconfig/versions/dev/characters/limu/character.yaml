@@ -16,28 +16,6 @@ initialAttributes:
   health: 90
   age: 30
 
-# 与皇帝的初始关系
-initialRelationshipWithEmperor:
-  affection: 60
-  trust: 75
-  fear: 5
-  respect: 80
-  dependency: 60
-  threat: 15
-
-# 派系信息
-factionInfo:
-  primaryFaction: "军事集团"
-  secondaryFactions: ["传统保守派"]
-  factionLoyalty: 70
-  leadershipRole: "core"
-
-# 关系网络
-relationshipNetwork:
-  - targetCharacter: "huoguang"
-    relationType: "ally"
-    relationshipStrength: 40
-    secretLevel: 20
     historicalBasis: "同朝为官，互相尊重"
   
   - targetCharacter: "wuzetian"

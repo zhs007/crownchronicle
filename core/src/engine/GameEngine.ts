@@ -119,82 +119,21 @@ export class GameEngine {
     if (choice.characterEffects) {
       choice.characterEffects.forEach(effect => {
         const character = newGameState.activeCharacters.find(c => c.id === effect.characterId);
-        if (character) {
-          // 应用属性变化
-          if (effect.attributeChanges) {
-            Object.entries(effect.attributeChanges).forEach(([key, value]) => {
-              if (value !== undefined && key in character.attributes) {
-                const currentValue = character.attributes[key as keyof typeof character.attributes] as number;
-                const newValue = Math.max(0, Math.min(100, currentValue + value));
-                (character.attributes as any)[key] = newValue;
-              }
-            });
-          }
-          
-          // 应用关系变化
-          if (effect.relationshipChanges) {
-            Object.entries(effect.relationshipChanges).forEach(([key, value]) => {
-              if (value !== undefined && key in character.relationshipWithEmperor) {
-                const currentValue = character.relationshipWithEmperor[key as keyof typeof character.relationshipWithEmperor] as number;
-                let newValue = currentValue + value;
-                
-                // 特殊处理：affection 和 trust 可以是负数
-                if (key === 'affection' || key === 'trust') {
-                  newValue = Math.max(-100, Math.min(100, newValue));
-                } else {
-                  newValue = Math.max(0, Math.min(100, newValue));
-                }
-                
-                (character.relationshipWithEmperor as any)[key] = newValue;
-              }
-            });
-          }
-          
-          // 应用状态变化
-          if (effect.statusChanges) {
-            Object.entries(effect.statusChanges).forEach(([key, value]) => {
-              if (value !== undefined && key in character.statusFlags) {
-                (character.statusFlags as any)[key] = value;
-              }
-            });
-          }
+        if (character && effect.attributeChanges) {
+          Object.entries(effect.attributeChanges).forEach(([key, value]) => {
+            if (value !== undefined && key in character.attributes) {
+              const currentValue = character.attributes[key as keyof typeof character.attributes] as number;
+              const newValue = Math.max(0, Math.min(100, currentValue + value));
+              (character.attributes as any)[key] = newValue;
+            }
+          });
         }
       });
     }
     
-    // 应用角色间关系效果
-    if (choice.interCharacterEffects) {
-      choice.interCharacterEffects.forEach(effect => {
-        const char1 = newGameState.activeCharacters.find(c => c.id === effect.character1);
-        const char2 = newGameState.activeCharacters.find(c => c.id === effect.character2);
-        
-        if (char1 && char2) {
-          // 更新char1对char2的关系
-          const relationship1 = char1.relationshipNetwork.find(r => r.targetCharacterId === effect.character2);
-          if (relationship1) {
-            relationship1.relationshipStrength = Math.max(-100, Math.min(100, 
-              relationship1.relationshipStrength + effect.relationshipChange));
-          }
-          
-          // 更新char2对char1的关系
-          const relationship2 = char2.relationshipNetwork.find(r => r.targetCharacterId === effect.character1);
-          if (relationship2) {
-            relationship2.relationshipStrength = Math.max(-100, Math.min(100, 
-              relationship2.relationshipStrength + effect.relationshipChange));
-          }
-        }
-      });
-    }
+    // ...已移除角色间关系效果处理...
     
-    // 应用派系效果
-    if (choice.factionEffects) {
-      choice.factionEffects.forEach(effect => {
-        const faction = newGameState.factionSystem.activeFactions.find(f => f.name === effect.faction);
-        if (faction) {
-          faction.influence = Math.max(0, Math.min(100, faction.influence + effect.influenceChange));
-        }
-      });
-    }
+    // ...已移除派系效果处理...
     
     return newGameState;
   }
@@ -225,20 +164,7 @@ export class GameEngine {
   private static updateCourtPolitics(gameState: GameState): void {
     const { courtPolitics, activeCharacters, factionSystem } = gameState;
     
-    // 根据角色关系计算紧张度
-    let totalTension = 0;
-    let relationshipCount = 0;
-    
-    activeCharacters.forEach(char => {
-      char.relationshipNetwork.forEach(rel => {
-        if (rel.relationType === 'enemy' && rel.relationshipStrength < -50) {
-          totalTension += 20;
-        }
-        relationshipCount++;
-      });
-    });
-    
-    courtPolitics.tension = Math.max(0, Math.min(100, totalTension / Math.max(1, relationshipCount)));
+    // ...已移除角色关系紧张度计算...
     
     // 根据派系平衡计算稳定度
     const factionInfluences = factionSystem.activeFactions.map(f => f.influence);
@@ -285,39 +211,7 @@ export class GameEngine {
       }
     }
     
-    // 检查角色关系条件
-    if (conditions.characterRelationships) {
-      for (const charCondition of conditions.characterRelationships) {
-        const character = gameState.activeCharacters.find(c => c.id === charCondition.characterId);
-        if (!character) return false;
-        
-        if (charCondition.alive !== undefined && character.statusFlags.alive !== charCondition.alive) {
-          return false;
-        }
-        
-        // 检查角色属性
-        if (charCondition.attributes) {
-          for (const [attr, value] of Object.entries(charCondition.attributes)) {
-            if (value !== undefined) {
-              const currentValue = character.attributes[attr as keyof typeof character.attributes] as number;
-              if (attr.startsWith('min') && currentValue < value) return false;
-              if (attr.startsWith('max') && currentValue > value) return false;
-            }
-          }
-        }
-        
-        // 检查与皇帝的关系
-        if (charCondition.relationshipWithEmperor) {
-          for (const [rel, value] of Object.entries(charCondition.relationshipWithEmperor)) {
-            if (value !== undefined) {
-              const currentValue = character.relationshipWithEmperor[rel as keyof typeof character.relationshipWithEmperor] as number;
-              if (rel.startsWith('min') && currentValue < value) return false;
-              if (rel.startsWith('max') && currentValue > value) return false;
-            }
-          }
-        }
-      }
-    }
+    // ...已移除角色关系条件判断...
     
     return true;
   }

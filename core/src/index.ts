@@ -28,11 +28,6 @@ export type {
   // 角色相关
   CharacterCard,
   CharacterAttributes,
-  RelationshipWithEmperor,
-  CharacterRelationship,
-  FactionInfo,
-  CharacterInfluence,
-  CharacterStatusFlags,
   CharacterState,
   
   // 事件相关
@@ -42,9 +37,6 @@ export type {
   InterCharacterEffect,
   FactionEffect,
   EventConditions,
-  CharacterRelationshipCondition,
-  InterCharacterRelationCondition,
-  FactionRequirement,
   DynamicWeight,
   
   // 卡池和派系

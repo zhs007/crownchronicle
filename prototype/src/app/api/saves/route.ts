@@ -102,30 +102,7 @@ export async function POST(request: NextRequest) {
     }));
 
     // 初始化派系系统
-    const factionMap = new Map();
-    characters.forEach(char => {
-      if (char.factionInfo.primaryFaction) {
-        if (!factionMap.has(char.factionInfo.primaryFaction)) {
-          factionMap.set(char.factionInfo.primaryFaction, {
-            id: char.factionInfo.primaryFaction.toLowerCase().replace(/\s+/g, '_'),
-            name: char.factionInfo.primaryFaction,
-            influence: 30,
-            memberCharacterIds: [],
-            agenda: '维护派系利益',
-            conflictingFactions: [],
-            alliedFactions: []
-          });
-        }
-        const faction = factionMap.get(char.factionInfo.primaryFaction);
-        faction.memberCharacterIds.push(char.id);
-        
-        if (char.factionInfo.leadershipRole === 'leader') {
-          faction.leaderCharacterId = char.id;
-        }
-      }
-    });
-
-    gameState.factionSystem.activeFactions = Array.from(factionMap.values());
+    // ...已移除派系系统初始化逻辑（factionInfo 字段已废弃）...
 
     // 将事件添加到待定卡池
     gameState = CardPoolManager.addToPendingPool(gameState, allEvents);

@@ -130,9 +130,7 @@ export class ConfigValidator {
         issues.push(...eventValidation.issues);
       }
 
-      // 验证角色间关系一致性
-      const relationshipValidation = this.validateRelationshipConsistency(characters);
-      issues.push(...relationshipValidation.issues);
+      // ...已移除角色间关系一致性校验...
 
     } catch (error) {
       issues.push({
@@ -226,55 +224,7 @@ export class ConfigValidator {
     });
 
     // 关系值范围验证
-    const { initialRelationshipWithEmperor } = character;
-    Object.entries(initialRelationshipWithEmperor).forEach(([rel, value]) => {
-      const min = (rel === 'affection' || rel === 'trust') ? -100 : 0;
-      if (typeof value !== 'number' || value < min || value > 100) {
-        issues.push({
-          type: 'error',
-          code: 'INVALID_RELATIONSHIP_VALUE',
-          message: `关系属性 ${rel} 的值 ${value} 超出有效范围 (${min}-100)`,
-          context,
-          suggestion: `请将关系属性设置在${min}-100之间`
-        });
-      }
-    });
-
-    // 角色关系网络验证
-    character.relationshipNetwork.forEach(rel => {
-      // 检查目标角色是否存在
-      if (!allCharacters.find(c => c.id === rel.targetCharacter)) {
-        issues.push({
-          type: 'error',
-          code: 'INVALID_RELATIONSHIP_TARGET',
-          message: `关系网络中引用了不存在的角色: ${rel.targetCharacter}`,
-          context,
-          suggestion: '请确保关系网络中引用的角色都存在'
-        });
-      }
-
-      // 检查关系强度范围
-      if (rel.relationshipStrength < -100 || rel.relationshipStrength > 100) {
-        issues.push({
-          type: 'error',
-          code: 'INVALID_RELATIONSHIP_STRENGTH',
-          message: `与 ${rel.targetCharacter} 的关系强度 ${rel.relationshipStrength} 超出有效范围 (-100到100)`,
-          context,
-          suggestion: '请将关系强度设置在-100到100之间'
-        });
-      }
-    });
-
-    // 派系信息验证
-    if (character.factionInfo.factionLoyalty < 0 || character.factionInfo.factionLoyalty > 100) {
-      issues.push({
-        type: 'error',
-        code: 'INVALID_FACTION_LOYALTY',
-        message: `派系忠诚度 ${character.factionInfo.factionLoyalty} 超出有效范围 (0-100)`,
-        context,
-        suggestion: '请将派系忠诚度设置在0-100之间'
-      });
-    }
+    // ...已移除冗余关系/派系校验...
 
     return issues;
   }
@@ -389,53 +339,5 @@ export class ConfigValidator {
   /**
    * 验证角色间关系一致性
    */
-  private validateRelationshipConsistency(characters: CharacterConfig[]): ValidationResult {
-    const issues: ValidationIssue[] = [];
-
-    characters.forEach(character => {
-      character.relationshipNetwork.forEach(rel => {
-        const targetCharacter = characters.find(c => c.id === rel.targetCharacter);
-        if (!targetCharacter) return;
-
-        // 查找目标角色对当前角色的关系定义
-        const reverseRel = targetCharacter.relationshipNetwork.find(r => r.targetCharacter === character.id);
-        
-        if (!reverseRel) {
-          issues.push({
-            type: 'warning',
-            code: 'MISSING_REVERSE_RELATIONSHIP',
-            message: `${character.id} 定义了与 ${rel.targetCharacter} 的关系，但 ${rel.targetCharacter} 没有定义反向关系`,
-            context: `角色关系一致性`,
-            suggestion: '考虑为双方都定义关系以保持一致性'
-          });
-        } else {
-          // 检查关系类型一致性
-          const typeMap: Record<string, string> = {
-            'ally': 'ally',
-            'enemy': 'enemy',
-            'superior': 'subordinate',
-            'subordinate': 'superior',
-            'family': 'family',
-            'neutral': 'neutral'
-          };
-
-          const expectedType = typeMap[rel.relationType];
-          if (expectedType && reverseRel.relationType !== expectedType) {
-            issues.push({
-              type: 'warning',
-              code: 'INCONSISTENT_RELATIONSHIP_TYPE',
-              message: `${character.id} 与 ${rel.targetCharacter} 的关系类型不一致: ${rel.relationType} vs ${reverseRel.relationType}`,
-              context: '角色关系一致性',
-              suggestion: '请确保双方的关系类型相互对应'
-            });
-          }
-        }
-      });
-    });
-
-    return {
-      valid: issues.filter(issue => issue.type === 'error').length === 0,
-      issues
-    };
-  }
+  // ...已移除validateRelationshipConsistency方法...
 }

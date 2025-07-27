@@ -81,7 +81,7 @@ async function runTests() {
     await testAPI('http://localhost:3001/api/test-connection', 'Editor 测试连接');
     
     // 测试 editor 的角色数据 API
-    await testAPI('http://localhost:3001/api/data/characters', 'Editor 角色数据');
+    await testAPI('http://localhost:3001/api/characters', 'Editor 角色数据');
     
     console.log('=== 所有测试完成 ===');
   } catch (error) {

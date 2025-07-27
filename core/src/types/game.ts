@@ -15,78 +15,24 @@ export interface CharacterAttributes {
   age: number;          // 年龄
 }
 
-// 与皇帝的关系
-export interface RelationshipWithEmperor {
-  affection: number;      // 感情值 (-100 到 +100)
-  trust: number;         // 信任度 (-100 到 +100)
-  fear: number;          // 恐惧值 (0-100)
-  respect: number;       // 尊敬度 (0-100)
-  dependency: number;    // 依赖度 (0-100)
-  threat: number;        // 威胁度 (0-100)
-}
-
-// 角色间关系
-export interface CharacterRelationship {
-  targetCharacterId: string;
-  relationType: 'ally' | 'enemy' | 'neutral' | 'superior' | 'subordinate' | 'family';
-  relationshipStrength: number; // -100 到 +100
-  secretLevel: number;          // 关系保密程度 (0-100)
-  historicalBasis: string;      // 历史关系基础描述
-}
-
-// 派系信息
-export interface FactionInfo {
-  primaryFaction?: string;
-  secondaryFactions: string[];
-  factionLoyalty: number;
-  leadershipRole: 'leader' | 'core' | 'member' | 'sympathizer';
-}
-
-// 角色对皇帝属性的影响（与主属性结构一致）
-export interface CharacterInfluence {
-  power: number;
-  military: number;
-  wealth: number;
-  popularity: number;
-  health: number;
-  age: number;
-}
-
-// 角色状态标记
-export interface CharacterStatusFlags {
-  alive: boolean;
-  inCourt: boolean;          // 是否在朝
-  inExile: boolean;          // 是否被流放
-  imprisoned: boolean;       // 是否被囚禁
-  promoted: boolean;         // 是否刚被提升
-  demoted: boolean;          // 是否刚被降职
-  suspicious: boolean;       // 是否被怀疑
-  plotting: boolean;         // 是否在密谋
-}
-
-// 角色卡牌
+// ...existing code...
+// 角色卡牌（已移除冗余关系/派系/影响/状态结构）
 export interface CharacterCard {
   id: string;
-  name: string;           // 真实姓名 (隐藏)
-  displayName: string;    // 游戏中显示的称谓
-  currentTitle: string;   // 当前称谓
-  role: string;           // 角色身份
-  description: string;    // 角色外观和行为描述
-  identityRevealed: boolean; // 是否已揭示真实身份
-  
+  name: string;
+  displayName: string;
+  currentTitle: string;
+  role: string;
+  description: string;
+  identityRevealed: boolean;
   attributes: CharacterAttributes;
-  relationshipWithEmperor: RelationshipWithEmperor;
-  relationshipNetwork: CharacterRelationship[];
-  factionInfo: FactionInfo;
-  influence: CharacterInfluence;
-  
-  revealedTraits: string[];   // 已揭示的特性
-  hiddenTraits: string[];     // 尚未揭示的特性
-  discoveredClues: string[];  // 玩家已发现的线索
-  totalClues: number;         // 总线索数量
-  statusFlags: CharacterStatusFlags;
-  eventIds: string[];         // 关联的事件卡牌ID列表
-  commonCardIds?: string[];   // 关联的通用卡ID列表
+  // 已移除 relationshipWithEmperor、relationshipNetwork、factionInfo、influence、statusFlags
+  revealedTraits: string[];
+  hiddenTraits: string[];
+  discoveredClues: string[];
+  totalClues: number;
+  eventIds: string[];
+  commonCardIds?: string[];
 }
 
 // 事件选项
@@ -103,12 +49,10 @@ export interface EventChoice {
   conditions?: EventConditions; // 选项显示条件
 }
 
-// 角色效果
+// 角色效果（已移除冗余关系/状态变更）
 export interface CharacterEffect {
   characterId: string;
   attributeChanges?: Partial<CharacterAttributes>;
-  relationshipChanges?: Partial<RelationshipWithEmperor>;
-  statusChanges?: Partial<CharacterStatusFlags>;
 }
 
 // 角色间关系效果
@@ -125,7 +69,7 @@ export interface FactionEffect {
   influenceChange: number;
 }
 
-// 事件条件
+// 事件条件（已移除冗余关系/派系相关字段）
 export interface EventConditions {
   minHealth?: number;
   minPower?: number;
@@ -135,32 +79,6 @@ export interface EventConditions {
   requiredEvents?: string[];
   excludedEvents?: string[];
   attributeRequirements?: Partial<CharacterAttributes>;
-  characterRelationships?: CharacterRelationshipCondition[];
-  interCharacterRelations?: InterCharacterRelationCondition[];
-  factionRequirements?: FactionRequirement[];
-}
-
-export interface CharacterRelationshipCondition {
-  characterId: string;
-  alive?: boolean;
-  attributes?: Partial<CharacterAttributes>;
-  relationshipWithEmperor?: Partial<RelationshipWithEmperor>;
-  statusFlags?: Partial<CharacterStatusFlags>;
-}
-
-export interface InterCharacterRelationCondition {
-  character1: string;
-  character2: string;
-  minRelationshipStrength?: number;
-  maxRelationshipStrength?: number;
-  relationType?: string;
-}
-
-export interface FactionRequirement {
-  faction: string;
-  minInfluence?: number;
-  maxInfluence?: number;
-  leaderPresent?: boolean;
 }
 
 // 事件卡牌
@@ -364,7 +282,6 @@ export interface CharacterConfig {
   description: string;
   category: string;
   rarity: 'common' | 'rare' | 'epic' | 'legendary';
-  
   initialAttributes: {
     power: number;
     military: number;
@@ -373,43 +290,8 @@ export interface CharacterConfig {
     health: number;
     age: number;
   };
-  
-  initialRelationshipWithEmperor: {
-    affection: number;
-    trust: number;
-    fear: number;
-    respect: number;
-    dependency: number;
-    threat: number;
-  };
-  
-  factionInfo: {
-    primaryFaction?: string;
-    secondaryFactions: string[];
-    factionLoyalty: number;
-    leadershipRole: 'leader' | 'core' | 'member' | 'sympathizer';
-  };
-  
-  relationshipNetwork: Array<{
-    targetCharacter: string;
-    relationType: 'ally' | 'enemy' | 'neutral' | 'superior' | 'subordinate' | 'family';
-    relationshipStrength: number;
-    secretLevel: number;
-    historicalBasis: string;
-  }>;
-  
-  influence: {
-    power: number;
-    military: number;
-    wealth: number;
-    popularity: number;
-    health: number;
-    age: number;
-  };
-  
   traits: string[];
   hiddenTraits: string[];
-  
   conditions?: {
     minReignYears?: number;
     maxAge?: number;
@@ -417,7 +299,6 @@ export interface CharacterConfig {
     requiredFactions?: string[];
     conflictingFactions?: string[];
   };
-  
   backgroundClues: {
     appearance: string;
     mannerisms: string;
@@ -425,7 +306,6 @@ export interface CharacterConfig {
     relationships: string;
     secrets: string;
   };
-
   /**
    * 关联的通用卡ID列表
    */

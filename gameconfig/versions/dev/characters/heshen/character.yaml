@@ -13,26 +13,6 @@ initialAttributes:
   ambition: 95
   age: 45
   reputation: 80
-initialRelationshipWithEmperor:
-  respect: 85
-  fear: 10
-  trust: 90
-  threat: 10
-  affection: 90
-  dependency: 80
-relationshipNetwork: []
-factionInfo:
-  primaryFaction: Imperial Court
-  factionLoyalty: 70
-  leadershipRole: core
-  secondaryFactions:
-    - Corrupt Officials
-influence:
-  popularity: -5
-  treasury: -8
-  health: 0
-  authority: 5
-  military: 0
 traits: []
 hiddenTraits: []
 backgroundClues:

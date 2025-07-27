@@ -16,28 +16,6 @@ initialAttributes:
   health: 70
   age: 45
 
-# 与皇帝的初始关系
-initialRelationshipWithEmperor:
-  affection: 40
-  trust: 30
-  fear: 20
-  respect: 60
-  dependency: 70
-  threat: 40
-
-# 派系信息
-factionInfo:
-  primaryFaction: "女性政治集团"
-  secondaryFactions: 
-    - "皇室派系"
-    - "宫廷保守派"
-  factionLoyalty: 80
-  leadershipRole: "leader"
-
-# 角色关系网络
-relationshipNetwork:
-  - targetCharacter: "huoguang"
-    relationType: "enemy"
     relationshipStrength: -60
     secretLevel: 30
     historicalBasis: "政治理念冲突，权力争夺"

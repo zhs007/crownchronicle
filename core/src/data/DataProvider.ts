@@ -243,7 +243,6 @@ export class ConfigConverter {
       role: config.role,
       description: config.description,
       identityRevealed: false,
-      
       attributes: {
         power: config.initialAttributes.power,
         military: config.initialAttributes.military,
@@ -252,33 +251,6 @@ export class ConfigConverter {
         health: config.initialAttributes.health,
         age: config.initialAttributes.age
       },
-      
-      relationshipWithEmperor: {
-        affection: config.initialRelationshipWithEmperor.affection,
-        trust: config.initialRelationshipWithEmperor.trust,
-        fear: config.initialRelationshipWithEmperor.fear,
-        respect: config.initialRelationshipWithEmperor.respect,
-        dependency: config.initialRelationshipWithEmperor.dependency,
-        threat: config.initialRelationshipWithEmperor.threat
-      },
-      
-      relationshipNetwork: config.relationshipNetwork.map(rel => ({
-        targetCharacterId: rel.targetCharacter,
-        relationType: rel.relationType,
-        relationshipStrength: rel.relationshipStrength,
-        secretLevel: rel.secretLevel,
-        historicalBasis: rel.historicalBasis
-      })),
-      
-      factionInfo: {
-        primaryFaction: config.factionInfo.primaryFaction,
-        secondaryFactions: config.factionInfo.secondaryFactions,
-        factionLoyalty: config.factionInfo.factionLoyalty,
-        leadershipRole: config.factionInfo.leadershipRole
-      },
-      
-      influence: config.influence,
-      
       revealedTraits: [],
       hiddenTraits: [
         ...(config.traits || []), 
@@ -286,18 +258,6 @@ export class ConfigConverter {
       ],
       discoveredClues: [],
       totalClues: config.backgroundClues ? Object.keys(config.backgroundClues).length : 0,
-      
-      statusFlags: {
-        alive: true,
-        inCourt: true,
-        inExile: false,
-        imprisoned: false,
-        promoted: false,
-        demoted: false,
-        suspicious: false,
-        plotting: false
-      },
-      
       eventIds: []
     };
   }
@@ -413,14 +373,7 @@ export class ConfigConverter {
       }
     }
     
-    // 检查冲突的派系
-    if (character.conditions.conflictingFactions) {
-      const selectedFactions = selectedCharacters.map(c => c.factionInfo.primaryFaction);
-      if (character.conditions.conflictingFactions.some(faction => 
-        selectedFactions.includes(faction))) {
-        return false;
-      }
-    }
+    // ...已移除派系冲突检查...
     
     return true;
   }

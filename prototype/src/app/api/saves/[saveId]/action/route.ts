@@ -72,20 +72,7 @@ export async function POST(request: NextRequest) {
 
         // 应用选择效果
         gameState = GameEngine.applyChoiceEffects(gameState, choice);
-
-        // 收集关系变化信息 (简化版本，实际应该从choice.characterEffects计算)
-        const relationshipChanges: Record<string, number> = {};
-        if (choice.characterEffects) {
-          choice.characterEffects.forEach(effect => {
-            if (effect.relationshipChanges) {
-              Object.entries(effect.relationshipChanges).forEach(([key, value]) => {
-                if (key === 'affection' && value !== undefined && typeof value === 'number') {
-                  relationshipChanges[effect.characterId] = value;
-                }
-              });
-            }
-          });
-        }
+        // ...已移除关系变化信息收集逻辑...
 
         // 收集角色发现 (从角色线索推断)
         const characterDiscoveries: string[] = [];
@@ -104,7 +91,7 @@ export async function POST(request: NextRequest) {
             gameState, 
             gameState.currentEvent, 
             choice,
-            Object.keys(relationshipChanges).length > 0 ? relationshipChanges : undefined,
+            undefined,
             characterDiscoveries.length > 0 ? characterDiscoveries : undefined
           );
         }

@@ -16,28 +16,6 @@ initialAttributes:
   health: 65
   age: 55
 
-# 与皇帝的初始关系
-initialRelationshipWithEmperor:
-  affection: 70
-  trust: 80
-  fear: 10
-  respect: 90
-  dependency: 80
-  threat: 20
-
-# 派系信息
-factionInfo:
-  primaryFaction: 传统官僚集团
-  secondaryFactions: 
-    - 皇室派系
-    - 保守派
-  factionLoyalty: 85
-  leadershipRole: leader
-
-# 角色关系网络
-relationshipNetwork:
-  - targetCharacter: wuzetian
-    relationType: enemy
     relationshipStrength: -60
     secretLevel: 30
     historicalBasis: 政治理念冲突，权力争夺

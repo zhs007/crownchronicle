@@ -1,3 +1,4 @@
+import { CharacterAttributes } from '@/types/game';
 import { GoogleGenerativeAI, FunctionCall as GeminiFunctionCall, SchemaType } from '@google/generative-ai';
 import { setupGlobalProxy } from './proxyConfig';
 import { 
@@ -291,34 +292,18 @@ export class GeminiClient {
   
   private convertToCharacterCard(args: Record<string, unknown>): CharacterCard {
     return {
-      id: '', // ID将由saveCharacter方法自动生成
+      id: '',
       name: String(args.name || ''),
       displayName: String(args.displayName || ''),
       currentTitle: String(args.role || ''),
       role: String(args.role || ''),
       description: String(args.description || ''),
       identityRevealed: false,
-      
-      attributes: args.initialAttributes as CharacterCard['attributes'],
-      relationshipWithEmperor: args.initialRelationshipWithEmperor as CharacterCard['relationshipWithEmperor'],
-      relationshipNetwork: (args.relationshipNetwork as CharacterCard['relationshipNetwork']) || [],
-      factionInfo: args.factionInfo as CharacterCard['factionInfo'],
-      influence: args.influence as CharacterCard['influence'],
-      
+      attributes: args.initialAttributes as CharacterAttributes,
       revealedTraits: [],
       hiddenTraits: [],
       discoveredClues: [],
       totalClues: 0,
-      statusFlags: {
-        alive: true,
-        inCourt: true,
-        inExile: false,
-        imprisoned: false,
-        promoted: false,
-        demoted: false,
-        suspicious: false,
-        plotting: false
-      },
       eventIds: []
     };
   }
@@ -352,9 +337,7 @@ export class GeminiClient {
           return { valid: false, issues: [{ message: '角色必须有 initialAttributes 字段' }] };
         }
         
-        if (!data.initialRelationshipWithEmperor) {
-          return { valid: false, issues: [{ message: '角色必须有 initialRelationshipWithEmperor 字段' }] };
-        }
+        // ...已移除 initialRelationshipWithEmperor 校验...
         
         return { valid: true, issues: [] };
       } else if (functionName.includes('event')) {
@@ -403,46 +386,9 @@ export class GeminiClient {
               },
               required: ['power', 'military', 'wealth', 'popularity', 'health', 'age']
             },
-            initialRelationshipWithEmperor: {
-              type: SchemaType.OBJECT,
-              properties: {
-                affection: { type: SchemaType.NUMBER, description: '感情值 (-100 到 +100)' },
-                trust: { type: SchemaType.NUMBER, description: '信任度 (-100 到 +100)' },
-                fear: { type: SchemaType.NUMBER, description: '恐惧值 (0-100)' },
-                respect: { type: SchemaType.NUMBER, description: '尊敬度 (0-100)' },
-                dependency: { type: SchemaType.NUMBER, description: '依赖度 (0-100)' },
-                threat: { type: SchemaType.NUMBER, description: '威胁度 (0-100)' }
-              },
-              required: ['affection', 'trust', 'fear', 'respect', 'dependency', 'threat']
-            },
-            factionInfo: {
-              type: SchemaType.OBJECT,
-              properties: {
-                primaryFaction: { type: SchemaType.STRING, description: '主要派系' },
-                secondaryFactions: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING }, description: '次要派系' },
-                factionLoyalty: { type: SchemaType.NUMBER, description: '派系忠诚度 (0-100)' },
-                leadershipRole: { 
-                  type: SchemaType.STRING,
-                  enum: ['leader', 'core', 'member', 'sympathizer'],
-                  format: 'enum',
-                  description: '在派系中的角色'
-                }
-              },
-              required: ['secondaryFactions', 'factionLoyalty', 'leadershipRole']
-            },
-            influence: {
-              type: SchemaType.OBJECT,
-              properties: {
-                power: { type: SchemaType.NUMBER, description: '对皇帝权势的影响 (-10 到 10)' },
-                military: { type: SchemaType.NUMBER, description: '对军队的影响 (-10 到 10)' },
-                wealth: { type: SchemaType.NUMBER, description: '对财富的影响 (-10 到 10)' },
-                popularity: { type: SchemaType.NUMBER, description: '对民心的影响 (-10 到 10)' },
-                health: { type: SchemaType.NUMBER, description: '对健康的影响 (-10 到 10)' }
-              },
-              required: ['power', 'military', 'wealth', 'popularity', 'health']
-            }
+            // ...已移除 initialRelationshipWithEmperor、factionInfo、influence 字段schema...
           },
-          required: ['name', 'displayName', 'role', 'description', 'initialAttributes', 'initialRelationshipWithEmperor', 'factionInfo', 'influence']
+          required: ['name', 'displayName', 'role', 'description', 'initialAttributes']
         }
       },
       create_event: {

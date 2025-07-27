@@ -81,58 +81,6 @@ export default function DataPreview({ selectedFile }: DataPreviewProps) {
           ))}
         </div>
       </div>
-
-      {/* 与皇帝关系 */}
-      <div className="bg-white rounded-lg p-4 shadow-sm border">
-        <h3 className="text-lg font-semibold mb-3 text-gray-800">与皇帝关系</h3>
-        <div className="grid grid-cols-2 gap-4">
-          {character.relationshipWithEmperor && Object.entries(character.relationshipWithEmperor).map(([key, value]) => (
-            <div key={key} className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-600">{getRelationshipLabel(key)}</span>
-              <div className="flex items-center space-x-2">
-                <div className="w-24 bg-gray-200 rounded-full h-2">
-                  <div 
-                    className={`h-2 rounded-full ${Number(value) >= 0 ? 'bg-green-500' : 'bg-red-500'}`}
-                    style={{ width: `${Math.abs(Number(value))}%` }}
-                  ></div>
-                </div>
-                <span className="text-sm font-medium text-gray-800 w-8">{Number(value)}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* 派系信息 */}
-      <div className="bg-white rounded-lg p-4 shadow-sm border">
-        <h3 className="text-lg font-semibold mb-3 text-gray-800">派系信息</h3>
-        <div className="space-y-3">
-          <div>
-            <label className="text-sm font-medium text-gray-600">主要派系</label>
-            <div className="text-gray-800">{character.factionInfo.primaryFaction || '无'}</div>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-600">次要派系</label>
-            <div className="flex flex-wrap gap-2 mt-1">
-              {character.factionInfo.secondaryFactions.map((faction, index) => (
-                <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
-                  {faction}
-                </span>
-              ))}
-            </div>
-          </div>
-          <div className="flex justify-between">
-            <div>
-              <label className="text-sm font-medium text-gray-600">派系忠诚度</label>
-              <div className="text-gray-800">{character.factionInfo.factionLoyalty}</div>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-600">领导地位</label>
-              <div className="text-gray-800">{getLeadershipLabel(character.factionInfo.leadershipRole)}</div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 
@@ -301,24 +249,3 @@ function getAttributeLabel(key: string): string {
   return labels[key] || key;
 }
 
-function getRelationshipLabel(key: string): string {
-  const labels = {
-    affection: '好感',
-    trust: '信任',
-    fear: '恐惧',
-    respect: '尊敬',
-    dependency: '依赖',
-    threat: '威胁'
-  };
-  return labels[key as keyof typeof labels] || key;
-}
-
-function getLeadershipLabel(role: string): string {
-  const labels = {
-    leader: '领袖',
-    core: '核心',
-    member: '成员',
-    sympathizer: '同情者'
-  };
-  return labels[role as keyof typeof labels] || role;
-}

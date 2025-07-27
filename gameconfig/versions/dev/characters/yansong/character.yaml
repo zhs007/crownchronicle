@@ -12,25 +12,6 @@ initialAttributes:
   popularity: 40
   health: 70
   age: 55
-initialRelationshipWithEmperor:
-  affection: 0
-  trust: 0
-  fear: 0
-  respect: 0
-  dependency: 0
-  threat: 0
-factionInfo:
-  secondaryFactions: []
-  factionLoyalty: 60
-  leadershipRole: leader
-relationshipNetwork: []
-influence:
-  power: 0
-  military: 0
-  wealth: 0
-  popularity: 0
-  health: 0
-  age: 0
 traits: []
 hiddenTraits: []
 backgroundClues:
