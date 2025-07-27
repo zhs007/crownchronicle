@@ -29,7 +29,7 @@ export default function FileExplorer({ onFileSelect, onRefresh }: FileExplorerPr
   const loadFileTree = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/data/characters');
+      const response = await fetch('/api/characters');
       const characters: CharacterCard[] = await response.json();
 
       const tree: FileNode[] = [];
@@ -45,7 +45,7 @@ export default function FileExplorer({ onFileSelect, onRefresh }: FileExplorerPr
 
         // 加载角色的事件
         try {
-          const eventsResponse = await fetch(`/api/data/characters/${character.id}/events`);
+          const eventsResponse = await fetch(`/api/characters/${character.id}/events`);
           if (eventsResponse.ok) {
             const events: EventCard[] = await eventsResponse.json();
             characterNode.children = events.map(event => ({

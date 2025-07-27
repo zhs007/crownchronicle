@@ -1,3 +1,4 @@
+// 通用卡保存方法，支持新建/编辑
 import { 
   FileSystemDataProvider, 
   ConfigValidator,
@@ -13,6 +14,19 @@ import yaml from 'js-yaml';
 import { promises as fs } from 'fs';
 import path from 'path';
 
+export async function saveCommonCard(card: Record<string, unknown>) {
+  const dataPath = GameConfigManager.getConfigPath('editor');
+  const commonCardsDir = path.join(dataPath, 'commoncards');
+  const cardId = (card.id as string) || (card.name as string);
+  if (!cardId) throw new Error('通用卡缺少 id 或 name');
+  const cardDir = path.join(commonCardsDir, cardId);
+  await fs.mkdir(cardDir, { recursive: true });
+  const cardFile = path.join(cardDir, 'commoncard.yaml');
+  const yamlContent = dump(card, { indent: 2, quotingType: '"', lineWidth: -1 });
+  await fs.writeFile(cardFile, yamlContent, 'utf8');
+  return cardId;
+}
+
 // ...existing imports...
 
 export class EditorDataManager {
@@ -21,23 +35,22 @@ export class EditorDataManager {
   /**
    * 获取所有通用卡（仅基础信息）
    */
-  async getAllCommonCards(): Promise<any[]> {
+  async getAllCommonCards(): Promise<Record<string, unknown>[]> {
     const commonCardsDir = path.join(this.dataPath, 'commoncards');
     let cardDirs: string[] = [];
     try {
       cardDirs = await fs.readdir(commonCardsDir);
-    } catch (e) {
+    } catch {
       return [];
     }
-    const cards: any[] = [];
+    const cards: Record<string, unknown>[] = [];
     for (const dir of cardDirs) {
       const cardFile = path.join(commonCardsDir, dir, 'commoncard.yaml');
       try {
         const content = await fs.readFile(cardFile, 'utf8');
-        // 这里假设通用卡结构简单，直接用 js-yaml 解析
-        const card = yaml.load(content);
+        const card = yaml.load(content) as Record<string, unknown>;
         cards.push(card);
-      } catch (e) {
+      } catch {
         // 跳过无效或损坏的通用卡
       }
     }
@@ -388,3 +401,7 @@ export class EditorDataManager {
     return id;
   }
 }
+
+// 便于 API 路由直接调用（放在文件末尾，确保类已声明）
+export const _defaultManager = new EditorDataManager();
+export const getAllCommonCards = _defaultManager.getAllCommonCards.bind(_defaultManager);

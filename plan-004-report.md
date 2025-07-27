@@ -13,14 +13,17 @@
 - 单元测试覆盖通用卡数据加载、合并、校验。
 - gameconfig/versions/dev|stable/commoncards/ 下增加示例通用卡配置。
 
+
 ### 编辑器（editor）功能
-- editor/lib/dataManager.ts 实现：
-  - getAllCommonCards：获取所有通用卡
-  - saveCommonCard：保存/新建/编辑通用卡
+- editor/lib/dataManager.ts 仅能在 Node.js 环境（如 API 路由、agent 指令）中使用，不能被前端页面/组件直接 import。
+  - getAllCommonCards：获取所有通用卡（仅服务端可用）
+  - saveCommonCard：保存/新建/编辑通用卡（仅服务端可用）
   - 通用卡事件保存、ID生成等
+- editor/app/api/commoncards/xxx.ts（建议）：所有通用卡相关的文件操作应通过 API 路由暴露给前端页面/组件。
 - editor/components/CommonCardPanel.tsx：
+  - 仅通过 fetch/axios 请求 API 获取/操作通用卡数据，绝不直接 import/use dataManager.ts
   - 通用卡列表展示、刷新
-  - 新建、编辑、删除入口（UI 触发，实际操作交由 agent）
+  - 新建、编辑、删除入口（UI 触发，实际操作交由 agent 或 API）
 - 角色卡可多选关联通用卡，事件池预览入口已预留
 
 ### 规范与兼容
@@ -35,7 +38,13 @@
 ## 4. 已完成与后续建议
 - 通用卡机制已在 core、gameconfig、editor 各层实现并联调通过
 - 编辑器已具备通用卡的增删查改 UI 入口，所有编辑逻辑交由 agent
-- 建议后续完善通用卡删除的物理文件操作、角色卡与通用卡的多选交互、事件池预览等细节
+
+### 【editor 项目需执行的具体修改】
+1. 新增 API 路由（如 `src/app/api/commoncards/[action].ts`），实现通用卡的增删查改接口，所有文件操作均在此完成。
+2. 移除前端页面/组件（如 CommonCardPanel.tsx）对 dataManager.ts 的直接 import，全部通过 fetch/axios 调用 API。
+3. CommonCardPanel.tsx 及相关组件需适配 API 返回的数据结构，处理增删查改的异步请求与 UI 状态。
+4. 可选：为 agent/EditorDataManager 增加更细致的错误处理和数据校验，API 层返回标准化响应。
+5. 后续如需支持角色卡与通用卡多选、事件池预览等，建议统一通过 API 路由与 agent 协作实现。
 
 ---
 如需详细代码变更、接口说明或联动演示，可随时补充。
