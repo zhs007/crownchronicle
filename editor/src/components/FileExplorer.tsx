@@ -31,10 +31,12 @@ export default function FileExplorer({ onFileSelect, onRefresh }: FileExplorerPr
     try {
       const response = await fetch('/api/characters');
       const characters: CharacterCard[] = await response.json();
+      console.log('[FileExplorer] 角色原始数据:', characters);
 
       const tree: FileNode[] = [];
 
       for (const character of characters) {
+        console.log('[FileExplorer] 处理角色:', character.id, character.name, character);
         const characterNode: FileNode = {
           type: 'character',
           id: character.id,
@@ -48,6 +50,7 @@ export default function FileExplorer({ onFileSelect, onRefresh }: FileExplorerPr
           const eventsResponse = await fetch(`/api/characters/${character.id}/events`);
           if (eventsResponse.ok) {
             const events: EventCard[] = await eventsResponse.json();
+            console.log(`[FileExplorer] 角色 ${character.id} 的事件:`, events);
             characterNode.children = events.map(event => ({
               type: 'event' as const,
               id: `${character.id}/${event.id}`,
@@ -62,6 +65,7 @@ export default function FileExplorer({ onFileSelect, onRefresh }: FileExplorerPr
         tree.push(characterNode);
       }
 
+      console.log('[FileExplorer] 构建的文件树:', tree);
       setFileTree(tree);
     } catch (error) {
       console.error('Failed to load file tree:', error);
