@@ -16,13 +16,6 @@ initialAttributes:
   health: 90
   age: 30
 
-    historicalBasis: "同朝为官，互相尊重"
-  
-  - targetCharacter: "wuzetian"
-    relationType: "neutral"
-    relationshipStrength: 10
-    secretLevel: 30
-    historicalBasis: "保持距离，不愿卷入宫廷斗争"
 
 # 影响力范围
 influence:

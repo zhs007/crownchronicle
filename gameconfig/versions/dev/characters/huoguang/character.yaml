@@ -16,9 +16,6 @@ initialAttributes:
   health: 65
   age: 55
 
-    relationshipStrength: -60
-    secretLevel: 30
-    historicalBasis: 政治理念冲突，权力争夺
 
 # 角色对皇帝属性的影响系数
 influence:

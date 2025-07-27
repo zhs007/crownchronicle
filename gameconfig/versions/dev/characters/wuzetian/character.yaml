@@ -16,15 +16,6 @@ initialAttributes:
   health: 70
   age: 45
 
-    relationshipStrength: -60
-    secretLevel: 30
-    historicalBasis: "政治理念冲突，权力争夺"
-    
-  - targetCharacter: "weizhongxian"
-    relationType: "ally"
-    relationshipStrength: 40
-    secretLevel: 70
-    historicalBasis: "同为非传统权力集团，相互支持"
 
 # 角色对皇帝属性的影响系数
 influence:
