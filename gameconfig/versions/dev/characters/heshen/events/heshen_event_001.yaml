@@ -1,21 +1,21 @@
-id: 和珅_event_001
+id: heshen_event_001
 title: 议定《四库全书》编纂经费
 description: 乾隆皇帝决定编纂《四库全书》，但国库空虚，和珅提出利用捐输和盐引等方式筹集资金。
 speaker: 和珅
-dialogue: 皇上，编纂《四库全书》乃千秋伟业，然国库拮据，臣以为可效仿前朝，以捐输和盐引之法筹措，既不耗国帑，亦可得民间支持。
+dialogue: "皇上，编纂《四库全书》乃千秋伟业，然国库拮据，臣以为可效仿前朝，以捐输和盐引之法筹措，既不耗国帑，亦可得民间支持。"
 weight: 10
 choices:
-  - effects:
+  - id: heshen_event_001_choice_01
+    text: 同意和珅的建议，让其全权负责筹款。
+    effects:
       authority: 5
       popularity: 5
       treasury: 10
     consequences: 国库充盈，但和珅权力进一步扩大，为日后贪腐埋下伏笔。
-    text: 同意和珅的建议，让其全权负责筹款。
-    id: 和珅_event_001_choice_01
-  - consequences: 《四库全书》编纂受阻，但遏制了和珅的权力扩张。
+  - id: heshen_event_001_choice_02
     text: 拒绝和珅的建议，另寻他法。
     effects:
       authority: -5
       popularity: -5
       treasury: -5
-    id: 和珅_event_001_choice_02
+    consequences: 《四库全书》编纂受阻，但遏制了和珅的权力扩张。

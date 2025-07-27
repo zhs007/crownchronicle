@@ -9,14 +9,45 @@ import {
 import { GameConfigManager } from './configManager';
 import { ValidationReport } from '@/types/editor';
 import { dump } from 'js-yaml';
+import yaml from 'js-yaml';
 import { promises as fs } from 'fs';
 import path from 'path';
 
+// ...existing imports...
+
 export class EditorDataManager {
+  // ...existing code...
+
+  /**
+   * 获取所有通用卡（仅基础信息）
+   */
+  async getAllCommonCards(): Promise<any[]> {
+    const commonCardsDir = path.join(this.dataPath, 'commoncards');
+    let cardDirs: string[] = [];
+    try {
+      cardDirs = await fs.readdir(commonCardsDir);
+    } catch (e) {
+      return [];
+    }
+    const cards: any[] = [];
+    for (const dir of cardDirs) {
+      const cardFile = path.join(commonCardsDir, dir, 'commoncard.yaml');
+      try {
+        const content = await fs.readFile(cardFile, 'utf8');
+        // 这里假设通用卡结构简单，直接用 js-yaml 解析
+        const card = yaml.load(content);
+        cards.push(card);
+      } catch (e) {
+        // 跳过无效或损坏的通用卡
+      }
+    }
+    return cards;
+  }
+
   private dataProvider: FileSystemDataProvider;
   private validator: ConfigValidator;
   private dataPath: string;
-  
+
   constructor(dataPath?: string) {
     const actualDataPath = dataPath || GameConfigManager.getConfigPath('editor');
     this.dataPath = actualDataPath;
@@ -312,13 +343,8 @@ export class EditorDataManager {
    * 4. 保持简洁明了
    */
   private generateCharacterId(characterName: string): string {
-    // 简单的字符串处理：移除空格、标点，转小写
-    // 实际项目中可能需要更复杂的拼音转换逻辑
-    const cleanName = characterName
-      .replace(/[\s\-_，。！？、]/g, '') // 移除空格和常见标点
-      .toLowerCase();
-    
-    // 特殊字符映射（可以根据需要扩展）
+    // 只允许小写字母和数字，移除空格、标点、特殊符号
+    const cleanName = characterName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
     const charMap: { [key: string]: string } = {
       '武则天': 'wuzetian',
       '李隆基': 'lilongji',
@@ -329,8 +355,11 @@ export class EditorDataManager {
       '狄仁杰': 'direnjie',
       '上官婉儿': 'shangguanwaner'
     };
-    
-    return charMap[characterName] || cleanName;
+    const id = charMap[characterName] || cleanName;
+    if (!/^[a-z][a-z0-9]*$/.test(id)) {
+      throw new Error('角色ID必须为拼音小写字母开头，仅包含小写字母和数字');
+    }
+    return id;
   }
 
   /**
@@ -338,7 +367,11 @@ export class EditorDataManager {
    * 格式：{characterId}_event_{number}
    */
   private generateEventId(characterId: string, eventNumber: number): string {
-    return `${characterId}_event_${eventNumber.toString().padStart(3, '0')}`;
+    const id = `${characterId}_event_${eventNumber.toString().padStart(3, '0')}`;
+    if (!/^[a-z][a-z0-9_]*$/.test(id)) {
+      throw new Error('事件ID必须为拼音+_event_+数字，且仅包含小写字母、数字、下划线');
+    }
+    return id;
   }
 
   /**
@@ -348,6 +381,10 @@ export class EditorDataManager {
   private generateChoiceId(characterId: string, eventNumber: number, choiceIndex: number): string {
     const eventNum = eventNumber.toString().padStart(3, '0');
     const choiceNum = (choiceIndex + 1).toString().padStart(2, '0');
-    return `${characterId}_event_${eventNum}_choice_${choiceNum}`;
+    const id = `${characterId}_event_${eventNum}_choice_${choiceNum}`;
+    if (!/^[a-z][a-z0-9_]*$/.test(id)) {
+      throw new Error('选项ID必须为拼音+_event_+数字+_choice_+数字，且仅包含小写字母、数字、下划线');
+    }
+    return id;
   }
 }

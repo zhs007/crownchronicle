@@ -4,6 +4,9 @@ import React, { useState } from 'react';
 import ChatInterface from '@/components/ChatInterface';
 import FileExplorer from '@/components/FileExplorer';
 import DataPreview from '@/components/DataPreview';
+import CommonCardPanel from '@/components/CommonCardPanel';
+import CharacterCardPanel from '@/components/CharacterCardPanel';
+import EventPreviewPanel from '@/components/EventPreviewPanel';
 import { CharacterCard, EventCard } from '@/types/game';
 
 interface FileNode {
@@ -67,23 +70,35 @@ export default function Home() {
         </div>
       </header>
 
+
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left Sidebar - File Explorer */}
-        <div className="w-64 flex-shrink-0">
+        {/* Left Sidebar - File Explorer + 通用卡管理 */}
+        <div className="w-72 flex-shrink-0 flex flex-col border-r">
           <FileExplorer 
             key={refreshTrigger}
             onFileSelect={handleFileSelect}
             onRefresh={handleRefresh}
           />
+          <div className="mt-4 p-2 bg-white border-t">
+            <CommonCardPanel />
+          </div>
         </div>
 
-        {/* Center - Chat Interface */}
+        {/* Center - Chat Interface + 角色卡管理 + 事件预览 */}
         <div className="flex-1 flex flex-col">
           <ChatInterface
             onCharacterCreated={handleCharacterCreated}
             onEventCreated={handleEventCreated}
           />
+          <div className="flex flex-row border-t bg-gray-50">
+            <div className="flex-1 p-2">
+              <CharacterCardPanel />
+            </div>
+            <div className="flex-1 p-2 border-l">
+              <EventPreviewPanel />
+            </div>
+          </div>
         </div>
 
         {/* Right Sidebar - Data Preview */}

@@ -1,0 +1,45 @@
+id: zhugeliang
+name: 诸葛亮
+displayName: 丞相
+role: chancellor
+description: 三国著名丞相
+category: 智将
+rarity: epic
+initialAttributes:
+  power: 80
+  military: 90
+  wealth: 60
+  popularity: 95
+  health: 80
+  age: 40
+initialRelationshipWithEmperor:
+  affection: 0
+  trust: 0
+  fear: 0
+  respect: 0
+  dependency: 0
+  threat: 0
+factionInfo:
+  secondaryFactions: []
+  factionLoyalty: 80
+  leadershipRole: leader
+relationshipNetwork: []
+influence:
+  power: 0
+  military: 0
+  wealth: 0
+  popularity: 0
+  health: 0
+  age: 0
+traits: []
+hiddenTraits: []
+backgroundClues:
+  appearance: ""
+  mannerisms: ""
+  preferences: ""
+  relationships: ""
+  secrets: ""
+eventIds:
+  - event_zhugeliang_1
+commonCardIds:
+  - chancellor_common

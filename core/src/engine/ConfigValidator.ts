@@ -14,6 +14,97 @@ export interface ValidationResult {
 }
 
 export class ConfigValidator {
+  /**
+   * 验证所有通用卡配置
+   */
+  async validateAllCommonCards(): Promise<ValidationResult> {
+    const issues: ValidationIssue[] = [];
+    try {
+      const commonCards = await this.dataProvider.loadAllCommonCards();
+      if (commonCards.length === 0) {
+        issues.push({
+          type: 'warning',
+          code: 'NO_COMMON_CARDS',
+          message: '没有找到任何通用卡配置',
+          suggestion: '可选：添加至少一张通用卡'
+        });
+      }
+      // 检查ID唯一性
+      const ids = new Set<string>();
+      for (const card of commonCards) {
+        if (ids.has(card.id)) {
+          issues.push({
+            type: 'error',
+            code: 'DUPLICATE_COMMON_CARD_ID',
+            message: `通用卡ID重复: ${card.id}`,
+            context: card.id,
+            suggestion: '请确保每张通用卡都有唯一的ID'
+          });
+        }
+        ids.add(card.id);
+        // 结构校验
+        if (!this.dataProvider.validateCommonCardConfig(card)) {
+          issues.push({
+            type: 'error',
+            code: 'INVALID_COMMON_CARD_STRUCTURE',
+            message: `通用卡结构不完整: ${card.id}`,
+            context: card.id,
+            suggestion: '请检查通用卡字段是否齐全'
+          });
+        }
+      }
+    } catch (error) {
+      issues.push({
+        type: 'error',
+        code: 'COMMON_CARD_VALIDATION_ERROR',
+        message: `通用卡校验出错: ${error}`,
+        context: 'system'
+      });
+    }
+    return {
+      valid: issues.filter(issue => issue.type === 'error').length === 0,
+      issues
+    };
+  }
+  /**
+   * 校验角色卡引用的通用卡ID是否存在
+   */
+  async validateCharacterCommonCardRefs(): Promise<ValidationResult> {
+    const issues: ValidationIssue[] = [];
+    try {
+      const [characters, commonCards] = await Promise.all([
+        this.dataProvider.loadAllCharacters(),
+        this.dataProvider.loadAllCommonCards()
+      ]);
+      const commonCardIdSet = new Set(commonCards.map(c => c.id));
+      for (const character of characters) {
+        if (character.commonCardIds) {
+          for (const cid of character.commonCardIds) {
+            if (!commonCardIdSet.has(cid)) {
+              issues.push({
+                type: 'error',
+                code: 'INVALID_COMMON_CARD_REF',
+                message: `角色 ${character.id} 引用了不存在的通用卡ID: ${cid}`,
+                context: character.id,
+                suggestion: '请确保所有引用的通用卡ID都存在'
+              });
+            }
+          }
+        }
+      }
+    } catch (error) {
+      issues.push({
+        type: 'error',
+        code: 'COMMON_CARD_REF_VALIDATION_ERROR',
+        message: `通用卡引用校验出错: ${error}`,
+        context: 'system'
+      });
+    }
+    return {
+      valid: issues.filter(issue => issue.type === 'error').length === 0,
+      issues
+    };
+  }
   private dataProvider: DataProvider;
 
   constructor(dataProvider: DataProvider) {

@@ -1,3 +1,10 @@
+// 通用卡（CommonCard）类型
+export interface CommonCard {
+  id: string;
+  name: string;
+  description?: string;
+  eventIds: string[];
+}
 // 角色属性（包括皇帝和所有角色，六项核心属性）
 export interface CharacterAttributes {
   power: number;        // 权势
@@ -79,6 +86,7 @@ export interface CharacterCard {
   totalClues: number;         // 总线索数量
   statusFlags: CharacterStatusFlags;
   eventIds: string[];         // 关联的事件卡牌ID列表
+  commonCardIds?: string[];   // 关联的通用卡ID列表
 }
 
 // 事件选项
@@ -318,6 +326,15 @@ export interface GameConfig {
 // 数据提供器接口
 export interface DataProvider {
   /**
+   * 加载所有通用卡配置
+   */
+  loadAllCommonCards(): Promise<CommonCard[]>;
+
+  /**
+   * 校验通用卡配置
+   */
+  validateCommonCardConfig(config: any): boolean;
+  /**
    * 加载所有角色配置
    */
   loadAllCharacters(): Promise<CharacterConfig[]>;
@@ -408,6 +425,11 @@ export interface CharacterConfig {
     relationships: string;
     secrets: string;
   };
+
+  /**
+   * 关联的通用卡ID列表
+   */
+  commonCardIds?: string[];
 }
 
 // 事件配置结构

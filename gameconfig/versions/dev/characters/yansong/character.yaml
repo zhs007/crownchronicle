@@ -1,0 +1,46 @@
+id: yansong
+name: 严嵩
+displayName: 丞相
+role: chancellor
+description: 明代权臣
+category: 权臣
+rarity: rare
+initialAttributes:
+  power: 70
+  military: 60
+  wealth: 90
+  popularity: 40
+  health: 70
+  age: 55
+initialRelationshipWithEmperor:
+  affection: 0
+  trust: 0
+  fear: 0
+  respect: 0
+  dependency: 0
+  threat: 0
+factionInfo:
+  secondaryFactions: []
+  factionLoyalty: 60
+  leadershipRole: leader
+relationshipNetwork: []
+influence:
+  power: 0
+  military: 0
+  wealth: 0
+  popularity: 0
+  health: 0
+  age: 0
+traits: []
+hiddenTraits: []
+backgroundClues:
+  appearance: ""
+  mannerisms: ""
+  preferences: ""
+  relationships: ""
+  secrets: ""
+eventIds:
+  - event_chancellor_2
+  - event_yansong_1
+commonCardIds:
+  - chancellor_common

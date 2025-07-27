@@ -1,13 +1,53 @@
 import yaml from 'js-yaml';
-import { CharacterCard, EventCard, CharacterConfig, EventConfig, DataProvider } from '../types/game';
+import { CharacterCard, EventCard, CharacterConfig, EventConfig, DataProvider, CommonCard } from '../types/game';
 
 export class FileSystemDataProvider implements DataProvider {
+  private commonCardsDirectory: string;
   private dataDirectory: string;
   private charactersDirectory: string;
 
   constructor(dataDirectory: string) {
     this.dataDirectory = dataDirectory;
     this.charactersDirectory = `${dataDirectory}/characters`;
+    this.commonCardsDirectory = `${dataDirectory}/commoncards`;
+  }
+  /**
+   * 加载所有通用卡配置
+   */
+  async loadAllCommonCards(): Promise<CommonCard[]> {
+    try {
+      const commonCards: CommonCard[] = [];
+      if (typeof process !== 'undefined' && process.versions && process.versions.node) {
+        const fs = await import('fs');
+        const path = await import('path');
+        const files = await fs.promises.readdir(this.commonCardsDirectory);
+        for (const file of files) {
+          if (file.endsWith('.json') || file.endsWith('.yaml') || file.endsWith('.yml')) {
+            const filePath = path.join(this.commonCardsDirectory, file);
+            const fileContent = await fs.promises.readFile(filePath, 'utf8');
+            let card: CommonCard;
+            if (file.endsWith('.json')) {
+              card = JSON.parse(fileContent);
+            } else {
+              card = yaml.load(fileContent) as CommonCard;
+            }
+            commonCards.push(card);
+          }
+        }
+      }
+      return commonCards;
+    } catch (error) {
+      console.error('Failed to load common cards:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 校验通用卡配置
+   */
+  validateCommonCardConfig(config: any): boolean {
+    const requiredFields = ['id', 'name', 'eventIds'];
+    return requiredFields.every(field => field in config) && Array.isArray(config.eventIds);
   }
 
   /**
@@ -135,12 +175,22 @@ export class FileSystemDataProvider implements DataProvider {
 }
 
 export class MemoryDataProvider implements DataProvider {
+  private commonCards: CommonCard[] = [];
   private characters: CharacterConfig[] = [];
   private events: Map<string, EventConfig[]> = new Map();
 
-  constructor(characters: CharacterConfig[], events: Map<string, EventConfig[]>) {
+  constructor(characters: CharacterConfig[], events: Map<string, EventConfig[]>, commonCards: CommonCard[] = []) {
     this.characters = characters;
     this.events = events;
+    this.commonCards = commonCards;
+  }
+  async loadAllCommonCards(): Promise<CommonCard[]> {
+    return [...this.commonCards];
+  }
+
+  validateCommonCardConfig(config: any): boolean {
+    const requiredFields = ['id', 'name', 'eventIds'];
+    return requiredFields.every(field => field in config) && Array.isArray(config.eventIds);
   }
 
   async loadAllCharacters(): Promise<CharacterConfig[]> {

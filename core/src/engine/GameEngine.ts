@@ -2,6 +2,27 @@ import { CharacterAttributes, EventCard, GameState, CharacterCard, EventChoice, 
 import { GAME_CONSTANTS, DIFFICULTY_CONFIG } from '../utils/constants';
 
 export class GameEngine {
+
+  /**
+   * 合并角色卡自身事件和通用卡事件，去重
+   * @param character 角色卡
+   * @param allCommonCards 所有通用卡
+   * @returns 合并后的事件ID数组
+   */
+  static mergeCharacterAndCommonCardEvents(character: CharacterCard, allCommonCards: { id: string; eventIds: string[] }[]): string[] {
+    const eventSet = new Set<string>(character.eventIds || []);
+    if (character.commonCardIds && character.commonCardIds.length > 0) {
+      for (const cid of character.commonCardIds) {
+        const common = allCommonCards.find(c => c.id === cid);
+        if (common && Array.isArray(common.eventIds)) {
+          for (const eid of common.eventIds) {
+            eventSet.add(eid);
+          }
+        }
+      }
+    }
+    return Array.from(eventSet);
+  }
   /**
    * 创建新游戏状态
    */
