@@ -12,7 +12,7 @@ export class FileSystemDataProvider implements DataProvider {
     this.commonCardsDirectory = `${dataDirectory}/commoncards`;
   }
   /**
-   * 加载所有通用卡配置
+   * 加载所有通用卡配置（递归子目录）
    */
   async loadAllCommonCards(): Promise<CommonCard[]> {
     try {
@@ -20,20 +20,41 @@ export class FileSystemDataProvider implements DataProvider {
       if (typeof process !== 'undefined' && process.versions && process.versions.node) {
         const fs = await import('fs');
         const path = await import('path');
-        const files = await fs.promises.readdir(this.commonCardsDirectory);
-        for (const file of files) {
-          if (file.endsWith('.json') || file.endsWith('.yaml') || file.endsWith('.yml')) {
-            const filePath = path.join(this.commonCardsDirectory, file);
-            const fileContent = await fs.promises.readFile(filePath, 'utf8');
-            let card: CommonCard;
-            if (file.endsWith('.json')) {
-              card = JSON.parse(fileContent);
-            } else {
-              card = yaml.load(fileContent) as CommonCard;
+
+        // 递归读取所有 yaml/yml/json 文件
+        async function readAllFiles(dir: string): Promise<string[]> {
+          let results: string[] = [];
+          const list = await fs.promises.readdir(dir);
+          for (const file of list) {
+            const filePath = path.join(dir, file);
+            const stat = await fs.promises.stat(filePath);
+            if (stat.isDirectory()) {
+              results = results.concat(await readAllFiles(filePath));
+            } else if (file === 'commoncard.yaml' || file.endsWith('.json')) {
+              results.push(filePath);
             }
-            commonCards.push(card);
           }
+          return results;
         }
+
+        const files = await readAllFiles(this.commonCardsDirectory);
+        // 日志：输出所有找到的文件
+        console.log('[CommonCard] Found files:', files);
+        for (const filePath of files) {
+          const fileContent = await fs.promises.readFile(filePath, 'utf8');
+          let card: CommonCard;
+          if (filePath.endsWith('.json')) {
+            card = JSON.parse(fileContent);
+          } else {
+            card = yaml.load(fileContent) as CommonCard;
+          }
+          commonCards.push(card);
+        }
+        // 日志：输出加载到的卡片数量和 id
+        console.log(`[CommonCard] Loaded ${commonCards.length} cards:`, commonCards.map(c => c.id));
+      } else {
+        // 浏览器环境下也输出日志
+        console.log('[CommonCard] Not running in Node.js, skipping file load.');
       }
       return commonCards;
     } catch (error) {
@@ -119,26 +140,32 @@ export class FileSystemDataProvider implements DataProvider {
   async loadCharacterEvents(characterId: string): Promise<EventConfig[]> {
     try {
       const events: EventConfig[] = [];
-      
       if (typeof process !== 'undefined' && process.versions && process.versions.node) {
         // Node.js 环境
         const fs = await import('fs');
         const path = await import('path');
-        
         const eventsDir = path.join(this.charactersDirectory, characterId, 'events');
-        const eventFiles = await fs.promises.readdir(eventsDir);
-        
+        let eventFiles: string[] = [];
+        try {
+          eventFiles = await fs.promises.readdir(eventsDir);
+        } catch (err: any) {
+          if (err.code === 'ENOENT') {
+            // 目录不存在，返回空数组（不输出 error 日志）
+            return [];
+          }
+          // 其他异常才输出 error
+          console.error(`Failed to load events for character ${characterId}:`, err);
+          return [];
+        }
         for (const file of eventFiles) {
           if (file.endsWith('.yaml') || file.endsWith('.yml')) {
             const eventFile = path.join(eventsDir, file);
             const fileContent = await fs.promises.readFile(eventFile, 'utf8');
             const eventConfig = yaml.load(fileContent) as EventConfig;
-            
             events.push(eventConfig);
           }
         }
       }
-      
       return events;
     } catch (error) {
       console.error(`Failed to load events for character ${characterId}:`, error);

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { CharacterCard, EventCard } from '@/types/game';
 
 interface FileNode {
-  type: 'character' | 'event' | 'folder';
+  type: 'character' | 'event' | 'commoncard' | 'folder';
   id: string;
   name: string;
   children?: FileNode[];
@@ -29,14 +29,19 @@ export default function FileExplorer({ onFileSelect, onRefresh }: FileExplorerPr
   const loadFileTree = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/characters');
-      const characters: CharacterCard[] = await response.json();
+      // 并行加载角色和通用卡
+      const [charactersRes, commonCardsRes] = await Promise.all([
+        fetch('/api/characters'),
+        fetch('/api/commoncards')
+      ]);
+      const characters: CharacterCard[] = await charactersRes.json();
+      const commonCards: any[] = await commonCardsRes.json();
       console.log('[FileExplorer] 角色原始数据:', characters);
+      console.log('[FileExplorer] 通用卡原始数据:', commonCards);
 
-      const tree: FileNode[] = [];
-
+      // 角色卡分组
+      const characterNodes: FileNode[] = [];
       for (const character of characters) {
-        console.log('[FileExplorer] 处理角色:', character.id, character.name, character);
         const characterNode: FileNode = {
           type: 'character',
           id: character.id,
@@ -44,13 +49,11 @@ export default function FileExplorer({ onFileSelect, onRefresh }: FileExplorerPr
           data: character,
           children: []
         };
-
         // 加载角色的事件
         try {
           const eventsResponse = await fetch(`/api/characters/${character.id}/events`);
           if (eventsResponse.ok) {
             const events: EventCard[] = await eventsResponse.json();
-            console.log(`[FileExplorer] 角色 ${character.id} 的事件:`, events);
             characterNode.children = events.map(event => ({
               type: 'event' as const,
               id: `${character.id}/${event.id}`,
@@ -61,9 +64,53 @@ export default function FileExplorer({ onFileSelect, onRefresh }: FileExplorerPr
         } catch (error) {
           console.warn(`Failed to load events for character ${character.id}:`, error);
         }
-
-        tree.push(characterNode);
+        characterNodes.push(characterNode);
       }
+
+      // 通用卡分组（每个通用卡下挂事件）
+      const commonCardNodes: FileNode[] = await Promise.all(
+        (commonCards || []).map(async card => {
+          let eventNodes: FileNode[] = [];
+          try {
+            const eventsResponse = await fetch(`/api/commoncards/${card.id}/events`);
+            if (eventsResponse.ok) {
+              const events: EventCard[] = await eventsResponse.json();
+              eventNodes = events.map(event => ({
+                type: 'event',
+                id: `commoncard_${card.id}/${event.id}`,
+                name: event.title,
+                data: event
+              }));
+            }
+          } catch (error) {
+            console.warn(`Failed to load events for commoncard ${card.id}:`, error);
+          }
+          // 只在有事件时挂 children，否则 children: undefined
+          return {
+            type: 'commoncard',
+            id: `commoncard_${card.id}`,
+            name: card.name || card.id,
+            data: card,
+            ...(eventNodes.length > 0 ? { children: eventNodes } : {})
+          };
+        })
+      );
+
+      // 顶层分组
+      const tree: FileNode[] = [
+        {
+          type: 'commoncard',
+          id: 'plane-characters',
+          name: '角色卡',
+          children: characterNodes
+        },
+        {
+          type: 'commoncard',
+          id: 'plane-commoncards',
+          name: '通用卡',
+          children: commonCardNodes
+        }
+      ];
 
       console.log('[FileExplorer] 构建的文件树:', tree);
       setFileTree(tree);
@@ -85,6 +132,8 @@ export default function FileExplorer({ onFileSelect, onRefresh }: FileExplorerPr
   };
 
   const selectFile = (file: FileNode) => {
+    // eslint-disable-next-line no-console
+    console.log('[FileExplorer] selectFile', file);
     setSelectedFile(file.id);
     onFileSelect?.(file);
   };
@@ -94,6 +143,7 @@ export default function FileExplorer({ onFileSelect, onRefresh }: FileExplorerPr
     const hasChildren = node.children && node.children.length > 0;
     const isSelected = selectedFile === node.id;
 
+    // ...existing code...
     return (
       <div key={node.id}>
         <div
@@ -101,7 +151,13 @@ export default function FileExplorer({ onFileSelect, onRefresh }: FileExplorerPr
             isSelected ? 'bg-blue-50 border-r-2 border-blue-500' : ''
           }`}
           style={{ paddingLeft: `${level * 16 + 8}px` }}
-          onClick={() => selectFile(node)}
+          onClick={() => {
+            // plane-characters/plane-commoncards 不可预览
+            if (node.id === 'plane-characters' || node.id === 'plane-commoncards') return;
+            // eslint-disable-next-line no-console
+            console.log('[FileExplorer] node clicked', node);
+            selectFile(node);
+          }}
         >
           {hasChildren && (
             <button
@@ -114,10 +170,19 @@ export default function FileExplorer({ onFileSelect, onRefresh }: FileExplorerPr
               {isExpanded ? '▼' : '▶'}
             </button>
           )}
-          
+
           <div className="flex items-center space-x-2 flex-1">
             <span className="text-lg">
-              {node.type === 'character' ? '👤' : node.type === 'event' ? '📋' : '📁'}
+              {/* plane-characters/plane-commoncards 顶层分组用文件夹icon，其余用专属icon */}
+              {node.id === 'plane-characters' || node.id === 'plane-commoncards'
+                ? '📁'
+                : node.type === 'character'
+                ? '👤'
+                : node.type === 'event'
+                ? '📋'
+                : node.type === 'commoncard'
+                ? '🃏'
+                : '📁'}
             </span>
             <span className={`text-sm ${isSelected ? 'font-medium text-blue-700' : 'text-gray-700'}`}>
               {node.name}
@@ -125,6 +190,11 @@ export default function FileExplorer({ onFileSelect, onRefresh }: FileExplorerPr
             {node.type === 'character' && node.data && (
               <span className="text-xs px-1 py-0.5 bg-gray-200 text-gray-600 rounded">
                 {(node.data as CharacterCard).role}
+              </span>
+            )}
+            {node.id.startsWith('commoncard_') && node.data && (
+              <span className="text-xs px-1 py-0.5 bg-yellow-100 text-yellow-700 rounded">
+                通用卡
               </span>
             )}
           </div>
@@ -184,8 +254,9 @@ export default function FileExplorer({ onFileSelect, onRefresh }: FileExplorerPr
 
       {/* Stats */}
       <div className="p-3 border-t bg-gray-50 text-xs text-gray-600">
-        <div>角色: {fileTree.length}</div>
-        <div>事件: {fileTree.reduce((sum, char) => sum + (char.children?.length || 0), 0)}</div>
+        <div>角色: {fileTree.find(f => f.id === 'plane-characters')?.children?.length || 0}</div>
+        <div>事件: {fileTree.find(f => f.id === 'plane-characters')?.children?.reduce((sum, char) => sum + (char.children?.length || 0), 0) || 0}</div>
+        <div>通用卡: {fileTree.find(f => f.id === 'plane-commoncards')?.children?.length || 0}</div>
       </div>
     </div>
   );

@@ -1,19 +1,31 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CharacterCard, EventCard } from '@/types/game';
 import { dump } from 'js-yaml';
 
+
 interface DataPreviewProps {
   selectedFile?: {
-    type: 'character' | 'event';
-    data: CharacterCard | EventCard;
+    type: 'character' | 'event' | 'commoncard';
+    data: CharacterCard | EventCard | Record<string, unknown>;
     id: string;
     name: string;
   };
 }
 
 export default function DataPreview({ selectedFile }: DataPreviewProps) {
+  useEffect(() => {
+    // 调试用，打印 selectedFile 详细内容
+    // eslint-disable-next-line no-console
+    console.log('[DataPreview] useEffect selectedFile', selectedFile);
+    if (selectedFile) {
+      // eslint-disable-next-line no-console
+      console.log('[DataPreview] selectedFile.type:', selectedFile.type);
+      // eslint-disable-next-line no-console
+      console.log('[DataPreview] selectedFile.data:', selectedFile.data);
+    }
+  }, [selectedFile]);
   const [viewMode, setViewMode] = useState<'preview' | 'yaml'>('preview');
 
   if (!selectedFile) {
@@ -22,11 +34,47 @@ export default function DataPreview({ selectedFile }: DataPreviewProps) {
         <div className="text-center text-gray-500">
           <div className="text-4xl mb-4">📋</div>
           <div className="text-lg font-medium">选择文件预览</div>
-          <div className="text-sm mt-2">从左侧文件列表中选择角色或事件</div>
+          <div className="text-sm mt-2">从左侧文件列表中选择角色、事件或通用卡</div>
         </div>
       </div>
     );
   }
+  // 通用卡预览
+  const renderCommonCardPreview = (card: Record<string, unknown>) => (
+    <div className="space-y-6">
+      <div className="bg-white rounded-lg p-4 shadow-sm border">
+        <h3 className="text-lg font-semibold mb-3 text-gray-800">通用卡信息</h3>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm font-medium text-gray-600">ID</label>
+            <div className="text-gray-800">{card.id as string}</div>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-gray-600">名称</label>
+            <div className="text-gray-800">{card.name as string}</div>
+          </div>
+        </div>
+        <div className="mt-4">
+          <label className="text-sm font-medium text-gray-600">描述</label>
+          <div className="text-gray-800 mt-1">{card.description as string}</div>
+        </div>
+        <div className="mt-4">
+          <label className="text-sm font-medium text-gray-600">事件ID列表</label>
+          <div className="text-gray-800 mt-1">
+            {Array.isArray(card.eventIds) && card.eventIds.length > 0 ? (
+              <ul className="list-disc pl-5">
+                {card.eventIds.map((eid: string) => (
+                  <li key={eid}>{eid}</li>
+                ))}
+              </ul>
+            ) : (
+              <span className="text-gray-400">无</span>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
   const renderCharacterPreview = (character: CharacterCard) => (
     <div className="space-y-6">
@@ -121,38 +169,40 @@ export default function DataPreview({ selectedFile }: DataPreviewProps) {
       <div className="bg-white rounded-lg p-4 shadow-sm border">
         <h3 className="text-lg font-semibold mb-3 text-gray-800">选择分支</h3>
         <div className="space-y-4">
-          {event.choices.map((choice, index) => (
-            <div key={choice.id} className="border rounded-lg p-3">
-              <div className="flex items-start justify-between mb-2">
-                <span className="font-medium text-gray-800">选项 {index + 1}</span>
-                <span className="text-xs text-gray-500">ID: {choice.id}</span>
-              </div>
-              <div className="text-gray-700 mb-3">{choice.text}</div>
-              
-              {/* 效果 */}
-              <div className="mb-2">
-                <span className="text-sm font-medium text-gray-600">效果:</span>
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {choice.effects && Object.entries(choice.effects).map(([key, value]) => (
-                    value !== 0 && (
-                      <span key={key} className={`px-2 py-1 rounded text-xs ${
-                        value > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      }`}>
-                        {getAttributeLabel(key)}: {value > 0 ? '+' : ''}{value}
-                      </span>
-                    )
-                  ))}
+          {Array.isArray(event.choices) && event.choices.length > 0 ? (
+            event.choices.map((choice, index) => (
+              <div key={choice.id} className="border rounded-lg p-3">
+                <div className="flex items-start justify-between mb-2">
+                  <span className="font-medium text-gray-800">选项 {index + 1}</span>
+                  <span className="text-xs text-gray-500">ID: {choice.id}</span>
                 </div>
-              </div>
-              
-              {choice.consequences && (
-                <div>
-                  <span className="text-sm font-medium text-gray-600">后果:</span>
-                  <div className="text-sm text-gray-700 mt-1">{choice.consequences}</div>
+                <div className="text-gray-700 mb-3">{choice.text}</div>
+                {/* 效果 */}
+                <div className="mb-2">
+                  <span className="text-sm font-medium text-gray-600">效果:</span>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {choice.effects && Object.entries(choice.effects).map(([key, value]) => (
+                      value !== 0 && (
+                        <span key={key} className={`px-2 py-1 rounded text-xs ${
+                          value > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}>
+                          {getAttributeLabel(key)}: {value > 0 ? '+' : ''}{value}
+                        </span>
+                      )
+                    ))}
+                  </div>
                 </div>
-              )}
-            </div>
-          ))}
+                {choice.consequences && (
+                  <div>
+                    <span className="text-sm font-medium text-gray-600">后果:</span>
+                    <div className="text-sm text-gray-700 mt-1">{choice.consequences}</div>
+                  </div>
+                )}
+              </div>
+            ))
+          ) : (
+            <div className="text-gray-400">无分支</div>
+          )}
         </div>
       </div>
     </div>
@@ -182,22 +232,50 @@ export default function DataPreview({ selectedFile }: DataPreviewProps) {
     }
   };
 
+  // 支持通用卡下事件节点的预览
+  let mainType = selectedFile.type;
+  let mainData = selectedFile.data;
+  // 日志：当前选中类型和数据
+  // eslint-disable-next-line no-console
+  console.log('[DataPreview] selectedFile:', selectedFile);
+  // 优先判断 type 字段
+  if (selectedFile.type === 'event') {
+    // eslint-disable-next-line no-console
+    console.log('[DataPreview] treat as event (by type)', mainData);
+    mainType = 'event';
+  } else if (
+    selectedFile.type === 'commoncard' &&
+    mainData && typeof mainData === 'object' &&
+    ('title' in mainData) &&
+    ('choices' in mainData)
+  ) {
+    // eslint-disable-next-line no-console
+    console.log('[DataPreview] treat as event (by structure)', mainData);
+    mainType = 'event';
+  } else if (selectedFile.type === 'commoncard') {
+    // eslint-disable-next-line no-console
+    console.log('[DataPreview] treat as commoncard:', mainData);
+    mainType = 'commoncard';
+  }
   return (
     <div className="h-full flex flex-col bg-gray-50">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b bg-white">
         <div className="flex items-center space-x-3">
           <span className="text-xl">
-            {selectedFile.type === 'character' ? '👤' : '📋'}
+            {mainType === 'character' ? '👤' : mainType === 'event' ? '📋' : '🃏'}
           </span>
           <div>
             <h2 className="text-lg font-semibold text-gray-800">{selectedFile.name}</h2>
             <p className="text-sm text-gray-600">
-              {selectedFile.type === 'character' ? '角色卡片' : '事件卡片'}
+              {mainType === 'character'
+                ? '角色卡片'
+                : mainType === 'event'
+                ? '事件卡片'
+                : '通用卡'}
             </p>
           </div>
         </div>
-        
         <div className="flex space-x-2">
           <button
             onClick={() => setViewMode('preview')}
@@ -225,16 +303,21 @@ export default function DataPreview({ selectedFile }: DataPreviewProps) {
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4">
         {viewMode === 'preview' ? (
-          selectedFile.type === 'character' 
-            ? renderCharacterPreview(selectedFile.data as CharacterCard)
-            : renderEventPreview(selectedFile.data as EventCard)
+          mainType === 'character'
+            ? (console.log('[DataPreview] renderCharacterPreview', mainData), renderCharacterPreview(mainData as CharacterCard))
+            : mainType === 'event'
+            ? (console.log('[DataPreview] renderEventPreview', mainData), renderEventPreview(mainData as EventCard))
+            : mainType === 'commoncard'
+            ? (console.log('[DataPreview] renderCommonCardPreview', mainData), renderCommonCardPreview(mainData as Record<string, unknown>))
+            : (console.log('[DataPreview] render null', mainType, mainData), null)
         ) : (
-          renderYamlView()
+          (console.log('[DataPreview] renderYamlView', mainData), renderYamlView())
         )}
       </div>
     </div>
   );
 }
+
 
 // 辅助函数
 function getAttributeLabel(key: string): string {

@@ -18,11 +18,14 @@ const CommonCardPanel: React.FC = () => {
     setLoading(true);
     const res = await fetch('/api/commoncards');
     const json = await res.json();
+    console.log('[前端] /api/commoncards 返回:', json);
     // 适配 /api/commoncards 只返回数组的情况
     if (Array.isArray(json)) {
       setCommonCards(json);
+      console.log('[前端] setCommonCards:', json);
     } else if (json.success && Array.isArray(json.data)) {
       setCommonCards(json.data);
+      console.log('[前端] setCommonCards:', json.data);
     }
     setLoading(false);
   };
@@ -68,15 +71,20 @@ const CommonCardPanel: React.FC = () => {
     <div>
       <h2>通用卡管理</h2>
       {loading ? <div>加载中...</div> : (
-        <ul>
-          {commonCards.map(card => (
-            <li key={card.id as string}>
-              {card.name as string}
-              <button style={{marginLeft:8}} onClick={() => handleEdit(card)}>编辑</button>
-              <button style={{marginLeft:4}} onClick={() => handleDelete(card)}>删除</button>
-            </li>
-          ))}
-        </ul>
+        <>
+          <div style={{fontSize:12, color:'#888', marginBottom:4}}>
+            [前端] 当前 commonCards: {JSON.stringify(commonCards)}
+          </div>
+          <ul>
+            {commonCards.map(card => (
+              <li key={card.id as string}>
+                {card.name as string}
+                <button style={{marginLeft:8}} onClick={() => handleEdit(card)}>编辑</button>
+                <button style={{marginLeft:4}} onClick={() => handleDelete(card)}>删除</button>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
       <button onClick={handleCreate}>新建通用卡（由AI agent处理）</button>
       {showEdit && (

@@ -33,28 +33,12 @@ export class EditorDataManager {
   // ...existing code...
 
   /**
-   * 获取所有通用卡（仅基础信息）
+   * 获取所有通用卡（直接用 core 的递归方法）
    */
   async getAllCommonCards(): Promise<Record<string, unknown>[]> {
-    const commonCardsDir = path.join(this.dataPath, 'commoncards');
-    let cardDirs: string[] = [];
-    try {
-      cardDirs = await fs.readdir(commonCardsDir);
-    } catch {
-      return [];
-    }
-    const cards: Record<string, unknown>[] = [];
-    for (const dir of cardDirs) {
-      const cardFile = path.join(commonCardsDir, dir, 'commoncard.yaml');
-      try {
-        const content = await fs.readFile(cardFile, 'utf8');
-        const card = yaml.load(content) as Record<string, unknown>;
-        cards.push(card);
-      } catch {
-        // 跳过无效或损坏的通用卡
-      }
-    }
-    return cards;
+    const cards = await this.dataProvider.loadAllCommonCards();
+    console.log('[EditorDataManager] Loaded common cards from core:', Array.isArray(cards) ? cards.length : 0);
+    return cards as unknown as Record<string, unknown>[];
   }
 
   private dataProvider: FileSystemDataProvider;

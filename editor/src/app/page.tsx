@@ -10,7 +10,7 @@ import EventPreviewPanel from '@/components/EventPreviewPanel';
 import { CharacterCard, EventCard } from '@/types/game';
 
 interface FileNode {
-  type: 'character' | 'event' | 'folder';
+  type: 'character' | 'event' | 'folder' | 'commoncard';
   id: string;
   name: string;
   children?: FileNode[];
@@ -18,7 +18,7 @@ interface FileNode {
 }
 
 interface SelectedFile {
-  type: 'character' | 'event';
+  type: 'character' | 'event' | 'commoncard';
   data: CharacterCard | EventCard;
   id: string;
   name: string;
@@ -29,7 +29,7 @@ export default function Home() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const handleFileSelect = (file: FileNode) => {
-    if ((file.type === 'character' || file.type === 'event') && file.data) {
+    if ((file.type === 'character' || file.type === 'event' || file.type === 'commoncard') && file.data) {
       setSelectedFile({
         type: file.type,
         data: file.data,
