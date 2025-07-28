@@ -1,3 +1,72 @@
+# 角色生成与合成机制
+
+## 角色生成（基于标签/tag）
+
+为提升可玩性，Crown Chronicle 支持通过标签（tags）组合生成新角色，而非简单随机历史角色卡。
+
+- 每张角色卡需配置 `tags: string[]` 字段（如“丞相”、“忠臣”、“奸臣”等），便于灵活筛选。
+- 角色生成器支持通过指定 tag list，筛选多张角色卡，组合生成新角色。
+- 生成的新角色属性按如下规则合成：
+  - `power`、`military`、`wealth`、`popularity` 取所有合成卡的最大值
+  - `health`、`age` 取所有合成卡的平均值（向下取整）
+  - 其余属性如有新增，需在实现时补充规则
+- 角色姓名生成时，姓氏取自事件最多的角色卡，名和字可用常用字库/算法生成，并自动避开黑名单（如“武则天”、“刘备”等，见 `gameconfig/forbidden_names.json`）
+- 角色生成接口：
+  ```typescript
+  // core/src/engine/CharacterGenerator.ts
+  export function generateCharacterByTags(tags: string[], options?: GenerateOptions): CharacterCard
+  ```
+
+## 角色数据结构关键字段
+
+```yaml
+id: char001
+name: "诸葛 亮"
+tags:
+  - 丞相
+  - 忠臣
+power: 90
+military: 80
+wealth: 60
+popularity: 95
+health: 70
+age: 54
+events:
+  - 草船借箭
+  - 三气周瑜
+```
+
+> `tags` 字段为必填，`name` 字段建议“姓 名”格式，便于解析与展示。
+
+## 名字生成与校验
+
+- 姓氏来源：合成角色卡中事件最多者
+- 名/字：常用字库或算法生成，支持扩展
+- 黑名单校验：生成姓名不得与历史人物重名，自动避开 `gameconfig/forbidden_names.json`
+- 可维护常用名/字词库于 `gameconfig/names/`
+
+## 角色生成 API 示例
+
+```typescript
+import { generateCharacterByTags } from 'crownchronicle-core';
+
+const tags = ['丞相', '忠臣'];
+const newCharacter = generateCharacterByTags(tags);
+console.log(newCharacter);
+```
+
+## 数据一致性与校验
+
+- 所有角色卡需补全 `tags` 字段，避免老数据缺失导致异常
+- 推荐通过 core 的 `ConfigValidator` 进行批量校验
+- 建议维护 JSON Schema，确保数据结构一致性
+
+## 文档同步与维护
+
+- 每次主要实现或数据结构调整后，需同步更新本 README 及相关文档
+- 变更/迁移建议记录于 `plan-007-report.md` 等
+
+---
 # Crown Chronicle Core
 
 Crown Chronicle 的核心游戏逻辑库，采用模块化架构，便于维护和扩展。该包包含游戏主流程、卡牌系统、配置校验、类型定义等核心功能，可独立运行或被 prototype/editor 等项目引用。

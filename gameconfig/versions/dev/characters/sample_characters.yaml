@@ -1,0 +1,45 @@
+# 用于测试角色生成器的角色卡样例
+id: char001
+name: "诸葛 亮"
+tags:
+  - 丞相
+  - 忠臣
+power: 90
+military: 80
+wealth: 60
+popularity: 95
+health: 70
+age: 54
+events:
+  - 草船借箭
+  - 三气周瑜
+---
+id: char002
+name: "严 嵩"
+tags:
+  - 丞相
+  - 奸臣
+power: 95
+military: 60
+wealth: 80
+popularity: 40
+health: 65
+age: 72
+events:
+  - 结党营私
+  - 贪污受贿
+---
+id: char003
+name: "和 珅"
+tags:
+  - 丞相
+  - 奸臣
+power: 80
+military: 55
+wealth: 99
+popularity: 30
+health: 68
+age: 49
+events:
+  - 聚敛财富
+  - 乾隆宠臣

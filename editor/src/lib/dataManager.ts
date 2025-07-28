@@ -250,10 +250,18 @@ export class EditorDataManager {
   }
   
   private convertConfigToCard(config: CharacterConfig): CharacterCard {
-    // 将 CharacterConfig 转换为 CharacterCard，仅保留有效字段
+    // 将 CharacterConfig 转换为 CharacterCard，补全所有必填字段
     return {
       id: config.id,
       name: config.name,
+      tags: [],
+      power: config.initialAttributes.power,
+      military: config.initialAttributes.military,
+      wealth: config.initialAttributes.wealth,
+      popularity: config.initialAttributes.popularity,
+      health: config.initialAttributes.health,
+      age: config.initialAttributes.age,
+      events: [],
       displayName: config.displayName,
       currentTitle: config.displayName,
       role: config.role,
@@ -264,7 +272,8 @@ export class EditorDataManager {
       hiddenTraits: [],
       discoveredClues: [],
       totalClues: 0,
-      eventIds: []
+      eventIds: [],
+      commonCardIds: []
     };
   }
   

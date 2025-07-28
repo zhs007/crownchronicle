@@ -1,5 +1,12 @@
 import { GameSimulator, SimulationResult } from '../src/engine/GameSimulator';
 
+beforeAll(() => {
+  jest.spyOn(console, 'error').mockImplementation(() => {});
+});
+afterAll(() => {
+  (console.error as jest.Mock).mockRestore();
+});
+
 describe('GameSimulator', () => {
   it('analyzeResults: should return zeros for empty input', () => {
     const result = GameSimulator.analyzeResults([]);

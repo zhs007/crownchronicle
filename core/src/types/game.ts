@@ -1,3 +1,5 @@
+// 兼容性 re-export，供所有依赖通过本文件导入类型
+export type { CharacterAttributes, CharacterCard } from './character';
 // 通用卡（CommonCard）类型
 export interface CommonCard {
   id: string;
@@ -5,35 +7,11 @@ export interface CommonCard {
   description?: string;
   eventIds: string[];
 }
-// 角色属性（包括皇帝和所有角色，六项核心属性）
-export interface CharacterAttributes {
-  power: number;        // 权势
-  military: number;     // 军队
-  wealth: number;       // 财富
-  popularity: number;   // 民心
-  health: number;       // 健康（0-100）
-  age: number;          // 年龄
-}
+
+import type { CharacterAttributes, CharacterCard } from './character';
 
 // ...existing code...
-// 角色卡牌（已移除冗余关系/派系/影响/状态结构）
-export interface CharacterCard {
-  id: string;
-  name: string;
-  displayName: string;
-  currentTitle: string;
-  role: string;
-  description: string;
-  identityRevealed: boolean;
-  attributes: CharacterAttributes;
-  // 已移除 relationshipWithEmperor、relationshipNetwork、factionInfo、influence、statusFlags
-  revealedTraits: string[];
-  hiddenTraits: string[];
-  discoveredClues: string[];
-  totalClues: number;
-  eventIds: string[];
-  commonCardIds?: string[];
-}
+
 
 // 事件选项
 export interface EventChoice {

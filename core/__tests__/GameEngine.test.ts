@@ -6,6 +6,14 @@ describe('GameEngine.mergeCharacterAndCommonCardEvents', () => {
     const character: CharacterCard = {
       id: 'char1',
       name: '角色A',
+      tags: [],
+      power: 0,
+      military: 0,
+      wealth: 0,
+      popularity: 0,
+      health: 0,
+      age: 0,
+      events: [],
       displayName: '角色A',
       currentTitle: '',
       role: '',
@@ -31,6 +39,14 @@ describe('GameEngine.mergeCharacterAndCommonCardEvents', () => {
     const character: CharacterCard = {
       id: 'char2',
       name: '角色B',
+      tags: [],
+      power: 0,
+      military: 0,
+      wealth: 0,
+      popularity: 0,
+      health: 0,
+      age: 0,
+      events: [],
       displayName: '角色B',
       currentTitle: '',
       role: '',
@@ -41,7 +57,8 @@ describe('GameEngine.mergeCharacterAndCommonCardEvents', () => {
       hiddenTraits: [],
       discoveredClues: [],
       totalClues: 0,
-      eventIds: ['e5']
+      eventIds: ['e5'],
+      commonCardIds: []
     };
     const allCommonCards = [
       { id: 'c1', eventIds: ['e6'] }
@@ -54,6 +71,14 @@ describe('GameEngine.mergeCharacterAndCommonCardEvents', () => {
     const character: CharacterCard = {
       id: 'char3',
       name: '角色C',
+      tags: [],
+      power: 0,
+      military: 0,
+      wealth: 0,
+      popularity: 0,
+      health: 0,
+      age: 0,
+      events: [],
       displayName: '角色C',
       currentTitle: '',
       role: '',
@@ -78,6 +103,14 @@ describe('GameEngine.mergeCharacterAndCommonCardEvents', () => {
     const character: CharacterCard = {
       id: 'char4',
       name: '角色D',
+      tags: [],
+      power: 0,
+      military: 0,
+      wealth: 0,
+      popularity: 0,
+      health: 0,
+      age: 0,
+      events: [],
       displayName: '角色D',
       currentTitle: '',
       role: '',

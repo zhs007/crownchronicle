@@ -238,6 +238,14 @@ export class ConfigConverter {
     return {
       id: config.id,
       name: config.name,
+      tags: [],
+      power: config.initialAttributes.power,
+      military: config.initialAttributes.military,
+      wealth: config.initialAttributes.wealth,
+      popularity: config.initialAttributes.popularity,
+      health: config.initialAttributes.health,
+      age: config.initialAttributes.age,
+      events: [],
       displayName: config.displayName,
       currentTitle: config.displayName,
       role: config.role,
@@ -258,7 +266,8 @@ export class ConfigConverter {
       ],
       discoveredClues: [],
       totalClues: config.backgroundClues ? Object.keys(config.backgroundClues).length : 0,
-      eventIds: []
+      eventIds: [],
+      commonCardIds: []
     };
   }
 

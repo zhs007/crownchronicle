@@ -13,9 +13,20 @@ export interface CharacterAttributes {
   age: number;
 }
 
+// 兼容 YAML 卡片的扁平属性与 tags 字段
 export interface CharacterCard {
   id: string;
   name: string;
+  tags: string[];
+  // 兼容扁平属性（YAML）与 attributes（核心类型）
+  power: number;
+  military: number;
+  wealth: number;
+  popularity: number;
+  health: number;
+  age: number;
+  events: string[];
+  // 兼容核心类型
   displayName: string;
   currentTitle: string;
   role: string;
@@ -27,7 +38,7 @@ export interface CharacterCard {
   discoveredClues: string[];
   totalClues: number;
   eventIds: string[];
-  commonCardIds?: string[];
+  commonCardIds: string[];
 }
 
 export interface CharacterEffect {

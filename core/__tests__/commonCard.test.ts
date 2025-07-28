@@ -19,19 +19,26 @@ describe('CommonCard 合并逻辑', () => {
     const character: CharacterCard = {
       id: 'zhugeliang',
       name: '诸葛亮',
+      tags: [],
+      power: 80,
+      military: 90,
+      wealth: 60,
+      popularity: 95,
+      health: 80,
+      age: 40,
+      events: [],
       displayName: '丞相',
       currentTitle: '丞相',
       role: 'chancellor',
       description: '',
       identityRevealed: false,
       attributes: { power: 80, military: 90, wealth: 60, popularity: 95, health: 80, age: 40 },
-      // ...已移除冗余字段...
       revealedTraits: [],
       hiddenTraits: [],
       discoveredClues: [],
       totalClues: 0,
-      // ...已移除冗余字段...
-      eventIds: ['event_zhugeliang_1']
+      eventIds: ['event_zhugeliang_1'],
+      commonCardIds: []
     };
     const merged = GameEngine.mergeCharacterAndCommonCardEvents(character, commonCards);
     expect(merged).toEqual(['event_zhugeliang_1']);
@@ -41,18 +48,24 @@ describe('CommonCard 合并逻辑', () => {
     const character: CharacterCard = {
       id: 'yansong',
       name: '严嵩',
+      tags: [],
+      power: 70,
+      military: 60,
+      wealth: 90,
+      popularity: 40,
+      health: 70,
+      age: 55,
+      events: [],
       displayName: '丞相',
       currentTitle: '丞相',
       role: 'chancellor',
       description: '',
       identityRevealed: false,
       attributes: { power: 70, military: 60, wealth: 90, popularity: 40, health: 70, age: 55 },
-      // ...已移除冗余字段...
       revealedTraits: [],
       hiddenTraits: [],
       discoveredClues: [],
       totalClues: 0,
-      // ...已移除冗余字段...
       eventIds: ['event_chancellor_2', 'event_yansong_1'],
       commonCardIds: ['chancellor_common']
     };

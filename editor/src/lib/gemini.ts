@@ -291,20 +291,34 @@ export class GeminiClient {
   }
   
   private convertToCharacterCard(args: Record<string, unknown>): CharacterCard {
+    // 类型守卫，安全提取属性
+    let attrs: Partial<CharacterAttributes> = {};
+    if (typeof args.initialAttributes === 'object' && args.initialAttributes !== null) {
+      attrs = args.initialAttributes as Partial<CharacterAttributes>;
+    }
     return {
       id: '',
       name: String(args.name || ''),
+      tags: Array.isArray(args.tags) ? (args.tags as string[]) : [],
+      power: typeof attrs.power === 'number' ? attrs.power : 0,
+      military: typeof attrs.military === 'number' ? attrs.military : 0,
+      wealth: typeof attrs.wealth === 'number' ? attrs.wealth : 0,
+      popularity: typeof attrs.popularity === 'number' ? attrs.popularity : 0,
+      health: typeof attrs.health === 'number' ? attrs.health : 0,
+      age: typeof attrs.age === 'number' ? attrs.age : 0,
+      events: Array.isArray(args.events) ? (args.events as string[]) : [],
       displayName: String(args.displayName || ''),
       currentTitle: String(args.role || ''),
       role: String(args.role || ''),
       description: String(args.description || ''),
       identityRevealed: false,
-      attributes: args.initialAttributes as CharacterAttributes,
+      attributes: attrs as CharacterAttributes,
       revealedTraits: [],
       hiddenTraits: [],
       discoveredClues: [],
       totalClues: 0,
-      eventIds: []
+      eventIds: [],
+      commonCardIds: []
     };
   }
   

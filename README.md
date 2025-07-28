@@ -2,61 +2,112 @@
 
 Crown Chronicle 是一个基于历史背景的文字冒险游戏项目，采用模块化架构设计。项目分为核心逻辑包和前端原型两个部分。
 
+## 角色生成与数据结构（核心特性）
+
+- 支持通过标签（tags）组合生成新角色，提升多样性与可玩性
+- 角色卡需包含 `tags: string[]` 字段（如“丞相”、“忠臣”、“奸臣”等）
+- 属性合成规则：power/military/wealth/popularity 取最大值，health/age 取平均值
+- 姓名生成自动避开历史人物黑名单，详见 `gameconfig/forbidden_names.json`
+- 角色生成接口与详细机制见 `core/README.md`
+
 ## 项目结构
 
 ```
 crownchronicle/
-├── core/                     # 核心游戏逻辑包
+├── core/                     # 核心游戏逻辑包（TypeScript，纯逻辑与类型）
 │   ├── src/
-│   │   ├── engine/           # 游戏引擎
+│   │   ├── engine/           # 游戏引擎与角色生成器
 │   │   ├── data/             # 数据处理
 │   │   ├── strategies/       # 玩家策略
 │   │   ├── types/            # 类型定义
 │   │   └── utils/            # 工具函数
+│   ├── __tests__/            # 单元测试
 │   ├── dist/                 # 构建输出
 │   ├── package.json
 │   └── README.md
-├── prototype/                # Next.js 原型项目
+├── editor/                   # Next.js 编辑器项目（AI内容生成/数据管理）
+│   ├── src/
+│   │   ├── app/              # Next.js 应用
+│   │   ├── components/       # 编辑器 UI 组件
+│   │   ├── lib/              # 配置管理、AI集成等
+│   │   ├── types/            # 类型定义
+│   │   └── utils/            # 工具函数
+│   ├── public/               # 静态资源
+│   ├── package.json
+│   └── README.md
+├── prototype/                # Next.js 游戏原型项目
 │   ├── src/
 │   │   ├── app/              # Next.js 应用
 │   │   ├── components/       # React 组件
 │   │   ├── lib/              # 适配层
-│   │   ├── data/             # 游戏数据
 │   │   ├── types/            # 类型定义
 │   │   └── utils/            # 工具函数
 │   ├── saves/                # 游戏存档文件
 │   ├── package.json
 │   ├── next.config.js
 │   └── README.md
-├── .gitignore
+├── gameconfig/               # 版本化游戏数据与配置
+│   ├── versions/
+│   │   ├── dev/              # 开发用数据
+│   │   ├── stable/           # 稳定版数据
+│   │   └── release/          # 发布版数据
+│   ├── names/                # 名字/字词库
+│   ├── forbidden_names.json  # 姓名黑名单
+│   ├── config.json           # 配置路由
+│   └── README.md
+├── .github/                  # GitHub workflows/协作配置
 ├── .vscode/                  # VS Code 配置
-├── init-editor.md            # 项目初始化文档
-├── init-proj.md              # 项目计划文档
-├── plan-001.md               # 重构计划文档
+├── 各类文档与工具脚本
+│   ├── init-editor.md
+│   ├── init-proj.md
+│   ├── plan-001.md
+│   ├── plan-007.md
+│   ├── plan-007-report.md
+│   ├── NAMING_CONVENTIONS.md
+│   ├── AGENT_GUIDE.md
+│   └── ...
+├── package.json              # 顶层 workspace 配置
 └── README.md                 # 项目主文档
 ```
 
 ## 架构设计
 
-### Core 包 (crownchronicle-core)
+### 架构分层与协作
 
-核心包是一个纯 TypeScript 库，包含了所有游戏逻辑：
+本项目采用多包 workspace 架构，分为三大核心子项目与一套版本化数据：
 
-- **游戏引擎** - 处理游戏状态、回合逻辑、事件触发
-- **卡池管理** - 三卡池系统（待定、主动、弃用）
-- **角色系统** - 复杂的角色关系网络和派系系统
-- **策略模式** - 支持多种AI玩家策略
-- **数据验证** - 完整的游戏数据验证系统
-- **游戏模拟** - 支持批量模拟和性能分析
+#### 1. core（crownchronicle-core）
+- 纯 TypeScript 游戏引擎与类型库
+- 角色生成、属性合成、事件系统、三卡池、数据校验等全部核心逻辑
+- 不依赖任何配置管理/前端/文件系统，仅暴露类型安全 API
+- 提供 ConfigValidator、CharacterGenerator、GameEngine、CardPoolManager 等核心类
 
-### Prototype 项目 (crownchronicle-prototype)
+#### 2. editor（crownchronicle-editor）
+- Next.js + React 实现的 AI 内容编辑与数据管理工具
+- 支持角色/事件/词库等 YAML 数据的可视化编辑、AI生成与批量校验
+- 通过 GameConfigManager 统一管理数据路径，所有数据写入 gameconfig 目录
+- 集成 Gemini API 等 AI 服务，辅助内容创作与数据生成
 
-原型项目是基于 Next.js 的 Web 应用，提供用户界面：
+#### 3. prototype（crownchronicle-prototype）
+- Next.js + React 实现的游戏前端原型
+- 通过 adapter 层调用 core 引擎，渲染游戏流程、角色、事件等
+- 只读 gameconfig/versions/stable/ 数据，保证体验稳定
+- 不直接依赖 editor 或 core UI 代码，所有交互通过 adapter 层完成
 
-- **React 组件** - 游戏 UI 组件
-- **API 路由** - Next.js API 路由处理游戏逻辑
-- **适配层** - 连接 core 包和 UI 的桥梁
-- **存档系统** - 游戏存档和加载功能
+#### 4. gameconfig（版本化数据与配置）
+- 统一存放所有角色、事件、词库、黑名单等 YAML/JSON 数据
+- 支持 dev/stable/release 多版本切换，便于内容创作与测试
+- 由 editor 工具维护，所有数据变更可追溯
+
+#### 数据流与协作关系
+- editor 负责内容生产与数据校验，产出写入 gameconfig
+- prototype 只读稳定版数据，体验最终效果
+- core 只负责逻辑与类型，所有数据通过 DataProvider/ConfigManager 注入
+
+#### 关键设计原则
+- 各子项目严格分层，禁止跨层直接依赖
+- 所有数据路径通过 GameConfigManager 统一解析，禁止硬编码
+- 角色生成、属性合成、名字校验等机制详见 core/README.md
 
 ## 开发流程
 
@@ -69,10 +120,6 @@ cd crownchronicle
 
 # 安装所有依赖（使用 npm workspaces）
 npm install
-
-# 或者分别安装
-cd core && npm install
-cd ../prototype && npm install
 ```
 
 ### 2. 快速开始
@@ -112,32 +159,26 @@ npm run build --workspace=prototype
 
 ## 数据格式
 
-### 角色配置 (character.yaml)
+### 角色配置 (character.yaml) 示例
 
 ```yaml
-id: "character_id"
-name: "角色真实姓名"
-displayName: "游戏中显示名称"
-role: "角色身份"
-description: "角色描述"
-category: "角色类别"
-
-initialAttributes:
-  power: 50
-  loyalty: 70
-  ambition: 30
-  # ... 其他属性
-
-initialRelationshipWithEmperor:
-  affection: 20
-  trust: 50
-  # ... 其他关系
-
-factionInfo:
-  primaryFaction: "改革派"
-  # ... 派系信息
-
-# ... 其他配置
+id: "char001"
+name: "诸葛 亮"
+tags:
+  - 丞相
+  - 忠臣
+power: 90
+military: 80
+wealth: 60
+popularity: 95
+health: 70
+age: 54
+events:
+  - 草船借箭
+  - 三气周瑜
+description: "三国时期蜀汉丞相，睿智忠诚。"  # 角色简介，必填
+faction: "蜀汉"            # 所属派系，必填
+avatar: "kongming.png"     # 头像图片文件名，必填
 ```
 
 ### 事件配置 (event.yaml)
