@@ -18,49 +18,14 @@ activationConditions:
   attributeRequirements:
     minMilitary: 40
 weight: 6
-choices:
-  - id: increase_funding
-    text: 增加军费预算
-    effects:
-      military: 8
-      wealth: -10
-      power: 3
-    consequences: 你慷慨地增加了军费，李牧深表感激，军队战斗力显著提升
-    characterEffects:
-      - characterId: limu
-        relationshipChanges:
-          affection: 10
-          trust: 8
-        attributeChanges: {}
-    characterClues:
-      - 李牧很会管理军队，资金利用效率很高
-  - id: maintain_budget
-    text: 维持现有预算
-    effects:
-      military: 2
-      wealth: 0
-      power: 1
-    consequences: 你选择了稳妥的做法，李牧表示理解并会合理安排
-    characterEffects:
-      - characterId: limu
-        relationshipChanges:
-          respect: 3
-    characterClues:
-      - 李牧很能理解朝廷的难处
-  - id: cut_expenses
-    text: 削减军费开支
-    effects:
-      military: -5
-      wealth: 8
-      power: -2
-    consequences: 你要求节约开支，李牧虽有不满但还是遵命执行
-    characterEffects:
-      - characterId: limu
-        relationshipChanges:
-          affection: -5
-          trust: -3
-        attributeChanges: {}
-    characterClues:
-      - 李牧对削减军费很不满，但仍然忠诚
 removalConditions:
   maxMilitary: 30
+options:
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0

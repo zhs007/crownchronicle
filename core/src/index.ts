@@ -24,36 +24,28 @@ export type {
   // 游戏状态相关
   GameState,
   GameEvent,
-  
   // 角色相关
   CharacterCard,
   CharacterAttributes,
   CharacterState,
-  
+  CharacterConfig,
   // 事件相关
-  EventCard,
-  EventChoice,
-  CharacterEffect,
-  InterCharacterEffect,
-  FactionEffect,
   EventConditions,
-  DynamicWeight,
-  
   // 卡池和派系
   CardPools,
   Faction,
   FactionSystem,
   CourtPolitics,
-  
   // 配置相关
-  CharacterConfig,
-  EventConfig,
   GameConfig,
-  
   // 接口
   PlayerStrategy,
   DataProvider
 } from './types/game';
+
+export type { EventCard, EventOption, EventConfig, DynamicWeight } from './types/event';
+export type { CharacterEffect, InterCharacterEffect, FactionEffect } from './types/character';
+
 
 // 常量
 export {

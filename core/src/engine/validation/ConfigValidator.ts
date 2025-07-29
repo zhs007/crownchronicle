@@ -1,4 +1,6 @@
-import { CharacterConfig, EventConfig, DataProvider } from '../../types/game';
+import { CharacterConfig, DataProvider } from '../../types/game';
+import type { EventConfig } from '../../types/event';
+import type { EventOption } from '../../types/event';
 
 export interface ValidationIssue {
   type: 'error' | 'warning';
@@ -264,38 +266,53 @@ export class ConfigValidator {
         suggestion: '请设置大于等于0的权重值'
       });
     }
-    if (!event.choices || event.choices.length === 0) {
+    // 新事件卡结构校验
+    if (!event.options || !Array.isArray(event.options) || event.options.length !== 2) {
       issues.push({
         type: 'error',
-        code: 'NO_EVENT_CHOICES',
-        message: '事件没有任何选项',
+        code: 'INVALID_EVENT_OPTIONS_LENGTH',
+        message: '事件卡必须且只能有2个选项',
         context,
-        suggestion: '请为事件添加至少一个选项'
+        suggestion: '请确保 options 字段为长度为2的数组'
       });
     } else {
-      const choiceIds = new Set<string>();
-      event.choices.forEach(choice => {
-        if (choiceIds.has(choice.id)) {
+      (event.options as EventOption[]).forEach((opt: EventOption, idx: number) => {
+        if (!opt.description || typeof opt.description !== 'string') {
           issues.push({
             type: 'error',
-            code: 'DUPLICATE_CHOICE_ID',
-            message: `选项ID重复: ${choice.id}`,
+            code: 'INVALID_OPTION_DESCRIPTION',
+            message: `第${idx + 1}个选项缺少或非法的 description`,
             context,
-            suggestion: '请确保事件中每个选项都有唯一的ID'
+            suggestion: '请填写玩家可见文本'
           });
         }
-        choiceIds.add(choice.id);
-        if (choice.effects) {
-          Object.entries(choice.effects).forEach(([attr, value]) => {
-            if (typeof value === 'number' && (value < -100 || value > 100)) {
-              issues.push({
-                type: 'warning',
-                code: 'EXTREME_EFFECT_VALUE',
-                message: `选项 ${choice.id} 对属性 ${attr} 的影响 ${value} 可能过于极端`,
-                context,
-                suggestion: '考虑将效果值设置在合理范围内'
-              });
-            }
+        if (opt.target !== 'player' && opt.target !== 'self') {
+          issues.push({
+            type: 'error',
+            code: 'INVALID_OPTION_TARGET',
+            message: `第${idx + 1}个选项 target 非法: ${opt.target}`,
+            context,
+            suggestion: 'target 仅允许 "player" 或 "self"'
+          });
+        }
+        // 校验属性名
+        const validAttributes = ['power', 'military', 'wealth', 'popularity', 'health', 'age'];
+        if (!validAttributes.includes(opt.attribute)) {
+          issues.push({
+            type: 'error',
+            code: 'INVALID_OPTION_ATTRIBUTE',
+            message: `第${idx + 1}个选项 attribute 非法: ${opt.attribute}`,
+            context,
+            suggestion: `属性名必须为: ${validAttributes.join(', ')}`
+          });
+        }
+        if (typeof opt.offset !== 'number' || isNaN(opt.offset)) {
+          issues.push({
+            type: 'error',
+            code: 'INVALID_OPTION_OFFSET',
+            message: `第${idx + 1}个选项 offset 非法: ${opt.offset}`,
+            context,
+            suggestion: 'offset 必须为数字'
           });
         }
       });

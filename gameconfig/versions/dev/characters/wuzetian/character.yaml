@@ -33,3 +33,12 @@ backgroundClues:
   preferences: 对政务异常关心，经常主动询问朝政
   relationships: 与朝中大臣关系复杂，似乎有着自己的人脉网络
   secrets: 深夜时分经常有神秘访客，似乎在密谋什么
+options:
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0

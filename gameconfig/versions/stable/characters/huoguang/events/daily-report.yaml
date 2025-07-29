@@ -11,37 +11,12 @@ characterClues:
     - 霍光对朝政非常尽心
     - 他很有条理地处理事务
 weight: 9
-choices:
-  - id: listen_carefully
-    text: 朕仔细听取汇报
-    effects:
-      power: 3
-      wealth: 2
-    consequences: 你认真听取了霍光的汇报，对朝政有了更清晰的了解
-    characterEffects:
-      - characterId: huoguang
-        relationshipChanges:
-          trust: 5
-          respect: 3
-  - id: ask_questions
-    text: 朕有几个问题要问
-    effects:
-      military: 1
-      power: 2
-    consequences: 你提出了一些问题，霍光详细地为你解答
-    characterEffects:
-      - characterId: huoguang
-        relationshipChanges:
-          trust: 3
-          respect: 5
-  - id: express_satisfaction
-    text: 霍将军辛苦了，朕很满意
-    effects:
-      popularity: 2
-      power: 1
-    consequences: 你表达了对霍光工作的满意，他显得很高兴
-    characterEffects:
-      - characterId: huoguang
-        relationshipChanges:
-          affection: 6
-          trust: 2
+options:
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0

@@ -2,16 +2,14 @@ id: event_chancellor_1
 title: 丞相议政
 description: 丞相提出重要政务建议。
 speaker: 丞相
-dialogue: "陛下，臣有一策。"
+dialogue: 陛下，臣有一策。
 weight: 10
-choices:
-  - id: accept
-    text: 采纳建议
-    effects:
-      power: 5
-    consequences: "皇帝权势提升。"
-  - id: reject
-    text: 拒绝建议
-    effects:
-      power: -3
-    consequences: "丞相心生不满。"
+options:
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0

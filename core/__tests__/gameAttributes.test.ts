@@ -1,4 +1,4 @@
-import { CharacterAttributes } from '../src/types/game';
+import type { CharacterAttributes } from '../src/types/character';
 
 describe('CharacterAttributes', () => {
   it('should have all six core properties', () => {

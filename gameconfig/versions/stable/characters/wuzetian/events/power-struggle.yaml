@@ -24,33 +24,12 @@ triggerConditions:
   minAuthority: 30
   maxAge: 35
 weight: 8
-choices:
-  - id: submit
-    text: 遵从母后教诲
-    effects:
-      popularity: 3
-      health: -2
-      power: -8
-    consequences: 你选择了退让，朝臣们窃窃私语，母后眼中闪过一丝满意...
-    characterClues:
-      - 母后处理政务时显得游刃有余，仿佛久经此道
-  - id: resist
-    text: 朕意已决，不容更改
-    effects:
-      popularity: -5
-      health: -5
-      power: 5
-    consequences: 母后脸色铁青，朝堂气氛骤然紧张。你感受到了她眼中的寒意...
-    characterClues:
-      - 母后的怒火让你想起了某些史书中的描述...
-      - 她控制情绪的方式显示出深厚的政治修养
-  - id: compromise
-    text: 容朕再思虑一番
-    conditions:
-      minAuthority: 40
-    effects:
-      power: -2
-      wealth: -3
-    consequences: 你巧妙地化解了当前的冲突，母后点头表示认可...
-    characterClues:
-      - 母后似乎很欣赏你的政治智慧
+options:
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0

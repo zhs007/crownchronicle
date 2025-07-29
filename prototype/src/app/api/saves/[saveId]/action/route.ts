@@ -51,8 +51,8 @@ export async function POST(request: NextRequest) {
     let gameOverInfo = { gameOver: false, gameOverReason: undefined };
 
     switch (action) {
-      case 'choose_option':
-        // 处理事件选择
+      case 'choose_option': {
+        // 处理事件选择（新版结构，使用 options 字段）
         if (!payload.choiceId || !gameState.currentEvent) {
           return NextResponse.json({
             success: false,
@@ -60,45 +60,29 @@ export async function POST(request: NextRequest) {
             timestamp: new Date().toISOString()
           }, { status: 400 });
         }
-
-        const choice = gameState.currentEvent.choices.find(c => c.id === payload.choiceId);
-        if (!choice) {
+        const option = Array.isArray(gameState.currentEvent.options)
+          ? gameState.currentEvent.options.find(o => o.optionId === payload.choiceId)
+          : undefined;
+        if (!option) {
           return NextResponse.json({
             success: false,
             error: '选择不存在',
             timestamp: new Date().toISOString()
           }, { status: 400 });
         }
-
-        // 应用选择效果
-        gameState = GameEngine.applyChoiceEffects(gameState, choice);
-        // ...已移除关系变化信息收集逻辑...
-
-        // 收集角色发现 (从角色线索推断)
-        const characterDiscoveries: string[] = [];
-        if (gameState.currentEvent && gameState.currentEvent.characterClues) {
-          if (gameState.currentEvent.characterClues.personalityHints) {
-            characterDiscoveries.push(...gameState.currentEvent.characterClues.personalityHints);
-          }
-          if (gameState.currentEvent.characterClues.backgroundHints) {
-            characterDiscoveries.push(...gameState.currentEvent.characterClues.backgroundHints);
-          }
-        }
-
+        // 应用选项效果（确保 index 为 0 或 1）
+        const optionIdx = gameState.currentEvent.options[0].optionId === option.optionId ? 0 : 1;
+        gameState = GameEngine.applyEventOptionEffects(gameState, gameState.currentEvent, optionIdx);
         // 记录游戏事件
         if (gameState.currentEvent) {
           GameEngine.recordGameEvent(
-            gameState, 
-            gameState.currentEvent, 
-            choice,
-            undefined,
-            characterDiscoveries.length > 0 ? characterDiscoveries : undefined
+            gameState,
+            gameState.currentEvent,
+            option
           );
         }
-
         // 处理回合结束
         gameState = GameEngine.processTurnEnd(gameState);
-
         // 检查游戏结束条件
         const gameOverCheck = GameEngine.checkGameOver(gameState);
         if (gameOverCheck.gameOver) {
@@ -107,13 +91,12 @@ export async function POST(request: NextRequest) {
           gameState.endTime = Date.now();
           gameOverInfo = {
             gameOver: true,
-          gameOverReason: gameOverCheck.reason as any
+            gameOverReason: gameOverCheck.reason as any
           };
         } else {
           // 更新卡池并选择下一个事件
           gameState = CardPoolManager.updatePendingPool(gameState);
           const nextEvent = CardPoolManager.selectNextEvent(gameState);
-          
           if (nextEvent) {
             gameState.currentEvent = nextEvent;
             gameState = CardPoolManager.discardEvent(gameState, nextEvent.id);
@@ -130,6 +113,7 @@ export async function POST(request: NextRequest) {
           }
         }
         break;
+      }
 
       case 'save_game':
         // 保存游戏（不改变游戏状态）

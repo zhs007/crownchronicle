@@ -29,3 +29,12 @@ backgroundClues:
   secrets: 深得先帝信任，掌握着许多朝廷机密
 tags:
   - 丞相
+options:
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0

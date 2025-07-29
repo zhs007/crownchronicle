@@ -1,9 +1,34 @@
-
-import { CharacterAttributes, EventCard, GameState, CharacterCard, EventChoice, GameEvent } from '../types/game';
-import { GAME_CONSTANTS, DIFFICULTY_CONFIG } from '../utils/constants';
+import type { EventOption, EventCard } from '../types/event';
+import type { GameState, CharacterCard } from '../types/game';
 import { GameStateManager } from './game/GameStateManager';
 
 export class GameEngine {
+  /**
+   * 应用事件卡选项效果（新结构）
+   */
+  static applyEventOptionEffects(gameState: any, event: any, optionIdx: 0 | 1, selfCharacterId?: string): any {
+    const newGameState = JSON.parse(JSON.stringify(gameState));
+    const option: EventOption = event.options[optionIdx];
+    if (!option) return newGameState;
+    if (option.target === 'player') {
+      // 玩家（emperor）属性修改
+      const attr = option.attribute;
+      if (attr in newGameState.emperor) {
+        const currentValue = newGameState.emperor[attr] as number;
+        const newValue = Math.max(0, Math.min(100, currentValue + option.offset));
+        (newGameState.emperor as any)[attr] = newValue;
+      }
+    } else if (option.target === 'self' && selfCharacterId) {
+      // 当前角色属性修改
+      const character = newGameState.activeCharacters.find((c: any) => c.id === selfCharacterId);
+      if (character && option.attribute in character.attributes) {
+        const currentValue = character.attributes[option.attribute] as number;
+        const newValue = Math.max(0, Math.min(100, currentValue + option.offset));
+        (character.attributes as any)[option.attribute] = newValue;
+      }
+    }
+    return newGameState;
+  }
 
   /**
    * 合并角色卡自身事件和通用卡事件，去重
@@ -42,7 +67,7 @@ export class GameEngine {
   /**
    * 应用选择效果
    */
-  static applyChoiceEffects(gameState: GameState, choice: EventChoice): GameState {
+  static applyChoiceEffects(gameState: GameState, choice: EventOption): GameState {
     return GameStateManager.applyChoiceEffects(gameState, choice);
   }
 
@@ -94,7 +119,7 @@ export class GameEngine {
   static recordGameEvent(
     gameState: GameState, 
     event: EventCard, 
-    choice: EventChoice,
+    choice: EventOption,
     relationshipChanges?: Record<string, number>,
     characterDiscoveries?: string[]
   ): void {

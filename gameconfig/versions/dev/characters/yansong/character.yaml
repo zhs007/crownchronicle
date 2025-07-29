@@ -22,3 +22,12 @@ commonCardIds:
 tags:
   - 丞相
   - 奸臣
+options:
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0

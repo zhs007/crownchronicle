@@ -1,51 +1,21 @@
+import type { EventCard, EventOption, EventConfig } from './event';
 // 兼容性 re-export，供所有依赖通过本文件导入类型
 import type { CharacterAttributes, CharacterCard, CharacterState, CharacterConfig } from './character';
 export type { CharacterAttributes, CharacterCard, CharacterState, CharacterConfig } from './character';
+
+// 卡池类型
+export interface CardPools {
+  pending: EventCard[];    // 待定卡池
+  active: EventCard[];     // 主卡池
+  discarded: EventCard[];  // 弃卡池
+}
+
 // 通用卡（CommonCard）类型
 export interface CommonCard {
   id: string;
   name: string;
   description?: string;
   eventIds: string[];
-}
-
-// ...已移除重复导入...
-
-// ...existing code...
-
-
-// 事件选项
-export interface EventChoice {
-  id: string;
-  text: string;         // 选项文本
-  effects: Partial<CharacterAttributes>; // 选择后的属性变化
-  consequences?: string; // 选择后的结果描述
-  characterEffects?: CharacterEffect[]; // 对角色的影响
-  interCharacterEffects?: InterCharacterEffect[]; // 角色间关系影响
-  factionEffects?: FactionEffect[]; // 派系影响
-  characterClues?: string[]; // 角色线索
-  nextEvents?: string[]; // 可能触发的后续事件
-  conditions?: EventConditions; // 选项显示条件
-}
-
-// 角色效果（已移除冗余关系/状态变更）
-export interface CharacterEffect {
-  characterId: string;
-  attributeChanges?: Partial<CharacterAttributes>;
-}
-
-// 角色间关系效果
-export interface InterCharacterEffect {
-  character1: string;
-  character2: string;
-  relationshipChange: number;
-  reason: string;
-}
-
-// 派系效果
-export interface FactionEffect {
-  faction: string;
-  influenceChange: number;
 }
 
 // 事件条件（已移除冗余关系/派系相关字段）
@@ -59,51 +29,6 @@ export interface EventConditions {
   excludedEvents?: string[];
   attributeRequirements?: Partial<CharacterAttributes>;
 }
-
-// 事件卡牌
-export interface EventCard {
-  id: string;
-  characterId: string;  // 关联的角色ID
-  title: string;        // 事件标题
-  description: string;  // 事件描述
-  speaker: string;      // 说话的角色
-  dialogue: string;     // 角色对话内容
-  choices: EventChoice[]; // 玩家选项
-  
-  // 激活条件
-  activationConditions?: EventConditions;
-  // 移除条件
-  removalConditions?: EventConditions;
-  // 触发条件
-  triggerConditions?: EventConditions;
-  
-  weight: number;       // 在卡池中的权重
-  dynamicWeight?: DynamicWeight; // 动态权重调整
-  importance?: 'normal' | 'major' | 'critical'; // 事件重要性
-  
-  // 身份线索
-  characterClues?: {
-    revealedTraits?: string[];
-    personalityHints?: string[];
-    backgroundHints?: string[];
-  };
-}
-
-// 动态权重
-export interface DynamicWeight {
-  [attribute: string]: Array<{
-    range: [number, number];
-    multiplier: number;
-  }>;
-}
-
-// 卡池
-export interface CardPools {
-  pending: EventCard[];    // 待定卡池
-  active: EventCard[];     // 主卡池
-  discarded: EventCard[];  // 弃卡池
-}
-
 // 派系
 export interface Faction {
   id: string;
@@ -234,36 +159,3 @@ export interface DataProvider {
 // ...已移除，统一使用 character.ts 类型...
 
 // 事件配置结构
-export interface EventConfig {
-  id: string;
-  title: string;
-  description: string;
-  speaker: string;
-  dialogue: string;
-  
-  characterClues?: {
-    revealedTraits?: string[];
-    personalityHints?: string[];
-    backgroundHints?: string[];
-  };
-  
-  activationConditions?: any;
-  removalConditions?: any;
-  triggerConditions?: any;
-  
-  weight: number;
-  dynamicWeight?: any;
-  
-  choices: Array<{
-    id: string;
-    text: string;
-    effects?: any;
-    consequences?: string;
-    characterClues?: string[];
-    nextEvents?: string[];
-    conditions?: any;
-    characterEffects?: any[];
-    interCharacterEffects?: any[];
-    factionEffects?: any[];
-  }>;
-}

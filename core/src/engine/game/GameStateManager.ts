@@ -1,7 +1,8 @@
 // 游戏主流程与状态管理相关代码迁移自 GameEngine.ts
 // TODO: 从 GameEngine.ts 迁移相关类和函数
 
-import { CharacterAttributes, EventCard, GameState, CharacterCard, EventChoice, GameEvent } from '../../types/game';
+import type { EventCard, EventOption } from '../../types/event';
+import type { CharacterAttributes, GameState, CharacterCard, GameEvent } from '../../types/game';
 import { GAME_CONSTANTS } from '../../utils/constants';
 
 export class GameStateManager {
@@ -74,30 +75,19 @@ export class GameStateManager {
     /**
      * 应用选择效果
      */
-    static applyChoiceEffects(gameState: GameState, choice: EventChoice): GameState {
+    static applyChoiceEffects(gameState: GameState, option: EventOption): GameState {
         const newGameState = JSON.parse(JSON.stringify(gameState)) as GameState;
-        if (choice.effects) {
-            Object.entries(choice.effects).forEach(([key, value]) => {
-                if (value !== undefined && key in newGameState.emperor) {
-                    const currentValue = newGameState.emperor[key as keyof CharacterAttributes] as number;
-                    const newValue = Math.max(0, Math.min(100, currentValue + value));
-                    (newGameState.emperor as any)[key] = newValue;
-                }
-            });
-        }
-        if (choice.characterEffects) {
-            choice.characterEffects.forEach(effect => {
-                const character = newGameState.activeCharacters.find(c => c.id === effect.characterId);
-                if (character && effect.attributeChanges) {
-                    Object.entries(effect.attributeChanges).forEach(([key, value]) => {
-                        if (value !== undefined && key in character.attributes) {
-                            const currentValue = character.attributes[key as keyof typeof character.attributes] as number;
-                            const newValue = Math.max(0, Math.min(100, currentValue + value));
-                            (character.attributes as any)[key] = newValue;
-                        }
-                    });
-                }
-            });
+        // 只处理新结构 EventOption
+        if (option.target === 'player') {
+            const attr = option.attribute;
+            if (attr in newGameState.emperor) {
+                const currentValue = newGameState.emperor[attr] as number;
+                const newValue = Math.max(0, Math.min(100, currentValue + option.offset));
+                (newGameState.emperor as any)[attr] = newValue;
+            }
+        } else if (option.target === 'self') {
+            // 这里需要传入当前角色ID，或在调用时补充逻辑
+            // 可根据实际需求补充
         }
         return newGameState;
     }
@@ -160,17 +150,6 @@ export class GameStateManager {
      */
     static calculateEventWeight(event: EventCard, gameState: GameState): number {
         let weight = event.weight || GAME_CONSTANTS.DEFAULT_EVENT_WEIGHT;
-        if (event.dynamicWeight) {
-            Object.entries(event.dynamicWeight).forEach(([attribute, ranges]) => {
-                const currentValue = gameState.emperor[attribute as keyof CharacterAttributes] as number;
-                for (const range of ranges) {
-                    if (currentValue >= range.range[0] && currentValue <= range.range[1]) {
-                        weight *= range.multiplier;
-                        break;
-                    }
-                }
-            });
-        }
         return Math.max(0, weight);
     }
 
@@ -180,7 +159,7 @@ export class GameStateManager {
     static recordGameEvent(
         gameState: GameState, 
         event: EventCard, 
-        choice: EventChoice,
+        option: EventOption,
         relationshipChanges?: Record<string, number>,
         characterDiscoveries?: string[]
     ): void {
@@ -188,10 +167,10 @@ export class GameStateManager {
             eventId: event.id,
             eventTitle: event.title,
             turn: gameState.currentTurn,
-            choiceId: choice.id,
-            chosenAction: choice.text,
-            effects: choice.effects,
-            consequences: choice.consequences || '',
+            choiceId: option.description,
+            chosenAction: option.description,
+            effects: { [option.attribute]: option.offset },
+            consequences: '',
             timestamp: Date.now(),
             relationshipChanges,
             characterDiscoveries,

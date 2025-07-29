@@ -2,7 +2,7 @@
 export {
   type CharacterCard,
   type EventCard,
-  type EventChoice,
+  type EventOption,
   type CharacterAttributes,
   type GameState,
   type GameConfig,

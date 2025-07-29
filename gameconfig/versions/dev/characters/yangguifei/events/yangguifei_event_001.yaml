@@ -7,22 +7,12 @@ dialogue: 陛下，妾身敬您一杯，愿君万岁无忧。
 weight: 8
 activationConditions: {}
 characterClues: {}
-choices:
-  - text: 赏赐珍宝，以示宠爱。
-    effects:
-      treasury: -5
-      popularity: 10
-    consequences: 贵妃心悦，民心有所提升，但国库略有损耗。
-    id: yangguifei_event_001_choice_01
-  - consequences: 贵妃感受到陛下的关怀，健康状况和民心均有改善。
-    effects:
-      health: 5
-      popularity: 5
-    text: 命人扶回寝宫，体恤其身体。
-    id: yangguifei_event_001_choice_02
-  - id: yangguifei_event_001_choice_03
-    consequences: 贵妃略感不悦，陛下威望和民心受到负面影响。
-    effects:
-      authority: -5
-      popularity: -5
-    text: 借机询问政事。
+options:
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0

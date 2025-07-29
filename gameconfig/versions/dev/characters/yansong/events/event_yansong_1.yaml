@@ -2,11 +2,20 @@ id: event_yansong_1
 name: 贪腐风波
 trigger: corruption
 outcomes:
-  - description: "严嵩被揭发贪污，财富骤减。"
+  - description: 严嵩被揭发贪污，财富骤减。
     effects:
       wealth: -20
       popularity: -10
-  - description: "严嵩巧妙化解危机，声望提升。"
+  - description: 严嵩巧妙化解危机，声望提升。
     effects:
-      wealth: +10
-      popularity: +10
+      wealth: 10
+      popularity: 10
+options:
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0

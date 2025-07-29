@@ -114,24 +114,24 @@ export default function DataPreview({ selectedFile }: DataPreviewProps) {
             <div className="text-gray-800 font-medium">{event.title}</div>
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-600">描述</label>
-            <div className="text-gray-800">{event.description}</div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium text-gray-600">说话者</label>
-              <div className="text-gray-800">{event.speaker}</div>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-600">权重</label>
-              <div className="text-gray-800">{event.weight}</div>
-            </div>
+            <label className="text-sm font-medium text-gray-600">角色ID</label>
+            <div className="text-gray-800">{event.characterId ?? '-'}</div>
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-600">对话</label>
-            <div className="text-gray-800 bg-gray-50 p-3 rounded border italic">
-              &ldquo;{event.dialogue}&rdquo;
-            </div>
+            <label className="text-sm font-medium text-gray-600">权重</label>
+            <div className="text-gray-800">{event.weight ?? '-'}</div>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-gray-600">激活条件</label>
+            <div className="text-gray-800 text-xs">{event.activationConditions ? JSON.stringify(event.activationConditions) : '-'}</div>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-gray-600">移除条件</label>
+            <div className="text-gray-800 text-xs">{event.removalConditions ? JSON.stringify(event.removalConditions) : '-'}</div>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-gray-600">触发条件</label>
+            <div className="text-gray-800 text-xs">{event.triggerConditions ? JSON.stringify(event.triggerConditions) : '-'}</div>
           </div>
         </div>
       </div>
@@ -140,35 +140,23 @@ export default function DataPreview({ selectedFile }: DataPreviewProps) {
       <div className="bg-white rounded-lg p-4 shadow-sm border">
         <h3 className="text-lg font-semibold mb-3 text-gray-800">选择分支</h3>
         <div className="space-y-4">
-          {Array.isArray(event.choices) && event.choices.length > 0 ? (
-            event.choices.map((choice, index) => (
-              <div key={choice.id} className="border rounded-lg p-3">
+          {Array.isArray(event.options) && event.options.length > 0 ? (
+            event.options.map((option, index) => (
+              <div key={option.optionId} className="border rounded-lg p-3">
                 <div className="flex items-start justify-between mb-2">
                   <span className="font-medium text-gray-800">选项 {index + 1}</span>
-                  <span className="text-xs text-gray-500">ID: {choice.id}</span>
+                  <span className="text-xs text-gray-500">ID: {option.optionId}</span>
                 </div>
-                <div className="text-gray-700 mb-3">{choice.text}</div>
+                <div className="text-gray-700 mb-3">{option.description}</div>
                 {/* 效果 */}
                 <div className="mb-2">
-                  <span className="text-sm font-medium text-gray-600">效果:</span>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {choice.effects && Object.entries(choice.effects).map(([key, value]) => (
-                      value !== 0 && (
-                        <span key={key} className={`px-2 py-1 rounded text-xs ${
-                          value > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}>
-                          {getAttributeLabel(key)}: {value > 0 ? '+' : ''}{value}
-                        </span>
-                      )
-                    ))}
-                  </div>
+                  <span className="text-sm font-medium text-gray-600">目标:</span>
+                  <span className="ml-2 text-xs text-gray-700">{option.target === 'player' ? '玩家（皇帝）' : '当前角色'}</span>
                 </div>
-                {choice.consequences && (
-                  <div>
-                    <span className="text-sm font-medium text-gray-600">后果:</span>
-                    <div className="text-sm text-gray-700 mt-1">{choice.consequences}</div>
-                  </div>
-                )}
+                <div className="mb-2">
+                  <span className="text-sm font-medium text-gray-600">属性变动:</span>
+                  <span className="ml-2 text-xs text-gray-700">{getAttributeLabel(option.attribute)}: {option.offset > 0 ? '+' : ''}{option.offset}</span>
+                </div>
               </div>
             ))
           ) : (

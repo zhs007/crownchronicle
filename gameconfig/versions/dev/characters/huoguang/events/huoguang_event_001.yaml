@@ -20,28 +20,12 @@ characterClues:
   backgroundHints:
     - 掌握军权的大将军拥有废立皇帝的实力
     - 朝中势力已被其牢牢控制
-choices:
-  - text: 拼死抵抗，召集忠臣护驾
-    effects:
-      gameOver: true
-      endingType: violent_overthrow
-      authority: -100
-      health: -50
-    consequences: 皇帝试图反抗，但霍光早有准备。禁军已被收买，忠臣寥寥无几。在一场血腥的宫廷政变中，皇帝被强行废黜，霍光成为实际统治者。游戏结束：被权臣废黜。
-    id: huoguang_event_001_choice_01
-  - text: 主动退位，保全性命
-    effects:
-      gameOver: true
-      endingType: peaceful_abdication
-      health: -20
-      authority: -100
-    consequences: 皇帝识时务者为俊杰，主动让出皇位。霍光虽然达到目的，但对皇帝的明智选择颇为赞赏，允许其保留性命，封为闲散王爷。游戏结束：主动退位。
-    id: huoguang_event_001_choice_02
-  - text: 企图收买霍光，许以重利
-    effects:
-      gameOver: true
-      endingType: failed_bribery
-      treasury: -50
-      authority: -100
-    consequences: 皇帝试图用金银财宝收买霍光，但大将军早已下定决心。这种行为反而激怒了霍光，认为皇帝到此时还不知悔改。废黜过程变得更加粗暴。游戏结束：收买失败被废。
-    id: huoguang_event_001_choice_03
+options:
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0

@@ -2,16 +2,14 @@ id: event_chancellor_2
 title: 丞相理财
 description: 丞相负责国库管理。
 speaker: 丞相
-dialogue: "国库盈亏，臣责无旁贷。"
+dialogue: 国库盈亏，臣责无旁贷。
 weight: 8
-choices:
-  - id: audit
-    text: 严查账目
-    effects:
-      wealth: 10
-    consequences: "国库收入增加。"
-  - id: ignore
-    text: 放任不管
-    effects:
-      wealth: -5
-    consequences: "国库亏空。"
+options:
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0

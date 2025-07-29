@@ -1,5 +1,5 @@
 import type { GameState, PlayerStrategy } from '../types/gamecore';
-import type { EventCard, EventChoice } from '../types/event';
+import type { EventCard, EventOption } from '../types/event';
 import type { CharacterAttributes } from '../types/character';
 
 /**
@@ -10,25 +10,20 @@ export class RandomPlayerStrategy implements PlayerStrategy {
 
   async chooseOption(gameState: GameState, event: EventCard): Promise<string> {
     // 过滤出满足条件的选项
-    const availableChoices = event.choices.filter(choice => {
-      if (!choice.conditions) return true;
-      
-      // 简单的条件检查逻辑
-      const { emperor } = gameState;
-      
-      if (choice.conditions.minHealth && emperor.health < choice.conditions.minHealth) return false;
-      if (choice.conditions.minPower && emperor.power < choice.conditions.minPower) return false;
-      if (choice.conditions.maxPower && emperor.power > choice.conditions.maxPower) return false;
-      
-      return true;
-    });
-    
-    if (availableChoices.length === 0) {
-      return event.choices[0].id; // 备用选择
-    }
-    
-    const randomIndex = Math.floor(Math.random() * availableChoices.length);
-    return availableChoices[randomIndex].id;
+        const availableOptions = event.options.filter(option => {
+            if (!(option as any).conditions) return true;
+            const conditions = (option as any).conditions;
+            const { emperor } = gameState;
+            if (conditions.minHealth && emperor.health < conditions.minHealth) return false;
+            if (conditions.minPower && emperor.power < conditions.minPower) return false;
+            if (conditions.maxPower && emperor.power > conditions.maxPower) return false;
+            return true;
+        });
+        if (availableOptions.length === 0) {
+            return event.options[0].optionId; // 备用选择
+        }
+        const randomIndex = Math.floor(Math.random() * availableOptions.length);
+        return availableOptions[randomIndex].optionId;
   }
 }
 
@@ -42,39 +37,34 @@ export class ConservativePlayerStrategy implements PlayerStrategy {
     const { emperor } = gameState;
     
     // 过滤出满足条件的选项
-    const availableChoices = event.choices.filter(choice => {
-      if (!choice.conditions) return true;
-      
-      if (choice.conditions.minHealth && emperor.health < choice.conditions.minHealth) return false;
-      if (choice.conditions.minPower && emperor.power < choice.conditions.minPower) return false;
-      if (choice.conditions.maxPower && emperor.power > choice.conditions.maxPower) return false;
-      
-      return true;
-    });
-    
-    if (availableChoices.length === 0) {
-      return event.choices[0].id;
-    }
-    
-    // 优先选择负面影响最小的选项
-    let bestChoice = availableChoices[0];
-    let minNegativeImpact = this.calculateNegativeImpact(bestChoice, emperor);
-    
-    for (const choice of availableChoices) {
-      const negativeImpact = this.calculateNegativeImpact(choice, emperor);
-      if (negativeImpact < minNegativeImpact) {
-        minNegativeImpact = negativeImpact;
-        bestChoice = choice;
-      }
-    }
-    
-    return bestChoice.id;
+        const availableOptions = event.options.filter(option => {
+            if (!(option as any).conditions) return true;
+            const conditions = (option as any).conditions;
+            if (conditions.minHealth && emperor.health < conditions.minHealth) return false;
+            if (conditions.minPower && emperor.power < conditions.minPower) return false;
+            if (conditions.maxPower && emperor.power > conditions.maxPower) return false;
+            return true;
+        });
+        if (availableOptions.length === 0) {
+            return event.options[0].optionId;
+        }
+        // 优先选择负面影响最小的选项
+        let bestOption = availableOptions[0];
+        let minNegativeImpact = this.calculateNegativeImpact(bestOption, emperor);
+        for (const option of availableOptions) {
+            const negativeImpact = this.calculateNegativeImpact(option, emperor);
+            if (negativeImpact < minNegativeImpact) {
+                minNegativeImpact = negativeImpact;
+                bestOption = option;
+            }
+        }
+        return bestOption.optionId;
   }
 
-  private calculateNegativeImpact(choice: EventChoice, emperor: CharacterAttributes): number {
+  private calculateNegativeImpact(option: EventOption, emperor: CharacterAttributes): number {
     let impact = 0;
-    if (choice.effects) {
-      Object.entries(choice.effects).forEach(([key, value]) => {
+    if ((option as any).effects) {
+      Object.entries((option as any).effects).forEach(([key, value]) => {
         if (typeof value === 'number' && value < 0) {
           const currentValue = (emperor as any)[key] ?? 50;
           if (currentValue + value < 20) {
@@ -99,39 +89,34 @@ export class AggressivePlayerStrategy implements PlayerStrategy {
     const { emperor } = gameState;
     
     // 过滤出满足条件的选项
-    const availableChoices = event.choices.filter(choice => {
-      if (!choice.conditions) return true;
-      
-      if (choice.conditions.minHealth && emperor.health < choice.conditions.minHealth) return false;
-      if (choice.conditions.minPower && emperor.power < choice.conditions.minPower) return false;
-      if (choice.conditions.maxPower && emperor.power > choice.conditions.maxPower) return false;
-      
-      return true;
-    });
-    
-    if (availableChoices.length === 0) {
-      return event.choices[0].id;
-    }
-    
-    // 优先选择正面影响最大的选项
-    let bestChoice = availableChoices[0];
-    let maxPositiveImpact = this.calculatePositiveImpact(bestChoice);
-    
-    for (const choice of availableChoices) {
-      const positiveImpact = this.calculatePositiveImpact(choice);
-      if (positiveImpact > maxPositiveImpact) {
-        maxPositiveImpact = positiveImpact;
-        bestChoice = choice;
-      }
-    }
-    
-    return bestChoice.id;
+        const availableOptions = event.options.filter(option => {
+            if (!(option as any).conditions) return true;
+            const conditions = (option as any).conditions;
+            if (conditions.minHealth && emperor.health < conditions.minHealth) return false;
+            if (conditions.minPower && emperor.power < conditions.minPower) return false;
+            if (conditions.maxPower && emperor.power > conditions.maxPower) return false;
+            return true;
+        });
+        if (availableOptions.length === 0) {
+            return event.options[0].optionId;
+        }
+        // 优先选择正面影响最大的选项
+        let bestOption = availableOptions[0];
+        let maxPositiveImpact = this.calculatePositiveImpact(bestOption);
+        for (const option of availableOptions) {
+            const positiveImpact = this.calculatePositiveImpact(option);
+            if (positiveImpact > maxPositiveImpact) {
+                maxPositiveImpact = positiveImpact;
+                bestOption = option;
+            }
+        }
+        return bestOption.optionId;
   }
 
-  private calculatePositiveImpact(choice: EventChoice): number {
+  private calculatePositiveImpact(option: EventOption): number {
     let impact = 0;
-    if (choice.effects) {
-      Object.entries(choice.effects).forEach(([key, value]) => {
+    if ((option as any).effects) {
+      Object.entries((option as any).effects).forEach(([key, value]) => {
         if (typeof value === 'number' && value > 0) {
           impact += value;
         }
@@ -151,39 +136,34 @@ export class BalancedPlayerStrategy implements PlayerStrategy {
     const { emperor } = gameState;
     
     // 过滤出满足条件的选项
-    const availableChoices = event.choices.filter(choice => {
-      if (!choice.conditions) return true;
-      
-      if (choice.conditions.minHealth && emperor.health < choice.conditions.minHealth) return false;
-      if (choice.conditions.minPower && emperor.power < choice.conditions.minPower) return false;
-      if (choice.conditions.maxPower && emperor.power > choice.conditions.maxPower) return false;
-      
-      return true;
-    });
-    
-    if (availableChoices.length === 0) {
-      return event.choices[0].id;
-    }
-    
-    // 计算每个选项的综合评分
-    let bestChoice = availableChoices[0];
-    let bestScore = this.calculateScore(bestChoice, emperor);
-    
-    for (const choice of availableChoices) {
-      const score = this.calculateScore(choice, emperor);
-      if (score > bestScore) {
-        bestScore = score;
-        bestChoice = choice;
-      }
-    }
-    
-    return bestChoice.id;
+        const availableOptions = event.options.filter(option => {
+            if (!(option as any).conditions) return true;
+            const conditions = (option as any).conditions;
+            if (conditions.minHealth && emperor.health < conditions.minHealth) return false;
+            if (conditions.minPower && emperor.power < conditions.minPower) return false;
+            if (conditions.maxPower && emperor.power > conditions.maxPower) return false;
+            return true;
+        });
+        if (availableOptions.length === 0) {
+            return event.options[0].optionId;
+        }
+        // 计算每个选项的综合评分
+        let bestOption = availableOptions[0];
+        let bestScore = this.calculateScore(bestOption, emperor);
+        for (const option of availableOptions) {
+            const score = this.calculateScore(option, emperor);
+            if (score > bestScore) {
+                bestScore = score;
+                bestOption = option;
+            }
+        }
+        return bestOption.optionId;
   }
 
-  private calculateScore(choice: EventChoice, emperor: CharacterAttributes): number {
+  private calculateScore(option: EventOption, emperor: CharacterAttributes): number {
     let score = 0;
-    if (choice.effects) {
-      Object.entries(choice.effects).forEach(([key, value]) => {
+    if ((option as any).effects) {
+      Object.entries((option as any).effects).forEach(([key, value]) => {
         if (typeof value === 'number') {
           const currentValue = (emperor as any)[key] ?? 50;
           if (value > 0) {

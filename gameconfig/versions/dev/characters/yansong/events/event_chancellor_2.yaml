@@ -2,11 +2,20 @@ id: event_chancellor_2
 name: 权臣的抉择
 trigger: start
 outcomes:
-  - description: "严嵩在朝堂上力排众议，巩固了自己的权力。"
+  - description: 严嵩在朝堂上力排众议，巩固了自己的权力。
     effects:
-      power: +10
+      power: 10
       popularity: -5
-  - description: "严嵩遭遇政敌挑战，权力受到威胁。"
+  - description: 严嵩遭遇政敌挑战，权力受到威胁。
     effects:
       power: -10
-      popularity: +5
+      popularity: 5
+options:
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0

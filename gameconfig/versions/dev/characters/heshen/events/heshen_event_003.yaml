@@ -4,18 +4,12 @@ description: 乾隆皇帝南巡，地方官员为讨好和珅，纷纷献上巨�
 speaker: 和珅
 dialogue: 启禀皇上，江南富庶，百姓安居乐业，地方官员体恤民情，特备薄礼以示恭敬，望皇上体恤。
 weight: 10
-choices:
-  - id: heshen_event_003_choice_01
-    text: 默许和珅收取供奉。
-    effects:
-      treasury: 10
-      health: -5
-      popularity: -10
-    consequences: 国库短期内有所增加，但民怨沸腾，皇帝声望受损，和珅更加肆无忌惮。
-  - id: heshen_event_003_choice_02
-    text: 严厉斥责和珅，并命其退还供奉。
-    effects:
-      treasury: -5
-      authority: 5
-      popularity: 10
-    consequences: 皇帝声望提高，但和珅因此对皇帝产生怨恨，可能暗中报复或阳奉阴违。
+options:
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0

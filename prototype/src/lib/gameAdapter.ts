@@ -5,7 +5,7 @@ import {
   ConfigConverter,
   GameState,
   EventCard,
-  EventChoice,
+  EventOption,
   CharacterCard,
   PlayerStrategy
 } from 'crownchronicle-core';
@@ -116,23 +116,23 @@ export class GameAdapter {
   /**
    * 处理玩家选择
    */
-  processPlayerChoice(choiceId: string): GameState {
+  processPlayerChoice(optionId: string): GameState {
     if (!this.currentGameState || !this.currentGameState.currentEvent) {
       throw new Error('No current event to process');
     }
 
     const event = this.currentGameState.currentEvent;
-    const choice = event.choices.find(c => c.id === choiceId);
+    const option = event.options.find(o => o.optionId === optionId);
     
-    if (!choice) {
-      throw new Error(`Invalid choice ID: ${choiceId}`);
+    if (!option) {
+      throw new Error(`Invalid option ID: ${optionId}`);
     }
 
-    // 应用选择效果
-    this.currentGameState = GameEngine.applyChoiceEffects(this.currentGameState, choice);
+    // 应用选项效果
+    this.currentGameState = GameEngine.applyChoiceEffects(this.currentGameState, option);
     
     // 记录游戏事件
-    GameEngine.recordGameEvent(this.currentGameState, event, choice);
+    GameEngine.recordGameEvent(this.currentGameState, event, option);
     
     // 移除已使用的事件
     this.currentGameState = CardPoolManager.discardEvent(this.currentGameState, event.id);

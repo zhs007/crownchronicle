@@ -306,17 +306,45 @@ export class GeminiClient {
   }
   
   private convertToEventCard(args: Record<string, unknown>): EventCard {
+    // 兼容新版 EventCard 结构，只用 options 字段
+    // AI生成的 args.options 或 args.choices 需转换为 [EventOption, EventOption]
+    let options: [import('crownchronicle-core').EventOption, import('crownchronicle-core').EventOption];
+    const rawOptions = Array.isArray(args.options)
+      ? args.options
+      : Array.isArray(args.choices)
+        ? args.choices
+        : [];
+    if (rawOptions.length === 2) {
+      options = [rawOptions[0], rawOptions[1]];
+    } else {
+      // 填充空选项，防止类型报错
+      options = [
+        {
+          optionId: '',
+          description: '',
+          target: 'player',
+          attribute: 'power',
+          offset: 0
+        },
+        {
+          optionId: '',
+          description: '',
+          target: 'self',
+          attribute: 'power',
+          offset: 0
+        }
+      ];
+    }
     return {
       id: '', // ID将由saveEvent方法自动生成
       characterId: String(args.characterId || ''),
       title: String(args.title || ''),
-      description: String(args.description || ''),
-      speaker: String(args.speaker || ''),
-      dialogue: String(args.dialogue || ''),
-      choices: args.choices as EventCard['choices'],
+      options,
+      activationConditions: args.activationConditions as import('crownchronicle-core').EventConditions | undefined,
+      removalConditions: args.removalConditions as import('crownchronicle-core').EventConditions | undefined,
+      triggerConditions: args.triggerConditions as import('crownchronicle-core').EventConditions | undefined,
       weight: Number(args.weight || 1),
-      activationConditions: args.activationConditions as EventCard['activationConditions'],
-      characterClues: args.characterClues as EventCard['characterClues']
+      importance: args.importance as 'normal' | 'major' | 'critical' | undefined
     };
   }
   

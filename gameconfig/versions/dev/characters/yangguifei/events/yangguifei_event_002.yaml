@@ -7,22 +7,12 @@ dialogue: 陛下，外戚专权，民怨沸腾，姐姐所言，妾身也深有�
 weight: 12
 activationConditions: {}
 characterClues: {}
-choices:
-  - effects:
-      popularity: 10
-      authority: -5
-    text: 安抚贵妃，表示会处理。
-    consequences: 贵妃情绪平复，民心有所提升，但陛下权威略有动摇。
-    id: yangguifei_event_002_choice_01
-  - consequences: 贵妃及其家族不满，民心下降，但陛下权威得到维护。
-    text: 斥责虢国夫人干政。
-    id: yangguifei_event_002_choice_02
-    effects:
-      authority: 5
-      popularity: -10
-  - effects:
-      trust: 5
-      authority: 5
-    text: 询问具体事宜。
-    id: yangguifei_event_002_choice_03
-    consequences: 陛下展现出明君风范，威望和信任度均有提升。
+options:
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0

@@ -39,16 +39,10 @@ events:
 > `tags` 字段为必填，`name` 字段建议“姓 名”格式，便于解析与展示。
 
 ## 名字生成与校验
-
-- 姓氏来源：合成角色卡中事件最多者
-- 名/字：常用字库或算法生成，支持扩展
 - 黑名单校验：生成姓名不得与历史人物重名，自动避开 `gameconfig/forbidden_names.json`
 - 可维护常用名/字词库于 `gameconfig/names/`
 
-## 角色生成 API 示例
-
 ```typescript
-import { generateCharacterByTags } from 'crownchronicle-core';
 
 const tags = ['丞相', '忠臣'];
 const newCharacter = generateCharacterByTags(tags);
@@ -71,11 +65,6 @@ console.log(newCharacter);
 
 Crown Chronicle 的核心游戏逻辑库，采用模块化架构，便于维护和扩展。该包包含游戏主流程、卡牌系统、配置校验、类型定义等核心功能，可独立运行或被 prototype/editor 等项目引用。
 
-## 目录结构与模块边界
-
-```
-src/
-  engine/
     game/         # 游戏主流程与状态管理（GameStateManager, GameActionHandler）
     card/         # 卡牌相关逻辑（CardPoolManager, CardEffectHandler）
     validation/   # 配置与数据校验（ConfigValidator, SchemaValidator）
@@ -94,8 +83,6 @@ src/
 
 ### 文档与协作建议
 - 关键设计决策、模块边界、接口说明需补充注释和文档
-- 拆分和重构过程全程记录在 `plan-006-report.md`，并同步到本 README
-- 定期评审迁移进度，及时调整方案
 
 ## 功能特性
 

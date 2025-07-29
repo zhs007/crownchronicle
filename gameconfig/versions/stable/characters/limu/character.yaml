@@ -46,3 +46,12 @@ backgroundClues:
   preferences: 喜欢在军营中训练士兵，对朝廷礼仪不太熟悉
   relationships: 深受士兵爱戴，与其他将领关系良好
   secrets: 对政治斗争保持距离，更信任武力解决问题
+options:
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0

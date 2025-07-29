@@ -61,18 +61,18 @@ export class GameSimulator {
         gameState.currentEvent = nextEvent;
 
         // 让策略选择选项
-        const choiceId = await this.playerStrategy.chooseOption(gameState, nextEvent);
-        const choice = nextEvent.choices.find(c => c.id === choiceId);
+        const optionId = await this.playerStrategy.chooseOption(gameState, nextEvent);
+        const option = nextEvent.options.find(o => o.optionId === optionId);
         
-        if (!choice) {
+        if (!option) {
           // 如果选择无效，使用第一个选项
-          const fallbackChoice = nextEvent.choices[0];
-          GameEngine.applyChoiceEffects(gameState, fallbackChoice);
-          GameEngine.recordGameEvent(gameState, nextEvent, fallbackChoice);
+          const fallbackOption = nextEvent.options[0];
+          GameEngine.applyChoiceEffects(gameState, fallbackOption);
+          GameEngine.recordGameEvent(gameState, nextEvent, fallbackOption);
         } else {
           // 应用选择效果
-          GameEngine.applyChoiceEffects(gameState, choice);
-          GameEngine.recordGameEvent(gameState, nextEvent, choice);
+          GameEngine.applyChoiceEffects(gameState, option);
+          GameEngine.recordGameEvent(gameState, nextEvent, option);
         }
 
         // 移除已使用的事件

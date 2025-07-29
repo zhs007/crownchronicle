@@ -1,5 +1,6 @@
 import { CardPoolManager } from '../src/engine/card/CardPoolManager';
-import { GameState, EventCard } from '../src/types/game';
+import { GameState } from '../src/types/game';
+import type { EventCard } from '../src/types/event';
 
 describe('CardPoolManager', () => {
   function makeGameState(overrides?: Partial<GameState>): GameState {
@@ -24,7 +25,24 @@ describe('CardPoolManager', () => {
   }
 
   function makeEventCard(id: string, extra?: Partial<EventCard>): EventCard {
-    return { id, title: id, ...extra } as EventCard;
+    // 生成两个标准选项
+    const options = [
+      {
+        optionId: `test_${id}_001`,
+        description: '选项A',
+        target: 'player',
+        attribute: 'power',
+        offset: 1
+      },
+      {
+        optionId: `test_${id}_002`,
+        description: '选项B',
+        target: 'self',
+        attribute: 'military',
+        offset: -1
+      }
+    ];
+    return { id, title: id, options, ...extra } as EventCard;
   }
 
   it('should activate and remove cards from pending pool', () => {

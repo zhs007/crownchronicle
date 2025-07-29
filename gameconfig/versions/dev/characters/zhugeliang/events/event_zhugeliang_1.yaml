@@ -2,11 +2,20 @@ id: event_zhugeliang_1
 name: 草船借箭
 trigger: strategy
 outcomes:
-  - description: "诸葛亮巧用草船借箭，军力大增。"
+  - description: 诸葛亮巧用草船借箭，军力大增。
     effects:
-      military: +15
-      popularity: +5
-  - description: "敌方识破计谋，损失惨重。"
+      military: 15
+      popularity: 5
+  - description: 敌方识破计谋，损失惨重。
     effects:
       military: -10
       popularity: -5
+options:
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0

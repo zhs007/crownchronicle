@@ -19,25 +19,12 @@ characterClues:
     - 他的建议总是从国家大局考虑
   backgroundHints:
     - 你感觉到他身上那种久经沙场的气质
-choices:
-  - text: 爱卿所言极是，即刻加强边防
-    effects:
-      military: 8
-      treasury: -5
-      authority: 3
-    consequences: 大将军满意地点头，立即着手安排边防事务。
-    id: huoguang_event_003_choice_01
-  - text: 边境向来安稳，无需过虑
-    effects:
-      military: -3
-      popularity: 2
-      treasury: 3
-    consequences: 大将军面露忧色，但还是遵从了你的决定。
-    id: huoguang_event_003_choice_02
-  - text: 适当加强即可，不必大动干戈
-    effects:
-      military: 3
-      treasury: -2
-      authority: 1
-    consequences: 大将军认为这是个不错的折中方案。
-    id: huoguang_event_003_choice_03
+options:
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0

@@ -21,7 +21,50 @@ eventIds:
   - event_zhugeliang_1
   - event_zhugeliang_2
 commonCardIds: []
+
+---
+
+## 事件卡 Option 结构与配置规则
+
+每张事件卡必须且只能有 2 个选项（options），每个选项结构如下：
+
+```yaml
+options:
+  - description: "选项描述文本"
+    target: "player" | "self"
+    attribute: "power"
+    offset: 8
+  - description: "选项描述文本"
+    target: "player" | "self"
+    attribute: "power"
+    offset: -8
 ```
+
+### 配置规则
+
+- options 字段为长度为 2 的数组，且每个选项必须包含 description、target、attribute、offset 字段。
+- target 仅允许 "player" 或 "self"。
+- attribute 仅允许 CharacterAttributes 枚举中的属性名（如 power、military、wealth、popularity、health、age）。
+- offset 必须为数字，可为正负。
+
+### 事件卡 YAML 示例
+
+```yaml
+id: event_xxx
+title: 某事件标题
+weight: 10
+options:
+  - description: 增强自己的力量
+    target: self
+    attribute: power
+    offset: 8
+  - description: 帮助玩家提升力量
+    target: player
+    attribute: power
+    offset: 8
+```
+
+---
 
 - `tags` 字段为必填，类型为字符串数组。
 - `name` 字段格式为“姓 名”，中间一个空格。

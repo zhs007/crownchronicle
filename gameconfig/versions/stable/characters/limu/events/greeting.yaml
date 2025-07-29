@@ -11,33 +11,12 @@ characterClues:
     - 李牧很注重礼节
     - 他对皇帝很恭敬
 weight: 10
-choices:
-  - id: greet_warmly
-    text: 朕很高兴见到将军
-    effects:
-      popularity: 1
-      power: 2
-    consequences: 你热情地回应了李牧的问候，他看起来很开心
-    characterEffects:
-      - characterId: limu
-        relationshipChanges:
-          affection: 5
-          trust: 3
-  - id: greet_formally
-    text: 将军免礼平身
-    effects:
-      power: 1
-    consequences: 你正式地回应了李牧，他恭敬地行礼
-    characterEffects:
-      - characterId: limu
-        relationshipChanges:
-          respect: 3
-  - id: dismiss_quickly
-    text: 朕知道了，将军请退下
-    effects:
-      power: -1
-    consequences: 你简单地回应后示意李牧退下，他显得有些失望
-    characterEffects:
-      - characterId: limu
-        relationshipChanges:
-          affection: -2
+options:
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0

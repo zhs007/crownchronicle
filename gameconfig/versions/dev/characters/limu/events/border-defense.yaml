@@ -21,51 +21,14 @@ activationConditions:
 triggerConditions:
   minMilitary: 30
 weight: 7
-choices:
-  - id: send_reinforcements
-    text: 立即派遣援军
-    effects:
-      military: 10
-      treasury: -15
-      authority: 5
-    consequences: 你迅速调动军队支援边境，李牧眼中闪过感激之色，军心大振
-    characterEffects:
-      - characterId: limu
-        relationshipChanges:
-          trust: 15
-          respect: 10
-        attributeChanges:
-          loyalty: 5
-    characterClues:
-      - 李牧指挥有方，深得士兵爱戴
-  - id: strategic_retreat
-    text: 战略性撤退，保存实力
-    effects:
-      military: -5
-      treasury: 5
-      authority: -3
-    consequences: 你选择了保守策略，虽然减少了损失，但李牧显得有些失望
-    characterEffects:
-      - characterId: limu
-        relationshipChanges:
-          trust: -5
-          respect: -3
-    characterClues:
-      - 李牧似乎更倾向于主动出击
-  - id: diplomatic_solution
-    text: 尝试外交解决
-    effects:
-      military: 2
-      authority: 3
-      popularity: 5
-    consequences: 你决定先尝试外交途径，李牧虽有疑虑但还是遵命执行
-    characterEffects:
-      - characterId: limu
-        relationshipChanges:
-          trust: 2
-        attributeChanges:
-          competence: -2
-    characterClues:
-      - 李牧对外交手段不太熟悉，更相信武力
 removalConditions:
   maxMilitary: 20
+options:
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0

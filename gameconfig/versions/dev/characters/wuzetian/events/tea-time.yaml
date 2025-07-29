@@ -11,25 +11,12 @@ characterClues:
     - 母后对朝政很关心
     - 她喜欢与你交流政务
 weight: 8
-choices:
-  - id: accept_invitation
-    text: 朕很乐意与母后聊天
-    effects:
-      health: 5
-      authority: 2
-    consequences: 你接受了母后的邀请，在温馨的氛围中交流了朝政心得
-    characterEffects:
-      - characterId: wuzetian
-        relationshipChanges:
-          affection: 8
-          trust: 5
-  - id: polite_decline
-    text: 朕公务繁忙，改日再聊
-    effects:
-      authority: 1
-    consequences: 你礼貌地拒绝了，母后表示理解但眼中闪过一丝失望
-    characterEffects:
-      - characterId: wuzetian
-        relationshipChanges:
-          affection: -3
-          respect: 2
+options:
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0

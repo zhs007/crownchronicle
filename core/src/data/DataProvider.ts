@@ -1,5 +1,6 @@
 import yaml from 'js-yaml';
-import { CharacterCard, EventCard, CharacterConfig, EventConfig, DataProvider, CommonCard } from '../types/game';
+import type { EventCard, EventConfig, EventOption } from '../types/event';
+import { CharacterCard, CharacterConfig, DataProvider, CommonCard } from '../types/game';
 
 export class FileSystemDataProvider implements DataProvider {
   private commonCardsDirectory: string;
@@ -191,13 +192,11 @@ export class FileSystemDataProvider implements DataProvider {
    */
   validateEventConfig(config: any): boolean {
     const requiredFields = [
-      'id', 'title', 'description', 'speaker', 'dialogue',
-      'choices', 'weight'
+      'id', 'title', 'options', 'weight'
     ];
-    
     return requiredFields.every(field => field in config) &&
-           Array.isArray(config.choices) &&
-           config.choices.length > 0;
+           Array.isArray(config.options) &&
+           config.options.length === 2;
   }
 }
 
@@ -285,35 +284,23 @@ export class ConfigConverter {
    * 将配置转换为游戏事件卡
    */
   static configToEventCard(config: EventConfig, characterId: string): EventCard {
+    // 自动生成 optionId
+    const options = config.options.map((opt, idx) => ({
+      ...opt,
+      optionId: `${characterId}_${config.id}_${(idx + 1).toString().padStart(3, '0')}`
+    })) as [EventOption, EventOption];
+
     return {
       id: config.id,
       characterId: characterId,
       title: config.title,
-      description: config.description,
-      speaker: config.speaker,
-      dialogue: config.dialogue,
-      
-      choices: config.choices.map(choice => ({
-        id: choice.id,
-        text: choice.text,
-        effects: choice.effects || {},
-        consequences: choice.consequences,
-        characterEffects: choice.characterEffects || [],
-        interCharacterEffects: choice.interCharacterEffects || [],
-        factionEffects: choice.factionEffects || [],
-        characterClues: choice.characterClues || [],
-        nextEvents: choice.nextEvents || [],
-        conditions: choice.conditions
-      })),
-      
+      options,
       activationConditions: config.activationConditions,
       removalConditions: config.removalConditions,
       triggerConditions: config.triggerConditions,
-      
       weight: config.weight,
-      dynamicWeight: config.dynamicWeight,
-      
-      characterClues: config.characterClues
+      importance: config.importance,
+      // 其他字段可按需补充
     };
   }
 

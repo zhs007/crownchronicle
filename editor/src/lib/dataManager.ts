@@ -4,6 +4,7 @@ import {
   ConfigValidator,
   type CharacterCard, 
   type EventCard,
+  type EventOption,
   type CharacterConfig,
   type EventConfig
 } from 'crownchronicle-core';
@@ -110,10 +111,10 @@ export class EditorDataManager {
       data.id = eventId;
       data.characterId = characterId;
       
-      // 自动生成选项ID
-      if (data.choices && Array.isArray(data.choices)) {
-        data.choices.forEach((choice, index) => {
-          choice.id = this.generateChoiceId(characterId, nextNumber, index);
+      // 自动生成选项ID（新版结构，只有 options 字段）
+      if (data.options && Array.isArray(data.options)) {
+        data.options.forEach((option, index) => {
+          option.optionId = this.generateChoiceId(characterId, nextNumber, index);
         });
       }
       
@@ -247,9 +248,39 @@ export class EditorDataManager {
   }
   
   private convertEventConfigToCard(config: EventConfig): EventCard {
-    // 将 EventConfig 转换为 EventCard
-    // 这个转换需要根据实际的类型定义来实现
-    return config as unknown as EventCard;
+    // 严格转换 EventConfig -> EventCard，兼容新版结构
+    // 只保留核心字段，确保 options 字段存在且为两个选项
+    let options: [EventOption, EventOption];
+    if (Array.isArray(config.options) && config.options.length === 2) {
+      options = [config.options[0], config.options[1]];
+    } else {
+      options = [
+        {
+          optionId: '',
+          description: '',
+          target: 'player',
+          attribute: 'power',
+          offset: 0
+        },
+        {
+          optionId: '',
+          description: '',
+          target: 'self',
+          attribute: 'power',
+          offset: 0
+        }
+      ];
+    }
+    return {
+      id: config.id,
+      title: config.title,
+      options,
+      activationConditions: config.activationConditions,
+      removalConditions: config.removalConditions,
+      triggerConditions: config.triggerConditions,
+      weight: config.weight,
+      importance: config.importance
+    };
   }
 
   private convertCardToConfig(card: CharacterCard): CharacterConfig {
@@ -265,18 +296,17 @@ export class EditorDataManager {
   }
 
   private convertEventCardToConfig(card: EventCard): EventConfig {
-    // 将 EventCard 转换回 EventConfig 格式以保存为 YAML
+    // 严格转换 EventCard -> EventConfig，兼容新版结构
     return {
       id: card.id,
       title: card.title,
-      description: card.description,
-      speaker: card.speaker,
-      dialogue: card.dialogue,
-      weight: card.weight,
-      choices: card.choices,
+      options: card.options,
       activationConditions: card.activationConditions,
-      characterClues: card.characterClues
-    } as EventConfig;
+      removalConditions: card.removalConditions,
+      triggerConditions: card.triggerConditions,
+      weight: card.weight,
+      importance: card.importance
+    };
   }
 
   /**

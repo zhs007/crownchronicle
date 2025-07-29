@@ -4,18 +4,12 @@ description: 御史弹劾某地方官员贪污腐败，和珅主动请缨查办�
 speaker: 和珅
 dialogue: 皇上，臣闻某地官员贪赃枉法，民怨沸腾。臣愿为陛下分忧，前往彻查，定将贪官污吏绳之以法！
 weight: 10
-choices:
-  - id: heshen_event_002_choice_01
-    text: 命和珅全权查办。
-    effects:
-      treasury: 5
-      authority: 5
-      popularity: -5
-    consequences: 和珅借机清除异己，培植亲信，权势更盛，但朝政风气进一步恶化。
-  - id: heshen_event_002_choice_02
-    text: 派其他官员共同查办，并限制和珅的权力。
-    effects:
-      authority: -5
-      treasury: 0
-      popularity: 5
-    consequences: 贪腐案得到公正处理，但和珅对皇帝产生不满，忠诚度可能下降。
+options:
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0
+  - description: （待补充）
+    target: player
+    attribute: power
+    offset: 0
