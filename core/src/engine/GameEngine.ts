@@ -1,5 +1,6 @@
 import type { EventOption, EventCard } from '../types/event';
-import type { GameState, CharacterCard } from '../types/game';
+import type { GameState } from '../types/game';
+import type { CharacterCard } from '../types/card';
 import { GameStateManager } from './game/GameStateManager';
 
 export class GameEngine {
@@ -78,26 +79,6 @@ export class GameEngine {
     return GameStateManager.processTurnEnd(gameState);
   }
 
-  /**
-   * 更新朝堂政治状态
-   */
-  private static updateCourtPolitics(gameState: GameState): void {
-    const { courtPolitics, activeCharacters, factionSystem } = gameState;
-    
-    // ...已移除角色关系紧张度计算...
-    
-    // 根据派系平衡计算稳定度
-    const factionInfluences = factionSystem.activeFactions.map(f => f.influence);
-    const maxInfluence = Math.max(...factionInfluences, 0);
-    const avgInfluence = factionInfluences.length > 0 ? 
-      factionInfluences.reduce((sum, inf) => sum + inf, 0) / factionInfluences.length : 50;
-    
-    courtPolitics.stability = Math.max(0, Math.min(100, 100 - (maxInfluence - avgInfluence)));
-    
-    // 效率基于稳定度和腐败程度
-    courtPolitics.efficiency = Math.max(0, Math.min(100, 
-      courtPolitics.stability - courtPolitics.corruption * 0.5));
-  }
 
   /**
    * 检查事件条件

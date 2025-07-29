@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
-import { CharacterCard, CharacterAttributes } from '../types/character';
+import type { CharacterCard, CharacterAttributes } from '../types/card';
 
 // 工具函数：读取指定目录下所有 yaml 角色卡
 export function loadCharacterCardsFromDir(dir: string): CharacterCard[] {

@@ -1,4 +1,4 @@
-import type { CharacterAttributes } from '../src/types/character';
+import type { CharacterAttributes } from '../src/types/card';
 
 describe('CharacterAttributes', () => {
   it('should have all six core properties', () => {

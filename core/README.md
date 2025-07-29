@@ -63,13 +63,63 @@ console.log(newCharacter);
 ---
 # Crown Chronicle Core
 
-Crown Chronicle 的核心游戏逻辑库，采用模块化架构，便于维护和扩展。该包包含游戏主流程、卡牌系统、配置校验、类型定义等核心功能，可独立运行或被 prototype/editor 等项目引用。
+  Crown Chronicle 的核心游戏逻辑库，采用模块化架构，便于维护和扩展。该包包含游戏主流程、卡牌系统、配置校验、类型定义等核心功能，可独立运行或被 prototype/editor 等项目引用。
 
+ 目录结构：
     game/         # 游戏主流程与状态管理（GameStateManager, GameActionHandler）
     card/         # 卡牌相关逻辑（CardPoolManager, CardEffectHandler）
     validation/   # 配置与数据校验（ConfigValidator, SchemaValidator）
-  types/          # 按领域拆分的类型定义（gamecore, card, config, event, character, faction 等）
-  utils/          # 通用工具函数
+    types/        # 主类型定义文件（仅保留 card.ts、character.ts、event.ts、config.ts、gamecore.ts、game.ts）
+    utils/        # 通用工具函数
+
+### 类型结构精简与迁移说明
+
+1. 类型定义全部集中于主类型文件：
+   - card.ts
+   - character.ts
+   - event.ts
+   - config.ts
+   - gamecore.ts
+   - game.ts
+2. 已移除所有重复和废弃类型（如 FactionEffect、CharacterEffect、InterCharacterEffect、Faction、FactionSystem、CourtPolitics 等），如需扩展请在主类型文件补充。
+3. 其它类型文件仅做 re-export 或注释说明，不再定义重复类型。
+4. 依赖请统一从主类型文件导入，避免跨文件重复定义。
+5. EventConditions、DynamicWeight 类型已精简，后续如有业务需求可再优化。
+
+### 类型迁移指引
+
+请参考 `plan-011.md`，如需扩展新类型或字段，务必在主类型文件补充并同步更新所有依赖。
+所有 YAML 配置、测试、适配器、业务逻辑需与主类型定义保持一致。
+
+#### 主类型文件一览
+
+| 文件         | 说明 |
+|--------------|------|
+| card.ts      | 卡牌与角色属性类型 |
+| character.ts | 角色状态与配置类型 |
+| event.ts     | 事件与选项类型 |
+| config.ts    | 数据提供器类型 |
+| gamecore.ts  | 游戏主流程类型（仅 re-export，不定义重复类型） |
+| game.ts      | 游戏主类型入口 |
+
+#### 已移除类型（如需扩展请在主类型文件定义）
+
+- CharacterEffect
+- InterCharacterEffect
+- FactionEffect
+- Faction
+- FactionSystem
+- CourtPolitics
+- CardPools（重复）
+- CommonCard（重复）
+- EventConditions（重复）
+
+#### 迁移/精简方案
+
+1. 仅保留主类型文件，移除所有重复/废弃类型。
+2. 所有依赖统一从主类型文件导入。
+3. 配置、测试、适配器等需同步主类型结构。
+4. 变更记录与迁移方案详见 `plan-011.md`。
 ```
 
 ### 设计原则

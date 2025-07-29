@@ -1,5 +1,5 @@
 import { generateCharacterByTags } from '../src/engine/CharacterGenerator';
-import { CharacterCard } from '../src/types/character';
+import type { CharacterCard } from '../src/types/card';
 
 describe('角色生成器 - generateCharacterByTags', () => {
   it('可以根据单一tag生成丞相角色', () => {

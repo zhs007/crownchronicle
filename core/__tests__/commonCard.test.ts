@@ -1,5 +1,5 @@
 import { GameEngine } from '../src/engine/GameEngine';
-import { CharacterCard, CommonCard } from '../src/types/game';
+import type { CharacterCard, CommonCard } from '../src/types/card';
 
 describe('CommonCard 合并逻辑', () => {
   const commonCards: CommonCard[] = [

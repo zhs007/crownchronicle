@@ -1,5 +1,5 @@
 import { ConfigValidator } from '../src/engine/validation/ConfigValidator';
-import { CharacterConfig } from '../src/types/game';
+import type { CharacterConfig } from '../src/types/character';
 import type { EventConfig } from '../src/types/event';
 
 describe('ConfigValidator', () => {

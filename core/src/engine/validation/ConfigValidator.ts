@@ -1,4 +1,5 @@
-import { CharacterConfig, DataProvider } from '../../types/game';
+import type { CharacterConfig } from '../../types/character';
+import type { DataProvider } from '../../types/game';
 import type { EventConfig } from '../../types/event';
 import type { EventOption } from '../../types/event';
 

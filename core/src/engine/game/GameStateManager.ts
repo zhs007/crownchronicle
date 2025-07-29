@@ -2,7 +2,8 @@
 // TODO: 从 GameEngine.ts 迁移相关类和函数
 
 import type { EventCard, EventOption } from '../../types/event';
-import type { CharacterAttributes, GameState, CharacterCard, GameEvent } from '../../types/game';
+import type { GameState, GameEvent } from '../../types/game';
+import type { CharacterAttributes, CharacterCard } from '../../types/card';
 import { GAME_CONSTANTS } from '../../utils/constants';
 
 export class GameStateManager {
@@ -109,10 +110,10 @@ export class GameStateManager {
      */
     private static updateCourtPolitics(gameState: GameState): void {
         const { courtPolitics, factionSystem } = gameState;
-        const factionInfluences = factionSystem.activeFactions.map(f => f.influence);
+        const factionInfluences = factionSystem.activeFactions.map((f: { influence: number }) => f.influence);
         const maxInfluence = Math.max(...factionInfluences, 0);
         const avgInfluence = factionInfluences.length > 0 ? 
-            factionInfluences.reduce((sum, inf) => sum + inf, 0) / factionInfluences.length : 50;
+            factionInfluences.reduce((sum: number, inf: number) => sum + inf, 0) / factionInfluences.length : 50;
         courtPolitics.stability = Math.max(0, Math.min(100, 100 - (maxInfluence - avgInfluence)));
         courtPolitics.efficiency = Math.max(0, Math.min(100, 
             courtPolitics.stability - courtPolitics.corruption * 0.5));

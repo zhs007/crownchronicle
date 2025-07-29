@@ -1,6 +1,6 @@
-import type { GameState, PlayerStrategy } from '../types/gamecore';
+import type { GameState, PlayerStrategy } from '../types/game';
 import type { EventCard, EventOption } from '../types/event';
-import type { CharacterAttributes } from '../types/character';
+import type { CharacterAttributes } from '../types/card';
 
 /**
  * 随机选择策略

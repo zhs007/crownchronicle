@@ -1,5 +1,5 @@
 import { GameEngine } from '../src/engine/GameEngine';
-import { CharacterCard } from '../src/types/game';
+import type { CharacterCard } from '../src/types/card';
 
 describe('GameEngine.mergeCharacterAndCommonCardEvents', () => {
 

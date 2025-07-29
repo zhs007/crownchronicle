@@ -11,6 +11,9 @@ initialAttributes:
   ambition: 95
   age: 45
   reputation: 80
+  military: 50
+  wealth: 50
+  popularity: 50
 traits: []
 backgroundClues:
   appearance: ''

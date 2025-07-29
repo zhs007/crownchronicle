@@ -11,6 +11,9 @@ initialAttributes:
   loyalty: 95
   ambition: 70
   reputation: 80
+  military: 50
+  wealth: 50
+  popularity: 50
 traits: []
 backgroundClues:
   appearance: ''

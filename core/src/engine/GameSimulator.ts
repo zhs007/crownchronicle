@@ -1,4 +1,4 @@
-import type { GameState, GameConfig, PlayerStrategy } from '../types/gamecore';
+import type { GameState, GameConfig, PlayerStrategy } from '../types/game';
 import type { EventCard } from '../types/event';
 import type { DataProvider } from '../types/config';
 import { GameEngine } from './GameEngine';

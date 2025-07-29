@@ -1,5 +1,5 @@
 // 事件相关类型
-import type { CharacterAttributes, CharacterEffect, InterCharacterEffect, FactionEffect } from './character';
+import type { CharacterAttributes } from './card';
 
 // 事件卡选项结构（严格限制字段）
 export type OptionTarget = 'player' | 'self';

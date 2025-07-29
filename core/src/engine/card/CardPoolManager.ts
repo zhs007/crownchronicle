@@ -1,5 +1,7 @@
 import type { EventCard } from '../../types/event';
-import type { GameState, CardPools, EventConditions } from '../../types/game';
+import type { GameState } from '../../types/game';
+import type { CardPools } from '../../types/card';
+import type { EventConditions } from '../../types/event';
 import { GameEngine } from '../GameEngine';
 
 export class CardPoolManager {

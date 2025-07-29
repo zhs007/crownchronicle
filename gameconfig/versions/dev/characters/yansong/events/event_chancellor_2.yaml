@@ -19,3 +19,5 @@ options:
     target: player
     attribute: power
     offset: 0
+weight: 1
+title: 未命名事件

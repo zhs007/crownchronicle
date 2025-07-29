@@ -1,6 +1,8 @@
 import yaml from 'js-yaml';
 import type { EventCard, EventConfig, EventOption } from '../types/event';
-import { CharacterCard, CharacterConfig, DataProvider, CommonCard } from '../types/game';
+import type { CharacterCard, CommonCard } from '../types/card';
+import type { CharacterConfig } from '../types/character';
+import type { DataProvider } from '../types/game';
 
 export class FileSystemDataProvider implements DataProvider {
   private commonCardsDirectory: string;
@@ -179,11 +181,8 @@ export class FileSystemDataProvider implements DataProvider {
    */
   validateCharacterConfig(config: any): boolean {
     const requiredFields = [
-      'id', 'name', 'displayName', 'role', 'description',
-      'initialAttributes', 'initialRelationshipWithEmperor',
-      'factionInfo', 'influence'
+      'id', 'name', 'description', 'initialAttributes'
     ];
-    
     return requiredFields.every(field => field in config);
   }
 

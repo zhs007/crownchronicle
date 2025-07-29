@@ -1,5 +1,5 @@
 // 角色生成器核心接口与类型定义
-import { CharacterCard, CharacterAttributes } from '../types/character';
+import type { CharacterCard, CharacterAttributes } from '../types/card';
 import path from 'path';
 import { loadCharacterCardsFromDir, filterCharacterCardsByTags, mergeCharacterAttributes } from './CharacterGenUtils';
 import fs from 'fs';

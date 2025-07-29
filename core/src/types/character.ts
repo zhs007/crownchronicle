@@ -1,41 +1,10 @@
-// 派系效果类型（为事件选项用）
-export interface FactionEffect {
-  faction: string;
-  influenceChange: number;
-}
-// 角色相关类型
-export interface CharacterAttributes {
-  power: number;
-  military: number;
-  wealth: number;
-  popularity: number;
-  health: number;
-  age: number;
-}
 
-// 兼容 YAML 卡片的扁平属性与 tags 字段
-export interface CharacterCard {
-  id: string;
-  name: string;
-  tags: string[];
-  events: string[];
-  description: string;
-  attributes: CharacterAttributes;
-  eventIds: string[];
-  commonCardIds: string[];
-}
+/**
+ * 角色相关类型定义入口（如需扩展请在主类型文件 card.ts、event.ts、gamecore.ts 中定义）
+ * 本文件已移除 FactionEffect、CharacterEffect、InterCharacterEffect 类型。
+ */
 
-export interface CharacterEffect {
-  characterId: string;
-  attributeChanges?: Partial<CharacterAttributes>;
-}
-
-export interface InterCharacterEffect {
-  character1: string;
-  character2: string;
-  relationshipChange: number;
-  reason: string;
-}
+import type { CharacterAttributes } from './card';
 
 export interface CharacterState {
   characterId: string;
@@ -43,6 +12,7 @@ export interface CharacterState {
 }
 
 // 角色配置结构
+
 export interface CharacterConfig {
   id: string;
   name: string;

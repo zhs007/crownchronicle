@@ -11,6 +11,9 @@ initialAttributes:
   reputation: 95
   health: 65
   age: 55
+  military: 50
+  wealth: 50
+  popularity: 50
 influence:
   health: 1.1
   authority: 1.4

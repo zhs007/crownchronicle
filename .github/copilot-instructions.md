@@ -73,3 +73,6 @@ When working on features:
 4. **New content**: Use editor's AI generation, validate with core's validators
 
 The project prioritizes clean architectural boundaries over convenience - always respect the core package's purity and workspace-based dependency management.
+
+注意：
+1. 用包名导入 'crownchronicle-core'，不要用相对路径导入 core

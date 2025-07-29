@@ -1,65 +1,13 @@
+
+/**
+ * 游戏主类型定义入口（仅 re-export 主类型，不定义重复/废弃类型）
+ * 请统一从 card.ts、character.ts、event.ts、config.ts、gamecore.ts 导入类型。
+ * 本文件不再定义 CardPools、CommonCard、EventConditions、Faction、FactionSystem、CourtPolitics 等类型。
+ */
+import type { CharacterAttributes, CharacterCard } from './card';
+import type { CharacterState, CharacterConfig } from './character';
+import type { CommonCard, CardPools } from './card';
 import type { EventCard, EventOption, EventConfig } from './event';
-// 兼容性 re-export，供所有依赖通过本文件导入类型
-import type { CharacterAttributes, CharacterCard, CharacterState, CharacterConfig } from './character';
-export type { CharacterAttributes, CharacterCard, CharacterState, CharacterConfig } from './character';
-
-// 卡池类型
-export interface CardPools {
-  pending: EventCard[];    // 待定卡池
-  active: EventCard[];     // 主卡池
-  discarded: EventCard[];  // 弃卡池
-}
-
-// 通用卡（CommonCard）类型
-export interface CommonCard {
-  id: string;
-  name: string;
-  description?: string;
-  eventIds: string[];
-}
-
-// 事件条件（已移除冗余关系/派系相关字段）
-export interface EventConditions {
-  minHealth?: number;
-  minPower?: number;
-  maxPower?: number;
-  minAge?: number;
-  maxAge?: number;
-  requiredEvents?: string[];
-  excludedEvents?: string[];
-  attributeRequirements?: Partial<CharacterAttributes>;
-}
-// 派系
-export interface Faction {
-  id: string;
-  name: string;
-  influence: number;              // 派系影响力 (0-100)
-  leaderCharacterId?: string;     // 派系领袖角色ID
-  memberCharacterIds: string[];  // 派系成员角色ID列表
-  agenda: string;                 // 派系议程描述
-  conflictingFactions: string[];  // 敌对派系
-  alliedFactions: string[];       // 盟友派系
-}
-
-// 派系系统
-export interface FactionSystem {
-  activeFactions: Faction[];
-  factionBalance: number;           // 整体派系平衡度 (-100 到 +100)
-}
-
-// 朝堂政治状态
-export interface CourtPolitics {
-  tension: number;                  // 朝堂紧张度 (0-100)
-  stability: number;                // 政治稳定度 (0-100)
-  corruption: number;               // 腐败程度 (0-100)
-  efficiency: number;               // 行政效率 (0-100)
-  recentEvents: Array<{            // 近期重大政治事件
-    eventId: string;
-    impact: 'minor' | 'moderate' | 'major';
-    faction: string;
-    turn: number;
-  }>;
-}
 
 // 角色状态
 // ...已移除，统一使用 character.ts 类型...
@@ -87,9 +35,8 @@ export interface GameState {
   gameHistory: GameEvent[];           // 游戏历史记录
   currentEvent: EventCard | null;     // 当前事件
   characterStates: CharacterState[];  // 角色状态追踪
-  factionSystem: FactionSystem;       // 派系系统
-  courtPolitics: CourtPolitics;       // 朝堂政治状态
-  
+  factionSystem: any;                 // 派系系统（已移除，后续如需扩展请在 faction.ts 定义）
+  courtPolitics: any;                 // 朝堂政治状态（已移除，后续如需扩展请在 faction.ts 定义）
   gameOver: boolean;
   gameOverReason?: string;
   startTime: number;
@@ -138,17 +85,14 @@ export interface DataProvider {
    * 加载所有角色配置
    */
   loadAllCharacters(): Promise<CharacterConfig[]>;
-  
   /**
    * 加载角色的事件
    */
   loadCharacterEvents(characterId: string): Promise<EventConfig[]>;
-  
   /**
    * 验证角色配置
    */
   validateCharacterConfig(config: any): boolean;
-  
   /**
    * 验证事件配置
    */
