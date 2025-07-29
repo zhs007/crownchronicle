@@ -1,5 +1,6 @@
 // 兼容性 re-export，供所有依赖通过本文件导入类型
-export type { CharacterAttributes, CharacterCard } from './character';
+import type { CharacterAttributes, CharacterCard, CharacterState, CharacterConfig } from './character';
+export type { CharacterAttributes, CharacterCard, CharacterState, CharacterConfig } from './character';
 // 通用卡（CommonCard）类型
 export interface CommonCard {
   id: string;
@@ -8,7 +9,7 @@ export interface CommonCard {
   eventIds: string[];
 }
 
-import type { CharacterAttributes, CharacterCard } from './character';
+// ...已移除重复导入...
 
 // ...existing code...
 
@@ -136,23 +137,7 @@ export interface CourtPolitics {
 }
 
 // 角色状态
-export interface CharacterState {
-  characterId: string;
-  alive: boolean;
-  relationship: 'friendly' | 'neutral' | 'hostile';
-  influence: number;                  // 影响力值 (0-100)
-  lastEventTurn?: number;             // 最后触发事件的回合
-  
-  // 身份发现系统
-  identityProgress: {
-    revealed: boolean;                // 是否已完全揭示身份
-    cluesFound: string[];            // 已发现的线索
-    traitsRevealed: string[];        // 已揭示的特性
-    discoveryProgress: number;        // 发现进度 (0-100)
-  };
-  
-  // 移除 currentTitle 和 titleHistory，称谓相关信息请用 description 或 attributes 字段
-}
+// ...已移除，统一使用 character.ts 类型...
 
 // 游戏事件
 export interface GameEvent {
@@ -246,43 +231,7 @@ export interface DataProvider {
 }
 
 // 角色配置结构
-export interface CharacterConfig {
-  id: string;
-  name: string;
-  displayName: string;
-  role: string;
-  description: string;
-  category: string;
-  rarity: 'common' | 'rare' | 'epic' | 'legendary';
-  initialAttributes: {
-    power: number;
-    military: number;
-    wealth: number;
-    popularity: number;
-    health: number;
-    age: number;
-  };
-  traits: string[];
-  hiddenTraits: string[];
-  conditions?: {
-    minReignYears?: number;
-    maxAge?: number;
-    excludeCharacters?: string[];
-    requiredFactions?: string[];
-    conflictingFactions?: string[];
-  };
-  backgroundClues: {
-    appearance: string;
-    mannerisms: string;
-    preferences: string;
-    relationships: string;
-    secrets: string;
-  };
-  /**
-   * 关联的通用卡ID列表
-   */
-  commonCardIds?: string[];
-}
+// ...已移除，统一使用 character.ts 类型...
 
 // 事件配置结构
 export interface EventConfig {

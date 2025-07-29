@@ -1,0 +1,12 @@
+id: event_huoguang_1
+name: 晚年权谋
+trigger: loyalty
+outcomes:
+  - description: "霍光以忠诚辅佐新帝，朝政稳定。"
+    effects:
+      loyalty: +10
+      reputation: +5
+  - description: "霍光遭遇权臣挑战，威望受损。"
+    effects:
+      loyalty: -10
+      reputation: -5

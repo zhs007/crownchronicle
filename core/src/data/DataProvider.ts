@@ -320,80 +320,23 @@ export class ConfigConverter {
   /**
    * 随机选择角色
    */
-  static selectRandomCharacters(
-    characters: CharacterConfig[], 
-    minCount: number = 3, 
-    maxCount: number = 5
-  ): CharacterConfig[] {
-    const availableCharacters = [...characters];
-    const selectedCount = Math.min(Math.floor(Math.random() * (maxCount - minCount + 1)) + minCount, availableCharacters.length);
-    const selected: CharacterConfig[] = [];
-    
-    // 如果角色总数不足，直接返回所有角色
-    if (availableCharacters.length <= selectedCount) {
-      return availableCharacters;
-    }
-    
-    // 尝试确保每种类型至少有一个角色（如果可能的话）
-    const preferredTypes = ['皇族', '文臣', '武将'];
-    const typeGroups = new Map<string, CharacterConfig[]>();
-    
-    availableCharacters.forEach(char => {
-      if (!typeGroups.has(char.category)) {
-        typeGroups.set(char.category, []);
-      }
-      typeGroups.get(char.category)!.push(char);
-    });
-    
-    // 先从每个可用类型中选择一个
-    for (const type of preferredTypes) {
-      const group = typeGroups.get(type);
-      if (group && group.length > 0 && selected.length < selectedCount) {
-        const randomIndex = Math.floor(Math.random() * group.length);
-        const selectedChar = group[randomIndex];
-        selected.push(selectedChar);
-        
-        // 从可用列表中移除
-        const index = availableCharacters.indexOf(selectedChar);
-        if (index > -1) {
-          availableCharacters.splice(index, 1);
-        }
-      }
-    }
-    
-    // 随机填充剩余位置
-    while (selected.length < selectedCount && availableCharacters.length > 0) {
-      const randomIndex = Math.floor(Math.random() * availableCharacters.length);
-      const selectedChar = availableCharacters.splice(randomIndex, 1)[0];
-      
-      // 检查冲突条件
-      if (this.checkCharacterCompatibility(selectedChar, selected)) {
-        selected.push(selectedChar);
-      }
-    }
-    
-    return selected;
+static selectRandomCharacters(
+  characters: CharacterConfig[], 
+  minCount: number = 3, 
+  maxCount: number = 5
+): CharacterConfig[] {
+  const availableCharacters = [...characters];
+  const selectedCount = Math.min(Math.floor(Math.random() * (maxCount - minCount + 1)) + minCount, availableCharacters.length);
+  if (availableCharacters.length <= selectedCount) {
+    return availableCharacters;
   }
+  const selected: CharacterConfig[] = [];
+  while (selected.length < selectedCount && availableCharacters.length > 0) {
+    const randomIndex = Math.floor(Math.random() * availableCharacters.length);
+    const selectedChar = availableCharacters.splice(randomIndex, 1)[0];
+    selected.push(selectedChar);
+  }
+  return selected;
+}
 
-  /**
-   * 检查角色兼容性
-   */
-  private static checkCharacterCompatibility(
-    character: CharacterConfig, 
-    selectedCharacters: CharacterConfig[]
-  ): boolean {
-    if (!character.conditions) return true;
-    
-    // 检查排除的角色
-    if (character.conditions.excludeCharacters) {
-      const selectedIds = selectedCharacters.map(c => c.id);
-      if (character.conditions.excludeCharacters.some(id => selectedIds.includes(id))) {
-        return false;
-      }
-    }
-    
-    // ...已移除派系冲突检查...
-    
-    return true;
-  }
 }

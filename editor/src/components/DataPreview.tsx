@@ -55,20 +55,6 @@ export default function DataPreview({ selectedFile }: DataPreviewProps) {
           <label className="text-sm font-medium text-gray-600">描述</label>
           <div className="text-gray-800 mt-1">{card.description as string}</div>
         </div>
-        <div className="mt-4">
-          <label className="text-sm font-medium text-gray-600">事件ID列表</label>
-          <div className="text-gray-800 mt-1">
-            {Array.isArray(card.eventIds) && card.eventIds.length > 0 ? (
-              <ul className="list-disc pl-5">
-                {card.eventIds.map((eid: string) => (
-                  <li key={eid}>{eid}</li>
-                ))}
-              </ul>
-            ) : (
-              <span className="text-gray-400">无</span>
-            )}
-          </div>
-        </div>
       </div>
     </div>
   );

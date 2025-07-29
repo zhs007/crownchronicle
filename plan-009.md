@@ -5,6 +5,9 @@
 export interface CharacterState {
   characterId: string;
   alive: boolean;
+  relationship: 'friendly' | 'neutral' | 'hostile';   // 移除（补充）
+  influence: number;                                  // 移除（补充）
+  lastEventTurn?: number;                             // 移除（补充）
   identityProgress: {                                 // 移除
     revealed: boolean;                                // 移除
     cluesFound: string[];                             // 移除
@@ -16,6 +19,8 @@ export interface CharacterState {
 
 // 角色配置结构
 export interface CharacterConfig {
+  traits: string[];                                   // 移除（补充，位于 CharacterConfig 内）
+  hiddenTraits: string[];                             // 移除（补充，位于 CharacterConfig 内）
   id: string;
 
   name: string;
@@ -46,6 +51,7 @@ export interface CharacterConfig {
 
 1. **类型定义调整（core/src/types/character.ts）**
    - 删除 `CharacterState` 和 `CharacterConfig` 中所有标记为“移除”的字段，包括嵌套结构。
+   - traits: string[]; hiddenTraits: string[]; 也需移除（补充，位于 CharacterConfig 内）。
    - 检查 `CharacterAttributes` 是否有依赖被删字段，必要时同步调整。
    - 检查是否有其他类型（如 event、card、faction）引用了被删字段，统一清理。
 

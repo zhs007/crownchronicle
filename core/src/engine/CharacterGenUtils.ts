@@ -5,21 +5,46 @@ import { CharacterCard, CharacterAttributes } from '../types/character';
 
 // 工具函数：读取指定目录下所有 yaml 角色卡
 export function loadCharacterCardsFromDir(dir: string): CharacterCard[] {
-  const files = fs.readdirSync(dir);
   const cards: CharacterCard[] = [];
-  for (const file of files) {
-    if (file.endsWith('.yaml') || file.endsWith('.yml')) {
-      const content = fs.readFileSync(path.join(dir, file), 'utf8');
-      const docs = yaml.loadAll(content) as any[];
-      for (const doc of docs) {
-        if (Array.isArray(doc)) {
-          for (const c of doc) cards.push(c as CharacterCard);
-        } else if (doc) {
-          cards.push(doc as CharacterCard);
+  function readDirRecursive(currentDir: string) {
+    const files = fs.readdirSync(currentDir);
+    for (const file of files) {
+      const filePath = path.join(currentDir, file);
+      const stat = fs.statSync(filePath);
+      if (stat.isDirectory()) {
+        // 如果是 events 子目录，加载所有事件 yaml 文件
+        if (file === 'events') {
+          const eventFiles = fs.readdirSync(filePath).filter(f => f.endsWith('.yaml') || f.endsWith('.yml'));
+          const events = [];
+          for (const ef of eventFiles) {
+            const eventContent = fs.readFileSync(path.join(filePath, ef), 'utf8');
+            const eventDocs = yaml.loadAll(eventContent) as any[];
+            for (const ed of eventDocs) {
+              if (ed) events.push(ed);
+            }
+          }
+          // 将事件合并到最近一个角色卡（假设 events 目录与 character.yaml 同级）
+          if (cards.length > 0) {
+            if (!cards[cards.length - 1].events) cards[cards.length - 1].events = [];
+            cards[cards.length - 1].events = cards[cards.length - 1].events.concat(events);
+          }
+        } else {
+          readDirRecursive(filePath);
+        }
+      } else if (file === 'character.yaml' || file.endsWith('.yaml') || file.endsWith('.yml')) {
+        const content = fs.readFileSync(filePath, 'utf8');
+        const docs = yaml.loadAll(content) as any[];
+        for (const doc of docs) {
+          if (Array.isArray(doc)) {
+            for (const c of doc) cards.push(c as CharacterCard);
+          } else if (doc) {
+            cards.push(doc as CharacterCard);
+          }
         }
       }
     }
   }
+  readDirRecursive(dir);
   return cards;
 }
 

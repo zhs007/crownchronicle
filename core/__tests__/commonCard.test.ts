@@ -6,12 +6,12 @@ describe('CommonCard 合并逻辑', () => {
     {
       id: 'chancellor_common',
       name: '丞相通用卡',
-      eventIds: ['event_chancellor_1', 'event_chancellor_2']
+      eventIds: ['event_chancellor_1', 'event_chancellor_2'],
     },
     {
       id: 'advisor_common',
       name: '谋士通用卡',
-      eventIds: ['event_advisor_1']
+      eventIds: ['event_advisor_1'],
     }
   ];
 
@@ -23,8 +23,8 @@ describe('CommonCard 合并逻辑', () => {
       events: [],
       description: '',
       attributes: { power: 80, military: 90, wealth: 60, popularity: 95, health: 80, age: 40 },
+      commonCardIds: [],
       eventIds: ['event_zhugeliang_1'],
-      commonCardIds: []
     };
     const merged = GameEngine.mergeCharacterAndCommonCardEvents(character, commonCards);
     expect(merged).toEqual(['event_zhugeliang_1']);
@@ -38,8 +38,8 @@ describe('CommonCard 合并逻辑', () => {
       events: [],
       description: '',
       attributes: { power: 70, military: 60, wealth: 90, popularity: 40, health: 70, age: 55 },
+      commonCardIds: ['chancellor_common'],
       eventIds: ['event_yansong_1'],
-      commonCardIds: ['chancellor_common']
     };
     const merged = GameEngine.mergeCharacterAndCommonCardEvents(character, commonCards);
     expect(merged.sort()).toEqual(['event_yansong_1', 'event_chancellor_1', 'event_chancellor_2'].sort());

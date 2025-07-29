@@ -40,43 +40,13 @@ export interface InterCharacterEffect {
 export interface CharacterState {
   characterId: string;
   alive: boolean;
-  relationship: 'friendly' | 'neutral' | 'hostile';
-  influence: number;
-  lastEventTurn?: number;
-  identityProgress: {
-    revealed: boolean;
-    cluesFound: string[];
-    traitsRevealed: string[];
-    discoveryProgress: number;
-  };
-  // 移除 currentTitle 和 titleHistory，称谓相关信息请用 description 或 attributes 字段
 }
 
 // 角色配置结构
 export interface CharacterConfig {
   id: string;
   name: string;
-  displayName: string;
-  role: string;
   description: string;
-  category: string;
-  rarity: 'common' | 'rare' | 'epic' | 'legendary';
   initialAttributes: CharacterAttributes;
-  traits: string[];
-  hiddenTraits: string[];
-  conditions?: {
-    minReignYears?: number;
-    maxAge?: number;
-    excludeCharacters?: string[];
-    requiredFactions?: string[];
-    conflictingFactions?: string[];
-  };
-  backgroundClues: {
-    appearance: string;
-    mannerisms: string;
-    preferences: string;
-    relationships: string;
-    secrets: string;
-  };
   commonCardIds?: string[];
 }

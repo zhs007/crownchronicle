@@ -76,11 +76,8 @@ export class GameAdapter {
 
       // 将事件分配到不同的卡池
       allEvents.forEach(event => {
-        if (event.activationConditions) {
-          this.currentGameState!.cardPools.pending.push(event);
-        } else {
-          this.currentGameState!.cardPools.active.push(event);
-        }
+        // activationConditions 字段已移除，事件分配逻辑请根据新 event 类型调整
+        this.currentGameState!.cardPools.active.push(event);
       });
 
       return this.currentGameState;

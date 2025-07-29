@@ -233,16 +233,16 @@ export class EditorDataManager {
   }
   
   private convertConfigToCard(config: CharacterConfig): CharacterCard {
-    // 将 CharacterConfig 转换为 CharacterCard，补全所有必填字段
+    // 只保留 core 类型定义字段，兼容必填字段
     return {
       id: config.id,
       name: config.name,
-      tags: [],
-      events: [],
       description: config.description,
       attributes: config.initialAttributes,
-      eventIds: [],
-      commonCardIds: []
+      commonCardIds: config.commonCardIds ?? [],
+      events: [],
+      tags: [],
+      eventIds: []
     };
   }
   
@@ -253,25 +253,14 @@ export class EditorDataManager {
   }
 
   private convertCardToConfig(card: CharacterCard): CharacterConfig {
-    // 将 CharacterCard 转换回 CharacterConfig，仅保留有效字段
+    // 只保留 core 类型定义字段
     return {
       id: card.id,
       name: card.name,
-      displayName: card.name,
-      role: '',
       description: card.description,
-      category: '权臣',
-      rarity: 'common',
       initialAttributes: card.attributes,
-      traits: [],
-      hiddenTraits: [],
-      backgroundClues: {
-        appearance: '',
-        mannerisms: '',
-        preferences: '',
-        relationships: '',
-        secrets: ''
-      }
+      commonCardIds: card.commonCardIds ?? []
+      // 不写入 tags/eventIds 字段到 YAML
     };
   }
 

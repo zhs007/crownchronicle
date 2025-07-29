@@ -17,7 +17,7 @@ backgroundClues:
   preferences: ''
   relationships: ''
   secrets: ''
-eventIds:
-  - event_zhugeliang_1
 commonCardIds:
   - chancellor_common
+tags:
+  - 丞相

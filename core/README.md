@@ -282,65 +282,32 @@ if (!result.valid) {
 ```yaml
 id: "character_id"
 name: "角色真实姓名"
-displayName: "游戏中显示名称"
-role: "角色身份"
+tags:
+  - "丞相"
+  - "忠臣"
 description: "角色描述"
-category: "角色类别"
-rarity: "common" # common, rare, epic, legendary
-
-initialAttributes:
+attributes:
   power: 50
-  loyalty: 70
-  ambition: 30
-  competence: 80
-  reputation: 60
+  military: 80
+  wealth: 60
+  popularity: 95
   health: 90
   age: 35
-
-initialRelationshipWithEmperor:
-  affection: 20
-  trust: 50
-  fear: 10
-  respect: 70
-  dependency: 40
-  threat: 5
-
-factionInfo:
-  primaryFaction: "改革派"
-  secondaryFactions: []
-  factionLoyalty: 80
-  leadershipRole: "core"
-
-relationshipNetwork:
-  - targetCharacter: "other_character_id"
-    relationType: "ally"
-    relationshipStrength: 60
-    secretLevel: 30
-    historicalBasis: "共同经历"
-
-influence:
-  health: 5
-  authority: 10
-  treasury: 15
-  military: 8
-  popularity: 12
-
-traits:
-  - "智慧"
-  - "忠诚"
-
-hiddenTraits:
-  - "野心"
-
-backgroundClues:
-  appearance: "外貌描述"
-  mannerisms: "行为特征"
-  preferences: "喜好偏向"
-  relationships: "关系线索"
-  secrets: "秘密信息"
+eventIds:
+  - "event_1"
+  - "event_2"
+commonCardIds:
+  - "chancellor_common"
 ```
 
 ### 事件配置格式 (event.yaml)
+## 迁移指引
+
+1. 角色卡 YAML/JSON 数据需批量移除所有已废弃字段，仅保留 id、name、tags、description、attributes、eventIds、commonCardIds。
+2. 代码层所有类型定义、适配器、UI、测试用例均需同步上述字段。
+3. 旧字段如 displayName、role、category、rarity、traits、hiddenTraits、backgroundClues、conditions 等全部移除。
+4. 角色属性请统一放入 attributes 字段。
+5. 事件 ID 统一放入 eventIds 字段。
 
 ```yaml
 id: "event_id"

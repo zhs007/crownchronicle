@@ -18,12 +18,11 @@ describe('ConfigValidator', () => {
   it('validateCharacters: should detect duplicate IDs and invalid attributes', async () => {
     const validator = new ConfigValidator(mockDataProvider as any);
     const baseChar = {
-      name: 'n', displayName: 'd', role: 'r', description: 'desc', category: 'cat', rarity: 'common' as const,
-      traits: [], hiddenTraits: [], backgroundClues: { appearance: '', mannerisms: '', preferences: '', relationships: '', secrets: '' }
+      name: 'n', description: 'desc', initialAttributes: { power: 0, military: 0, wealth: 0, popularity: 0, health: 0, age: 0 }, commonCardIds: []
     };
     const characters: CharacterConfig[] = [
-      { id: 'c1', initialAttributes: { power: 10, military: 20, wealth: 30, popularity: 40, health: 50, age: 60 }, commonCardIds: [], ...baseChar },
-      { id: 'c1', initialAttributes: { power: 200, military: -1, wealth: 30, popularity: 40, health: 50, age: 60 }, commonCardIds: [], ...baseChar }
+      { id: 'c1', name: '角色1', description: '', initialAttributes: { power: 10, military: 20, wealth: 30, popularity: 40, health: 50, age: 60 }, commonCardIds: [] },
+      { id: 'c1', name: '角色1', description: '', initialAttributes: { power: 200, military: -1, wealth: 30, popularity: 40, health: 50, age: 60 }, commonCardIds: [] }
     ];
     mockDataProvider.validateCharacterConfig.mockReturnValue(true);
     const result = await validator.validateCharacters(characters);

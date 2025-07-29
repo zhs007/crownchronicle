@@ -72,10 +72,7 @@ export async function POST(request: NextRequest) {
       allEvents.push(...eventCards);
       
       // 记录角色关联的事件ID
-      const character = characters.find(c => c.id === config.id);
-      if (character) {
-        character.eventIds = eventCards.map(e => e.id);
-      }
+      // 角色事件 eventIds 由 core 类型定义，若已在 CharacterCard 处理则无需重复赋值
     }
 
     // 设置游戏状态
@@ -85,15 +82,7 @@ export async function POST(request: NextRequest) {
     gameState.characterStates = characters.map(char => ({
       characterId: char.id,
       alive: true,
-      relationship: 'neutral',
-      influence: 50,
-      identityProgress: {
-        revealed: false,
-        cluesFound: [],
-        traitsRevealed: [],
-        discoveryProgress: 0
-      },
-      // 移除 currentTitle/titleHistory，后续如需称谓请用 attributes 或 description 字段
+      // 已移除 relationship、influence、identityProgress 等字段，称谓请用 description 或 attributes 字段
     }));
 
     // 初始化派系系统

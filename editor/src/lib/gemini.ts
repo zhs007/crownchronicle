@@ -231,7 +231,7 @@ export class GeminiClient {
           events,
           eventCount: events.length
         },
-        message: `✅ 获取角色信息成功：${character.name}（${'displayName' in character ? (character as CharacterCard & { displayName?: string }).displayName : character.name}），共有 ${events.length} 个事件`
+        message: `✅ 获取角色信息成功：${character.name}，共有 ${events.length} 个事件`
       };
     } catch (error) {
       console.error('获取角色信息失败:', error);
@@ -250,9 +250,6 @@ export class GeminiClient {
       const characterList = characters.map(char => ({
         id: char.id,
         name: char.name,
-        displayName: 'displayName' in char ? (char as CharacterCard & { displayName?: string }).displayName : char.name,
-        role: 'role' in char ? (char as CharacterCard & { role?: string }).role ?? '' : '',
-        category: '角色', // 从存储的数据中获取
         description: char.description.substring(0, 100) + (char.description.length > 100 ? '...' : '')
       }));
       
@@ -301,15 +298,9 @@ export class GeminiClient {
       name: String(args.name || ''),
       tags: Array.isArray(args.tags) ? (args.tags as string[]) : [],
       events: Array.isArray(args.events) ? (args.events as string[]) : [],
-      // displayName 字段已移除，角色称谓请用 role 字段
-      // role 字段已移除，角色身份请用 description 或 attributes 体现
+      eventIds: [],
       description: String(args.description || ''),
       attributes: attrs as CharacterAttributes,
-      // revealedTraits 字段已移除
-      // hiddenTraits 字段已移除
-      // discoveredClues 字段已移除
-      // totalClues 字段已移除
-      eventIds: [],
       commonCardIds: []
     };
   }
@@ -377,8 +368,6 @@ export class GeminiClient {
           type: SchemaType.OBJECT,
           properties: {
             name: { type: SchemaType.STRING, description: '角色真实姓名（系统将据此自动生成ID）' },
-            displayName: { type: SchemaType.STRING, description: '游戏显示称谓' },
-            role: { type: SchemaType.STRING, description: '角色身份' },
             description: { type: SchemaType.STRING, description: '角色描述' },
             initialAttributes: {
               type: SchemaType.OBJECT,
@@ -391,10 +380,9 @@ export class GeminiClient {
                 age: { type: SchemaType.NUMBER, description: '年龄' }
               },
               required: ['power', 'military', 'wealth', 'popularity', 'health', 'age']
-            },
-            // ...已移除 initialRelationshipWithEmperor、factionInfo、influence 字段schema...
+            }
           },
-          required: ['name', 'displayName', 'role', 'description', 'initialAttributes']
+          required: ['name', 'description', 'initialAttributes']
         }
       },
       create_event: {
@@ -467,8 +455,6 @@ export class GeminiClient {
       3. **执行导向**：一旦用户选定，立即执行创建，不过度询问细节
       4. **记住上下文**：在多轮对话中记住之前讨论的内容，避免重复询问
       
-      ## 工作流程：
-      **步骤1 - 需求收集**：用户提出角色类型需求
       **步骤2 - 方案推荐**：你推荐2-3个具体历史人物，简要介绍特点和游戏作用
       **步骤3 - 确认执行**：用户选定后立即调用函数创建
       
