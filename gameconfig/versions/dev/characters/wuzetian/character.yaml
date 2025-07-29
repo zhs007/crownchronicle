@@ -1,12 +1,8 @@
-id: "wuzetian"
-name: "武则天"
-displayName: "母后"
-role: "母后"
-description: "一位威严的女性长者，眼神锐利，举止间透露着不凡的气度"
-category: "皇族"
-rarity: "legendary"
-
-# 角色基础属性
+id: wuzetian
+name: 武则天
+description: 一位威严的女性长者，眼神锐利，举止间透露着不凡的气度
+category: 皇族
+rarity: legendary
 initialAttributes:
   power: 85
   loyalty: 60
@@ -15,38 +11,25 @@ initialAttributes:
   reputation: 75
   health: 70
   age: 45
-
-
-# 角色对皇帝属性的影响系数
 influence:
   health: 0.8
   authority: 1.3
   treasury: 1.1
   military: 0.9
   popularity: 0.7
-
-# 角色特性
 traits:
-  - "权谋"
-  - "强势"
-  - "智慧"
-
-hiddenTraits:
-  - "雄心"
-  - "冷酷"
-
-# 出现条件
+  - 权谋
+  - 强势
+  - 智慧
 conditions:
   minReignYears: 1
   maxAge: 60
   excludeCharacters:
-    - "cixi"
-    - "changsun"
-
-# 角色背景线索
+    - cixi
+    - changsun
 backgroundClues:
-  appearance: "身材修长，举止优雅，但眼神中时常闪过一丝不易察觉的野心"
-  mannerisms: "说话时喜欢用手指轻敲扶手，思考时会凝视远方"
-  preferences: "对政务异常关心，经常主动询问朝政"
-  relationships: "与朝中大臣关系复杂，似乎有着自己的人脉网络"
-  secrets: "深夜时分经常有神秘访客，似乎在密谋什么"
+  appearance: 身材修长，举止优雅，但眼神中时常闪过一丝不易察觉的野心
+  mannerisms: 说话时喜欢用手指轻敲扶手，思考时会凝视远方
+  preferences: 对政务异常关心，经常主动询问朝政
+  relationships: 与朝中大臣关系复杂，似乎有着自己的人脉网络
+  secrets: 深夜时分经常有神秘访客，似乎在密谋什么

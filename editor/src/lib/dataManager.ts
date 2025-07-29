@@ -10,7 +10,6 @@ import {
 import { GameConfigManager } from './configManager';
 import { ValidationReport } from '@/types/editor';
 import { dump } from 'js-yaml';
-import yaml from 'js-yaml';
 import { promises as fs } from 'fs';
 import path from 'path';
 
@@ -239,23 +238,9 @@ export class EditorDataManager {
       id: config.id,
       name: config.name,
       tags: [],
-      power: config.initialAttributes.power,
-      military: config.initialAttributes.military,
-      wealth: config.initialAttributes.wealth,
-      popularity: config.initialAttributes.popularity,
-      health: config.initialAttributes.health,
-      age: config.initialAttributes.age,
       events: [],
-      displayName: config.displayName,
-      currentTitle: config.displayName,
-      role: config.role,
       description: config.description,
-      identityRevealed: false,
       attributes: config.initialAttributes,
-      revealedTraits: [],
-      hiddenTraits: [],
-      discoveredClues: [],
-      totalClues: 0,
       eventIds: [],
       commonCardIds: []
     };
@@ -272,14 +257,14 @@ export class EditorDataManager {
     return {
       id: card.id,
       name: card.name,
-      displayName: card.displayName,
-      role: card.role,
+      displayName: card.name,
+      role: '',
       description: card.description,
       category: '权臣',
       rarity: 'common',
       initialAttributes: card.attributes,
-      traits: card.revealedTraits || [],
-      hiddenTraits: card.hiddenTraits || [],
+      traits: [],
+      hiddenTraits: [],
       backgroundClues: {
         appearance: '',
         mannerisms: '',

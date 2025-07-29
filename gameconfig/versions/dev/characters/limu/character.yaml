@@ -1,12 +1,8 @@
-id: "limu"
-name: "李牧"
-displayName: "将军"
-role: "将军"
-description: "一位英勇的年轻将军，身材魁梧，眼神坚毅，对皇帝忠心不二"
-category: "武将"
-rarity: "rare"
-
-# 角色基础属性
+id: limu
+name: 李牧
+description: 一位英勇的年轻将军，身材魁梧，眼神坚毅，对皇帝忠心不二
+category: 武将
+rarity: rare
 initialAttributes:
   power: 75
   loyalty: 85
@@ -15,30 +11,18 @@ initialAttributes:
   reputation: 60
   health: 90
   age: 30
-
-
-# 影响力范围
 influence:
   health: 35
   authority: 40
   treasury: 20
   military: 85
   popularity: 30
-
-# 身份特征
 traits:
-  - "勇武"
-  - "忠诚"
-
-hiddenTraits:
-  - "谨慎"
-  - "有野心但克制"
-  - "对政治不太敏感"
-
-# 背景线索
+  - 勇武
+  - 忠诚
 backgroundClues:
-  appearance: "身材魁梧，眼神坚毅，手上有刀剑痕迹"
-  mannerisms: "说话直爽，不拐弯抹角，提到军事问题时眼神发亮"
-  preferences: "喜欢在军营中训练士兵，对朝廷礼仪不太熟悉"
-  relationships: "深受士兵爱戴，与其他将领关系良好"
-  secrets: "对政治斗争保持距离，更信任武力解决问题"
+  appearance: 身材魁梧，眼神坚毅，手上有刀剑痕迹
+  mannerisms: 说话直爽，不拐弯抹角，提到军事问题时眼神发亮
+  preferences: 喜欢在军营中训练士兵，对朝廷礼仪不太熟悉
+  relationships: 深受士兵爱戴，与其他将领关系良好
+  secrets: 对政治斗争保持距离，更信任武力解决问题

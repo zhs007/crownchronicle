@@ -2,7 +2,7 @@ id: heshen_event_003
 title: 乾隆南巡索要巨额供奉
 description: 乾隆皇帝南巡，地方官员为讨好和珅，纷纷献上巨额供奉，和珅欣然接受，并向皇帝进言地方繁荣。
 speaker: 和珅
-dialogue: "启禀皇上，江南富庶，百姓安居乐业，地方官员体恤民情，特备薄礼以示恭敬，望皇上体恤。"
+dialogue: 启禀皇上，江南富庶，百姓安居乐业，地方官员体恤民情，特备薄礼以示恭敬，望皇上体恤。
 weight: 10
 choices:
   - id: heshen_event_003_choice_01

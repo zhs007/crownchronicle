@@ -14,12 +14,12 @@ interface FileNode {
   id: string;
   name: string;
   children?: FileNode[];
-  data?: CharacterCard | EventCard;
+  data?: CharacterCard | EventCard | Record<string, unknown>;
 }
 
 interface SelectedFile {
   type: 'character' | 'event' | 'commoncard';
-  data: CharacterCard | EventCard;
+  data: CharacterCard | EventCard | Record<string, unknown>;
   id: string;
   name: string;
 }

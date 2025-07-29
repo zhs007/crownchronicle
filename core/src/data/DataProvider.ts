@@ -266,18 +266,8 @@ export class ConfigConverter {
       id: config.id,
       name: config.name,
       tags: [],
-      power: config.initialAttributes.power,
-      military: config.initialAttributes.military,
-      wealth: config.initialAttributes.wealth,
-      popularity: config.initialAttributes.popularity,
-      health: config.initialAttributes.health,
-      age: config.initialAttributes.age,
       events: [],
-      displayName: config.displayName,
-      currentTitle: config.displayName,
-      role: config.role,
       description: config.description,
-      identityRevealed: false,
       attributes: {
         power: config.initialAttributes.power,
         military: config.initialAttributes.military,
@@ -286,13 +276,6 @@ export class ConfigConverter {
         health: config.initialAttributes.health,
         age: config.initialAttributes.age
       },
-      revealedTraits: [],
-      hiddenTraits: [
-        ...(config.traits || []), 
-        ...(config.hiddenTraits || [])
-      ],
-      discoveredClues: [],
-      totalClues: config.backgroundClues ? Object.keys(config.backgroundClues).length : 0,
       eventIds: [],
       commonCardIds: []
     };

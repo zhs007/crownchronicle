@@ -34,11 +34,11 @@ export function mergeCharacterAttributes(cards: CharacterCard[]): CharacterAttri
     power: 0, military: 0, wealth: 0, popularity: 0, health: 0, age: 0
   };
   if (cards.length === 0) return attrs;
-  attrs.power = Math.max(...cards.map(c => c.power ?? c.attributes?.power ?? 0));
-  attrs.military = Math.max(...cards.map(c => c.military ?? c.attributes?.military ?? 0));
-  attrs.wealth = Math.max(...cards.map(c => c.wealth ?? c.attributes?.wealth ?? 0));
-  attrs.popularity = Math.max(...cards.map(c => c.popularity ?? c.attributes?.popularity ?? 0));
-  attrs.health = Math.floor(cards.reduce((sum, c) => sum + (c.health ?? c.attributes?.health ?? 0), 0) / cards.length);
-  attrs.age = Math.floor(cards.reduce((sum, c) => sum + (c.age ?? c.attributes?.age ?? 0), 0) / cards.length);
+  attrs.power = Math.max(...cards.map(c => c.attributes?.power ?? 0));
+  attrs.military = Math.max(...cards.map(c => c.attributes?.military ?? 0));
+  attrs.wealth = Math.max(...cards.map(c => c.attributes?.wealth ?? 0));
+  attrs.popularity = Math.max(...cards.map(c => c.attributes?.popularity ?? 0));
+  attrs.health = Math.floor(cards.reduce((sum, c) => sum + (c.attributes?.health ?? 0), 0) / cards.length);
+  attrs.age = Math.floor(cards.reduce((sum, c) => sum + (c.attributes?.age ?? 0), 0) / cards.length);
   return attrs;
 }

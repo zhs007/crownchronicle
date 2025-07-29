@@ -17,12 +17,9 @@ interface DataPreviewProps {
 export default function DataPreview({ selectedFile }: DataPreviewProps) {
   useEffect(() => {
     // 调试用，打印 selectedFile 详细内容
-    // eslint-disable-next-line no-console
     console.log('[DataPreview] useEffect selectedFile', selectedFile);
     if (selectedFile) {
-      // eslint-disable-next-line no-console
       console.log('[DataPreview] selectedFile.type:', selectedFile.type);
-      // eslint-disable-next-line no-console
       console.log('[DataPreview] selectedFile.data:', selectedFile.data);
     }
   }, [selectedFile]);
@@ -87,20 +84,8 @@ export default function DataPreview({ selectedFile }: DataPreviewProps) {
             <div className="text-gray-800">{character.name}</div>
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-600">显示称谓</label>
-            <div className="text-gray-800">{character.displayName}</div>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-600">身份</label>
-            <div className="text-gray-800">{character.role}</div>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-600">当前称谓</label>
-            <div className="text-gray-800">{character.currentTitle}</div>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-600">身份揭示</label>
-            <div className="text-gray-800">{character.identityRevealed ? '已揭示' : '未揭示'}</div>
+            <label className="text-sm font-medium text-gray-600">标签</label>
+            <div className="text-gray-800">{Array.isArray(character.tags) ? character.tags.join(', ') : ''}</div>
           </div>
         </div>
         <div className="mt-4">
@@ -233,14 +218,12 @@ export default function DataPreview({ selectedFile }: DataPreviewProps) {
   };
 
   // 支持通用卡下事件节点的预览
-  let mainType = selectedFile.type;
-  let mainData = selectedFile.data;
+let mainType = selectedFile.type;
+const mainData = selectedFile.data;
   // 日志：当前选中类型和数据
-  // eslint-disable-next-line no-console
   console.log('[DataPreview] selectedFile:', selectedFile);
   // 优先判断 type 字段
   if (selectedFile.type === 'event') {
-    // eslint-disable-next-line no-console
     console.log('[DataPreview] treat as event (by type)', mainData);
     mainType = 'event';
   } else if (
@@ -249,11 +232,9 @@ export default function DataPreview({ selectedFile }: DataPreviewProps) {
     ('title' in mainData) &&
     ('choices' in mainData)
   ) {
-    // eslint-disable-next-line no-console
     console.log('[DataPreview] treat as event (by structure)', mainData);
     mainType = 'event';
   } else if (selectedFile.type === 'commoncard') {
-    // eslint-disable-next-line no-console
     console.log('[DataPreview] treat as commoncard:', mainData);
     mainType = 'commoncard';
   }
@@ -304,14 +285,14 @@ export default function DataPreview({ selectedFile }: DataPreviewProps) {
       <div className="flex-1 overflow-y-auto p-4">
         {viewMode === 'preview' ? (
           mainType === 'character'
-            ? (console.log('[DataPreview] renderCharacterPreview', mainData), renderCharacterPreview(mainData as CharacterCard))
+            ? (renderCharacterPreview(mainData as CharacterCard))
             : mainType === 'event'
-            ? (console.log('[DataPreview] renderEventPreview', mainData), renderEventPreview(mainData as EventCard))
+            ? (renderEventPreview(mainData as EventCard))
             : mainType === 'commoncard'
-            ? (console.log('[DataPreview] renderCommonCardPreview', mainData), renderCommonCardPreview(mainData as Record<string, unknown>))
-            : (console.log('[DataPreview] render null', mainType, mainData), null)
+            ? (renderCommonCardPreview(mainData as Record<string, unknown>))
+            : null
         ) : (
-          (console.log('[DataPreview] renderYamlView', mainData), renderYamlView())
+          renderYamlView()
         )}
       </div>
     </div>

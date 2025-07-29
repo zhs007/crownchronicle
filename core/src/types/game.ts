@@ -151,13 +151,7 @@ export interface CharacterState {
     discoveryProgress: number;        // 发现进度 (0-100)
   };
   
-  // 称谓系统
-  currentTitle: string;              // 当前使用的称谓
-  titleHistory: Array<{             // 称谓变化历史
-    title: string;
-    changedAt: number;               // 变化的回合数
-    reason: string;                  // 变化原因
-  }>;
+  // 移除 currentTitle 和 titleHistory，称谓相关信息请用 description 或 attributes 字段
 }
 
 // 游戏事件

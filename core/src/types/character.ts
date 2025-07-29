@@ -18,25 +18,9 @@ export interface CharacterCard {
   id: string;
   name: string;
   tags: string[];
-  // 兼容扁平属性（YAML）与 attributes（核心类型）
-  power: number;
-  military: number;
-  wealth: number;
-  popularity: number;
-  health: number;
-  age: number;
   events: string[];
-  // 兼容核心类型
-  displayName: string;
-  currentTitle: string;
-  role: string;
   description: string;
-  identityRevealed: boolean;
   attributes: CharacterAttributes;
-  revealedTraits: string[];
-  hiddenTraits: string[];
-  discoveredClues: string[];
-  totalClues: number;
   eventIds: string[];
   commonCardIds: string[];
 }
@@ -65,12 +49,7 @@ export interface CharacterState {
     traitsRevealed: string[];
     discoveryProgress: number;
   };
-  currentTitle: string;
-  titleHistory: Array<{
-    title: string;
-    changedAt: number;
-    reason: string;
-  }>;
+  // 移除 currentTitle 和 titleHistory，称谓相关信息请用 description 或 attributes 字段
 }
 
 // 角色配置结构

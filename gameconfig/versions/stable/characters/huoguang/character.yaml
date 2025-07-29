@@ -1,7 +1,5 @@
 id: huoguang
 name: 霍光
-displayName: 大将军
-role: 大将军
 description: 一位老成持重的将军，虽已年迈但威风犹存，对皇室忠心耿耿
 category: 文臣
 rarity: epic
@@ -39,9 +37,6 @@ traits:
   - 忠诚
   - 军政
   - 威望
-hiddenTraits:
-  - 保守
-  - 固执
 backgroundClues:
   appearance: 身材魁梧，虽已花甲之年但精神矍铄，举手投足间都有军人的干练
   mannerisms: 说话简洁有力，从不拖泥带水，习惯性地挺直腰板

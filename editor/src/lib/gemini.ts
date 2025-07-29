@@ -231,7 +231,7 @@ export class GeminiClient {
           events,
           eventCount: events.length
         },
-        message: `✅ 获取角色信息成功：${character.name}（${character.displayName}），共有 ${events.length} 个事件`
+        message: `✅ 获取角色信息成功：${character.name}（${'displayName' in character ? (character as CharacterCard & { displayName?: string }).displayName : character.name}），共有 ${events.length} 个事件`
       };
     } catch (error) {
       console.error('获取角色信息失败:', error);
@@ -250,8 +250,8 @@ export class GeminiClient {
       const characterList = characters.map(char => ({
         id: char.id,
         name: char.name,
-        displayName: char.displayName,
-        role: char.role,
+        displayName: 'displayName' in char ? (char as CharacterCard & { displayName?: string }).displayName : char.name,
+        role: 'role' in char ? (char as CharacterCard & { role?: string }).role ?? '' : '',
         category: '角色', // 从存储的数据中获取
         description: char.description.substring(0, 100) + (char.description.length > 100 ? '...' : '')
       }));
@@ -300,23 +300,15 @@ export class GeminiClient {
       id: '',
       name: String(args.name || ''),
       tags: Array.isArray(args.tags) ? (args.tags as string[]) : [],
-      power: typeof attrs.power === 'number' ? attrs.power : 0,
-      military: typeof attrs.military === 'number' ? attrs.military : 0,
-      wealth: typeof attrs.wealth === 'number' ? attrs.wealth : 0,
-      popularity: typeof attrs.popularity === 'number' ? attrs.popularity : 0,
-      health: typeof attrs.health === 'number' ? attrs.health : 0,
-      age: typeof attrs.age === 'number' ? attrs.age : 0,
       events: Array.isArray(args.events) ? (args.events as string[]) : [],
-      displayName: String(args.displayName || ''),
-      currentTitle: String(args.role || ''),
-      role: String(args.role || ''),
+      // displayName 字段已移除，角色称谓请用 role 字段
+      // role 字段已移除，角色身份请用 description 或 attributes 体现
       description: String(args.description || ''),
-      identityRevealed: false,
       attributes: attrs as CharacterAttributes,
-      revealedTraits: [],
-      hiddenTraits: [],
-      discoveredClues: [],
-      totalClues: 0,
+      // revealedTraits 字段已移除
+      // hiddenTraits 字段已移除
+      // discoveredClues 字段已移除
+      // totalClues 字段已移除
       eventIds: [],
       commonCardIds: []
     };

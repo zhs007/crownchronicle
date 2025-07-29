@@ -8,7 +8,7 @@ interface FileNode {
   id: string;
   name: string;
   children?: FileNode[];
-  data?: CharacterCard | EventCard;
+  data?: CharacterCard | EventCard | Record<string, unknown>;
 }
 
 interface FileExplorerProps {
@@ -35,7 +35,7 @@ export default function FileExplorer({ onFileSelect, onRefresh }: FileExplorerPr
         fetch('/api/commoncards')
       ]);
       const characters: CharacterCard[] = await charactersRes.json();
-      const commonCards: any[] = await commonCardsRes.json();
+      const commonCards: Record<string, unknown>[] = await commonCardsRes.json();
       console.log('[FileExplorer] 角色原始数据:', characters);
       console.log('[FileExplorer] 通用卡原始数据:', commonCards);
 
@@ -45,7 +45,7 @@ export default function FileExplorer({ onFileSelect, onRefresh }: FileExplorerPr
         const characterNode: FileNode = {
           type: 'character',
           id: character.id,
-          name: character.displayName || character.name,
+          name: character.name,
           data: character,
           children: []
         };
@@ -87,11 +87,11 @@ export default function FileExplorer({ onFileSelect, onRefresh }: FileExplorerPr
           }
           // 只在有事件时挂 children，否则 children: undefined
           return {
-            type: 'commoncard',
-            id: `commoncard_${card.id}`,
-            name: card.name || card.id,
-            data: card,
-            ...(eventNodes.length > 0 ? { children: eventNodes } : {})
+          type: 'commoncard',
+          id: `commoncard_${card.id}`,
+          name: String(card.name ?? card.id),
+          data: card,
+          ...(eventNodes.length > 0 ? { children: eventNodes } : {})
           };
         })
       );
@@ -132,7 +132,6 @@ export default function FileExplorer({ onFileSelect, onRefresh }: FileExplorerPr
   };
 
   const selectFile = (file: FileNode) => {
-    // eslint-disable-next-line no-console
     console.log('[FileExplorer] selectFile', file);
     setSelectedFile(file.id);
     onFileSelect?.(file);
@@ -154,7 +153,6 @@ export default function FileExplorer({ onFileSelect, onRefresh }: FileExplorerPr
           onClick={() => {
             // plane-characters/plane-commoncards 不可预览
             if (node.id === 'plane-characters' || node.id === 'plane-commoncards') return;
-            // eslint-disable-next-line no-console
             console.log('[FileExplorer] node clicked', node);
             selectFile(node);
           }}
@@ -187,11 +185,6 @@ export default function FileExplorer({ onFileSelect, onRefresh }: FileExplorerPr
             <span className={`text-sm ${isSelected ? 'font-medium text-blue-700' : 'text-gray-700'}`}>
               {node.name}
             </span>
-            {node.type === 'character' && node.data && (
-              <span className="text-xs px-1 py-0.5 bg-gray-200 text-gray-600 rounded">
-                {(node.data as CharacterCard).role}
-              </span>
-            )}
             {node.id.startsWith('commoncard_') && node.data && (
               <span className="text-xs px-1 py-0.5 bg-yellow-100 text-yellow-700 rounded">
                 通用卡

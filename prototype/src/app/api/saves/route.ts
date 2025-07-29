@@ -93,12 +93,7 @@ export async function POST(request: NextRequest) {
         traitsRevealed: [],
         discoveryProgress: 0
       },
-      currentTitle: char.displayName,
-      titleHistory: [{
-        title: char.displayName,
-        changedAt: 1,
-        reason: '初始称谓'
-      }]
+      // 移除 currentTitle/titleHistory，后续如需称谓请用 attributes 或 description 字段
     }));
 
     // 初始化派系系统

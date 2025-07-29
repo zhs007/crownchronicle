@@ -1,7 +1,5 @@
 id: limu
 name: 李牧
-displayName: 将军
-role: 将军
 description: 一位英勇的年轻将军，身材魁梧，眼神坚毅，对皇帝忠心不二
 category: 武将
 rarity: rare
@@ -42,10 +40,6 @@ influence:
 traits:
   - 勇武
   - 忠诚
-hiddenTraits:
-  - 谨慎
-  - 有野心但克制
-  - 对政治不太敏感
 backgroundClues:
   appearance: 身材魁梧，眼神坚毅，手上有刀剑痕迹
   mannerisms: 说话直爽，不拐弯抹角，提到军事问题时眼神发亮

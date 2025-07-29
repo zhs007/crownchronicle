@@ -1,7 +1,5 @@
 id: wuzetian
 name: 武则天
-displayName: 母后
-role: 母后
 description: 一位威严的女性长者，眼神锐利，举止间透露着不凡的气度
 category: 皇族
 rarity: legendary
@@ -44,9 +42,6 @@ traits:
   - 权谋
   - 强势
   - 智慧
-hiddenTraits:
-  - 雄心
-  - 冷酷
 conditions:
   minReignYears: 1
   maxAge: 60

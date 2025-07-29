@@ -8,8 +8,8 @@ weight: 20
 activationConditions:
   minTurn: 10
   emperorAttributes:
-    authority: "<30"
-    popularity: "<40"
+    authority: <30
+    popularity: <40
 characterClues:
   revealedTraits:
     - 权臣本色

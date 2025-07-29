@@ -1,7 +1,5 @@
 id: zhugeliang
 name: 诸葛亮
-displayName: 丞相
-role: chancellor
 description: 三国著名丞相
 category: 智将
 rarity: epic
@@ -13,13 +11,12 @@ initialAttributes:
   health: 80
   age: 40
 traits: []
-hiddenTraits: []
 backgroundClues:
-  appearance: ""
-  mannerisms: ""
-  preferences: ""
-  relationships: ""
-  secrets: ""
+  appearance: ''
+  mannerisms: ''
+  preferences: ''
+  relationships: ''
+  secrets: ''
 eventIds:
   - event_zhugeliang_1
 commonCardIds:
