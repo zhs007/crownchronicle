@@ -6,9 +6,19 @@ options:
     attribute: power
     offset: -10
     optionId: dongzhuo_event_003_choice_01
+    effects:
+      - target: self
+        attribute: power
+        offset: 0
+    reply: 我同意
   - target: player
     attribute: military
     description: 联合朝臣反对董卓
     offset: 15
     optionId: dongzhuo_event_003_choice_02
+    effects:
+      - target: self
+        attribute: power
+        offset: 0
+    reply: 我同意
 weight: 15

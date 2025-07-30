@@ -6,10 +6,12 @@ export type OptionTarget = 'player' | 'self';
 
 export interface EventOption {
   optionId: string; // 唯一标识，加载时自动生成
-  description: string; // 玩家可见文本
-  target: OptionTarget; // 只能为 player 或 self
-  attribute: keyof CharacterAttributes; // 角色属性名
-  offset: number; // 属性变动值
+  reply: string; // 玩家对角色的回应（原 description，重命名）
+  effects: Array<{
+    target: OptionTarget;
+    attribute: keyof CharacterAttributes;
+    offset: number;
+  }>;
 // ...existing code...
 }
 
@@ -25,15 +27,15 @@ export interface EventConditions {
 }
 
 export interface EventCard {
-  id: string;
-  characterId?: string;
+  eventId: string; // 全局唯一标识，自动生成
+  id: string;      // 由 title 拼音自动生成
   title: string;
+  dialogue: string; // 当前角色卡说的一句话
   options: [EventOption, EventOption]; // 必须且只能有两个选项
   activationConditions?: EventConditions;
   removalConditions?: EventConditions;
   triggerConditions?: EventConditions;
-  weight?: number;
-  importance?: 'normal' | 'major' | 'critical';
+  weight: number; // 必填，默认 1
   // 其他字段可按需补充
 }
 

@@ -10,22 +10,24 @@ export class GameEngine {
   static applyEventOptionEffects(gameState: any, event: any, optionIdx: 0 | 1, selfCharacterId?: string): any {
     const newGameState = JSON.parse(JSON.stringify(gameState));
     const option: EventOption = event.options[optionIdx];
-    if (!option) return newGameState;
-    if (option.target === 'player') {
-      // 玩家（emperor）属性修改
-      const attr = option.attribute;
-      if (attr in newGameState.emperor) {
-        const currentValue = newGameState.emperor[attr] as number;
-        const newValue = Math.max(0, Math.min(100, currentValue + option.offset));
-        (newGameState.emperor as any)[attr] = newValue;
-      }
-    } else if (option.target === 'self' && selfCharacterId) {
-      // 当前角色属性修改
-      const character = newGameState.activeCharacters.find((c: any) => c.id === selfCharacterId);
-      if (character && option.attribute in character.attributes) {
-        const currentValue = character.attributes[option.attribute] as number;
-        const newValue = Math.max(0, Math.min(100, currentValue + option.offset));
-        (character.attributes as any)[option.attribute] = newValue;
+    if (!option || !Array.isArray(option.effects)) return newGameState;
+    for (const effect of option.effects) {
+      if (effect.target === 'player') {
+        // 玩家（emperor）属性修改
+        const attr = effect.attribute;
+        if (attr in newGameState.emperor) {
+          const currentValue = newGameState.emperor[attr] as number;
+          const newValue = Math.max(0, Math.min(100, currentValue + effect.offset));
+          (newGameState.emperor as any)[attr] = newValue;
+        }
+      } else if (effect.target === 'self' && selfCharacterId) {
+        // 当前角色属性修改
+        const character = newGameState.activeCharacters.find((c: any) => c.id === selfCharacterId);
+        if (character && effect.attribute in character.attributes) {
+          const currentValue = character.attributes[effect.attribute] as number;
+          const newValue = Math.max(0, Math.min(100, currentValue + effect.offset));
+          (character.attributes as any)[effect.attribute] = newValue;
+        }
       }
     }
     return newGameState;

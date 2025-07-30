@@ -278,42 +278,53 @@ export class ConfigValidator {
       });
     } else {
       (event.options as EventOption[]).forEach((opt: EventOption, idx: number) => {
-        if (!opt.description || typeof opt.description !== 'string') {
+        if (!opt.reply || typeof opt.reply !== 'string') {
           issues.push({
             type: 'error',
-            code: 'INVALID_OPTION_DESCRIPTION',
-            message: `第${idx + 1}个选项缺少或非法的 description`,
+            code: 'INVALID_OPTION_REPLY',
+            message: `第${idx + 1}个选项缺少或非法的 reply`,
             context,
-            suggestion: '请填写玩家可见文本'
+            suggestion: '请填写玩家回应文本'
           });
         }
-        if (opt.target !== 'player' && opt.target !== 'self') {
+        if (!opt.effects || !Array.isArray(opt.effects) || opt.effects.length === 0) {
           issues.push({
             type: 'error',
-            code: 'INVALID_OPTION_TARGET',
-            message: `第${idx + 1}个选项 target 非法: ${opt.target}`,
+            code: 'INVALID_OPTION_EFFECTS',
+            message: `第${idx + 1}个选项缺少或非法的 effects 配置`,
             context,
-            suggestion: 'target 仅允许 "player" 或 "self"'
+            suggestion: '请填写至少一个属性修改配置'
           });
-        }
-        // 校验属性名
-        const validAttributes = ['power', 'military', 'wealth', 'popularity', 'health', 'age'];
-        if (!validAttributes.includes(opt.attribute)) {
-          issues.push({
-            type: 'error',
-            code: 'INVALID_OPTION_ATTRIBUTE',
-            message: `第${idx + 1}个选项 attribute 非法: ${opt.attribute}`,
-            context,
-            suggestion: `属性名必须为: ${validAttributes.join(', ')}`
-          });
-        }
-        if (typeof opt.offset !== 'number' || isNaN(opt.offset)) {
-          issues.push({
-            type: 'error',
-            code: 'INVALID_OPTION_OFFSET',
-            message: `第${idx + 1}个选项 offset 非法: ${opt.offset}`,
-            context,
-            suggestion: 'offset 必须为数字'
+        } else {
+          opt.effects.forEach((eff, effIdx) => {
+            if (eff.target !== 'player' && eff.target !== 'self') {
+              issues.push({
+                type: 'error',
+                code: 'INVALID_EFFECT_TARGET',
+                message: `第${idx + 1}个选项第${effIdx + 1}个效果 target 非法: ${eff.target}`,
+                context,
+                suggestion: 'target 仅允许 "player" 或 "self"'
+              });
+            }
+            const validAttributes = ['power', 'military', 'wealth', 'popularity', 'health', 'age'];
+            if (!validAttributes.includes(eff.attribute)) {
+              issues.push({
+                type: 'error',
+                code: 'INVALID_EFFECT_ATTRIBUTE',
+                message: `第${idx + 1}个选项第${effIdx + 1}个效果 attribute 非法: ${eff.attribute}`,
+                context,
+                suggestion: `属性名必须为: ${validAttributes.join(', ')}`
+              });
+            }
+            if (typeof eff.offset !== 'number' || isNaN(eff.offset)) {
+              issues.push({
+                type: 'error',
+                code: 'INVALID_EFFECT_OFFSET',
+                message: `第${idx + 1}个选项第${effIdx + 1}个效果 offset 非法: ${eff.offset}`,
+                context,
+                suggestion: 'offset 必须为数字'
+              });
+            }
           });
         }
       });

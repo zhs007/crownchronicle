@@ -109,7 +109,6 @@ export class EditorDataManager {
       
       // 将生成的ID设置到数据中
       data.id = eventId;
-      data.characterId = characterId;
       
       // 自动生成选项ID（新版结构，只有 options 字段）
       if (data.options && Array.isArray(data.options)) {
@@ -257,29 +256,26 @@ export class EditorDataManager {
       options = [
         {
           optionId: '',
-          description: '',
-          target: 'player',
-          attribute: 'power',
-          offset: 0
+          reply: '',
+          effects: [{ target: 'player', attribute: 'power', offset: 0 }]
         },
         {
           optionId: '',
-          description: '',
-          target: 'self',
-          attribute: 'power',
-          offset: 0
+          reply: '',
+          effects: [{ target: 'self', attribute: 'power', offset: 0 }]
         }
       ];
     }
     return {
+      eventId: config.id ?? '',
       id: config.id,
       title: config.title,
+      dialogue: typeof ((config as unknown) as Record<string, unknown>)['dialogue'] === 'string' ? ((config as unknown) as Record<string, unknown>)['dialogue'] as string : '',
       options,
       activationConditions: config.activationConditions,
       removalConditions: config.removalConditions,
       triggerConditions: config.triggerConditions,
-      weight: config.weight,
-      importance: config.importance
+      weight: typeof config.weight === 'number' ? config.weight : 1
     };
   }
 
@@ -304,8 +300,7 @@ export class EditorDataManager {
       activationConditions: card.activationConditions,
       removalConditions: card.removalConditions,
       triggerConditions: card.triggerConditions,
-      weight: card.weight,
-      importance: card.importance
+      weight: card.weight
     };
   }
 

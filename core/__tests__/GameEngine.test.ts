@@ -18,7 +18,7 @@ describe('GameEngine.applyChoiceEffects', () => {
       startTime: 0,
       currentTurn: 1
     };
-    const option = { optionId: 'o1', description: '', target: 'player' as 'player', attribute: 'power' as keyof typeof gameState.emperor, offset: 5 };
+    const option = { optionId: 'o1', reply: '', effects: [{ target: 'player' as 'player', attribute: 'power' as keyof typeof gameState.emperor, offset: 5 }] };
     const newState = GameEngine.applyChoiceEffects(gameState, option);
     expect(newState.emperor.power).toBe(15);
   });
@@ -37,10 +37,10 @@ describe('GameEngine.applyChoiceEffects', () => {
       startTime: 0,
       currentTurn: 1
     };
-    const option = { optionId: 'o2', description: '', target: 'player' as 'player', attribute: 'power' as keyof typeof gameState.emperor, offset: 10 };
+    const option = { optionId: 'o2', reply: '', effects: [{ target: 'player' as 'player', attribute: 'power' as keyof typeof gameState.emperor, offset: 10 }] };
     const newState = GameEngine.applyChoiceEffects(gameState, option);
     expect(newState.emperor.power).toBe(100);
-    const option2 = { optionId: 'o3', description: '', target: 'player' as 'player', attribute: 'power' as keyof typeof gameState.emperor, offset: -200 };
+    const option2 = { optionId: 'o3', reply: '', effects: [{ target: 'player' as 'player', attribute: 'power' as keyof typeof gameState.emperor, offset: -200 }] };
     const newState2 = GameEngine.applyChoiceEffects(gameState, option2);
     expect(newState2.emperor.power).toBe(0);
   });
@@ -61,7 +61,7 @@ describe('GameEngine.applyChoiceEffects', () => {
       startTime: 0,
       currentTurn: 1
     };
-    const option = { optionId: 'o5', description: '', target: 'enemy' as any, attribute: 'power' as keyof typeof gameState.emperor, offset: 5 };
+    const option = { optionId: 'o5', reply: '', effects: [{ target: 'enemy' as any, attribute: 'power' as keyof typeof gameState.emperor, offset: 5 }] };
     const newState = GameEngine.applyChoiceEffects(gameState, option);
     expect(newState.emperor.power).toBe(10);
   });
@@ -80,7 +80,7 @@ describe('GameEngine.applyChoiceEffects', () => {
       startTime: 0,
       currentTurn: 1
     };
-    const option = { optionId: 'o6', description: '', target: 'player' as 'player', attribute: 'unknown' as any, offset: 5 };
+    const option = { optionId: 'o6', reply: '', effects: [{ target: 'player' as 'player', attribute: 'unknown' as any, offset: 5 }] };
     const newState = GameEngine.applyChoiceEffects(gameState, option);
     expect(newState.emperor.power).toBe(10);
   });

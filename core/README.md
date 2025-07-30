@@ -86,6 +86,54 @@ console.log(newCharacter);
 4. 依赖请统一从主类型文件导入，避免跨文件重复定义。
 5. EventConditions、DynamicWeight 类型已精简，后续如有业务需求可再优化。
 
+### 事件卡新版结构与自动迁移说明
+
+#### 新版 EventCard 类型定义
+
+```typescript
+export interface EventOption {
+  optionId: string;
+  reply: string; // 玩家对角色的回应（原 description，可重命名）
+  effects: Array<{
+    target: OptionTarget;
+    attribute: keyof CharacterAttributes;
+    offset: number;
+  }>;
+}
+
+export interface EventCard {
+  eventId: string; // 全局唯一标识，自动生成
+  id: string;      // 由 title 拼音自动生成
+  title: string;
+  dialogue: string; // 当前角色卡说的一句话
+  options: [EventOption, EventOption];
+  activationConditions?: EventConditions;
+  removalConditions?: EventConditions;
+  triggerConditions?: EventConditions;
+  weight: number; // 必填，默认 1
+}
+```
+
+- `importance`、`characterId` 字段已移除。
+- `weight` 必填，默认 1。
+- `id` 字段自动由 `title` 的拼音生成（仅在 editor 项目中，使用 tiny-pinyin）。
+- 新增 `eventId` 字段，规则为角色 `characterId` + 事件 `id`，通用卡事件为角色 `characterId` + 通用卡 `id` + 通用卡事件 `id`。
+- 新增 `dialogue` 字段，表示当前角色卡说的一句话。
+
+#### 自动迁移与校验
+
+- 推荐使用 `gameconfig/fix-config.js` 脚本批量迁移和修复所有事件卡配置：
+  - 自动升级旧版字段为新版结构（如 description/target/attribute/offset 升级为 reply/effects）。
+  - 自动补全 eventId、dialogue、weight、options 等字段，确保符合最新 schema。
+  - 校验规则：
+    - eventId 必须全局唯一，不能重复。
+    - 同一角色下 title 不能重复。
+    - dialogue 字段必须有内容，不能为空。
+    - options 必须为两个选项，且每个选项的 reply 和 effects 字段必须完整。
+    - effects 数组每项都需校验 target、attribute、offset 是否有效。
+  - 所有自动修复和迁移操作均会直接写回原配置文件，并输出修复日志。
+  - 如需扩展迁移逻辑，可在该脚本基础上补充字段映射、结构转换等代码。
+
 ### 类型迁移指引
 
 请参考 `plan-011.md`，如需扩展新类型或字段，务必在主类型文件补充并同步更新所有依赖。

@@ -15,9 +15,19 @@ options:
     target: player
     attribute: power
     offset: 0
+    effects:
+      - target: self
+        attribute: power
+        offset: 0
+    reply: 我同意
   - description: （待补充）
     target: player
     attribute: power
     offset: 0
+    effects:
+      - target: self
+        attribute: power
+        offset: 0
+    reply: 我同意
 weight: 1
 title: 未命名事件

@@ -289,16 +289,23 @@ export class ConfigConverter {
       optionId: `${characterId}_${config.id}_${(idx + 1).toString().padStart(3, '0')}`
     })) as [EventOption, EventOption];
 
+    // eventId 生成规则：角色事件为 characterId + id，通用卡事件为 characterId + 通用卡id + 当前事件id
+    // 这里假定 config 里有 commonCardId 字段用于区分通用卡事件（如无可扩展）
+    let eventId = characterId + '_' + config.id;
+    if ((config as any).commonCardId) {
+      eventId = characterId + '_' + (config as any).commonCardId + '_' + config.id;
+    }
+
     return {
+      eventId,
       id: config.id,
-      characterId: characterId,
       title: config.title,
+      dialogue: (config as any).dialogue || '',
       options,
       activationConditions: config.activationConditions,
       removalConditions: config.removalConditions,
       triggerConditions: config.triggerConditions,
-      weight: config.weight,
-      importance: config.importance,
+      weight: typeof config.weight === 'number' ? config.weight : 1,
       // 其他字段可按需补充
     };
   }

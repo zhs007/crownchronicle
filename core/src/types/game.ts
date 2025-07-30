@@ -19,12 +19,16 @@ export interface GameEvent {
   turn: number;
   choiceId: string;
   chosenAction: string;          // 选择的行动描述
-  effects: Partial<CharacterAttributes>;
+  effects: Array<{
+    target: 'player' | 'self';
+    attribute: keyof CharacterAttributes;
+    offset: number;
+  }>;
   consequences: string;
   timestamp: number;
   relationshipChanges?: Record<string, number>; // 角色关系变化
   characterDiscoveries?: string[]; // 角色发现
-  importance?: 'normal' | 'major' | 'critical'; // 事件重要性
+  // importance 字段已移除
 }
 
 // 游戏状态

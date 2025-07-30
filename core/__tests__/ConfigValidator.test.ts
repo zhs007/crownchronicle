@@ -10,8 +10,8 @@ describe('ConfigValidator', () => {
       title: '缺少选项',
       weight: 1,
       options: [
-        { optionId: 'opt1', description: 'A', target: 'player', attribute: 'power', offset: 1 },
-        { optionId: 'opt2', description: '', target: 'player', attribute: 'power', offset: 0 }
+        { optionId: 'opt1', reply: 'A', effects: [{ target: 'player', attribute: 'power', offset: 1 }] },
+        { optionId: 'opt2', reply: '', effects: [{ target: 'player', attribute: 'power', offset: 0 }] }
       ]
     };
     // 直接传递长度为1的 options
@@ -30,12 +30,12 @@ describe('ConfigValidator', () => {
       title: '非法target',
       weight: 1,
       options: [
-        { optionId: 'opt1', description: 'A', target: 'enemy' as any, attribute: 'power', offset: 1 },
-        { optionId: 'opt2', description: 'B', target: 'self', attribute: 'power', offset: 1 }
+        { optionId: 'opt1', reply: 'A', effects: [{ target: 'enemy' as any, attribute: 'power', offset: 1 }] },
+        { optionId: 'opt2', reply: 'B', effects: [{ target: 'self', attribute: 'power', offset: 1 }] }
       ]
     };
     const result = validator.validateEvents([event], 'c1');
-    expect(result.issues.some(i => i.code === 'INVALID_OPTION_TARGET')).toBe(true);
+    expect(result.issues.some(i => i.code === 'INVALID_EFFECT_TARGET')).toBe(true);
   });
 
   it('validateEvents: should fail if option attribute is invalid', () => {
@@ -45,12 +45,12 @@ describe('ConfigValidator', () => {
       title: '非法attribute',
       weight: 1,
       options: [
-        { optionId: 'opt1', description: 'A', target: 'player', attribute: 'unknown' as any, offset: 1 },
-        { optionId: 'opt2', description: 'B', target: 'self', attribute: 'power', offset: 1 }
+        { optionId: 'opt1', reply: 'A', effects: [{ target: 'player', attribute: 'unknown' as any, offset: 1 }] },
+        { optionId: 'opt2', reply: 'B', effects: [{ target: 'self', attribute: 'power', offset: 1 }] }
       ]
     };
     const result = validator.validateEvents([event], 'c1');
-    expect(result.issues.some(i => i.code === 'INVALID_OPTION_ATTRIBUTE')).toBe(true);
+    expect(result.issues.some(i => i.code === 'INVALID_EFFECT_ATTRIBUTE')).toBe(true);
   });
 
   it('validateEvents: should fail if option offset is not a number', () => {
@@ -60,12 +60,12 @@ describe('ConfigValidator', () => {
       title: '非法offset',
       weight: 1,
       options: [
-        { optionId: 'opt1', description: 'A', target: 'player', attribute: 'power', offset: 'abc' as any },
-        { optionId: 'opt2', description: 'B', target: 'self', attribute: 'power', offset: 1 }
+        { optionId: 'opt1', reply: 'A', effects: [{ target: 'player', attribute: 'power', offset: 'abc' as any }] },
+        { optionId: 'opt2', reply: 'B', effects: [{ target: 'self', attribute: 'power', offset: 1 }] }
       ]
     };
     const result = validator.validateEvents([event], 'c1');
-    expect(result.issues.some(i => i.code === 'INVALID_OPTION_OFFSET')).toBe(true);
+    expect(result.issues.some(i => i.code === 'INVALID_EFFECT_OFFSET')).toBe(true);
   });
 
   it('validateEvents: should fail if option description is missing', () => {
@@ -75,32 +75,30 @@ describe('ConfigValidator', () => {
       title: '缺少描述',
       weight: 1,
       options: [
-        { optionId: 'opt1', target: 'player', attribute: 'power', offset: 1 } as any,
-        { optionId: 'opt2', description: 'B', target: 'self', attribute: 'power', offset: 1 }
+        { optionId: 'opt1', effects: [{ target: 'player', attribute: 'power', offset: 1 }] } as any,
+        { optionId: 'opt2', reply: 'B', effects: [{ target: 'self', attribute: 'power', offset: 1 }] }
       ]
     };
     const result = validator.validateEvents([event], 'c1');
     // ...existing code...
     // 断言实际 code
     expect(result.issues.some(i => i.code === 'INVALID_EVENT_STRUCTURE')).toBe(true);
-    expect(result.issues.some(i => i.code === 'INVALID_OPTION_DESCRIPTION')).toBe(true);
+    expect(result.issues.some(i => i.code === 'INVALID_OPTION_REPLY')).toBe(true);
   });
 
   it('validateEvents: should pass for valid options', () => {
     const validator = new ConfigValidator(mockDataProvider as any);
     mockDataProvider.validateEventConfig.mockReturnValue(true);
-    const event: import('../src/types/event').EventCard = {
+    const event: import('../src/types/event').EventConfig = {
       id: 'e_valid',
-      characterId: 'c1',
       title: '合法选项',
       weight: 1,
-      importance: 'normal',
       activationConditions: undefined,
       removalConditions: undefined,
       triggerConditions: undefined,
       options: [
-        { optionId: 'opt1', description: 'A', target: 'player', attribute: 'power', offset: 1 },
-        { optionId: 'opt2', description: 'B', target: 'self', attribute: 'military', offset: -2 }
+        { optionId: 'opt1', reply: 'A', effects: [{ target: 'player', attribute: 'power', offset: 1 }] },
+        { optionId: 'opt2', reply: 'B', effects: [{ target: 'self', attribute: 'military', offset: -2 }] }
       ]
     };
     const result = validator.validateEvents([event], 'c1');
@@ -138,21 +136,17 @@ describe('ConfigValidator', () => {
 
   it('validateEvents: should detect duplicate event IDs, missing options, and extreme offset values', () => {
     const validator = new ConfigValidator(mockDataProvider as any);
-    const baseEvent = { speaker: '', dialogue: '' };
     const emptyOption = {
       optionId: '',
-      description: '',
-      target: 'player' as 'player',
-      attribute: 'power' as keyof CharacterConfig['initialAttributes'],
-      offset: 0
+      reply: '',
+      effects: [{ target: 'player' as 'player', attribute: 'power' as keyof CharacterConfig['initialAttributes'], offset: 0 }]
     };
     const events: EventConfig[] = [
       {
         id: 'e1',
         weight: 1,
         options: [emptyOption, emptyOption], // 用空选项模拟缺失
-        title: '',
-        ...baseEvent
+        title: ''
       },
       {
         id: 'e1',
@@ -160,21 +154,16 @@ describe('ConfigValidator', () => {
         options: [
           {
             optionId: 'c1_001',
-            description: '极端选项',
-            target: 'player',
-            attribute: 'power',
-            offset: 200
+            reply: '极端选项',
+            effects: [{ target: 'player' as 'player', attribute: 'power' as keyof CharacterConfig['initialAttributes'], offset: 200 }]
           },
           {
             optionId: 'c1_002',
-            description: '普通选项',
-            target: 'self',
-            attribute: 'military',
-            offset: 0
+            reply: '普通选项',
+            effects: [{ target: 'self' as 'self', attribute: 'military' as keyof CharacterConfig['initialAttributes'], offset: 0 }]
           }
         ],
-        title: '',
-        ...baseEvent
+        title: ''
       }
     ];
     mockDataProvider.validateEventConfig.mockReturnValue(true);

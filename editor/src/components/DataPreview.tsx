@@ -114,12 +114,16 @@ export default function DataPreview({ selectedFile }: DataPreviewProps) {
             <div className="text-gray-800 font-medium">{event.title}</div>
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-600">角色ID</label>
-            <div className="text-gray-800">{event.characterId ?? '-'}</div>
+            <label className="text-sm font-medium text-gray-600">事件ID</label>
+            <div className="text-gray-800">{event.eventId ?? '-'}</div>
           </div>
           <div>
             <label className="text-sm font-medium text-gray-600">权重</label>
             <div className="text-gray-800">{event.weight ?? '-'}</div>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-gray-600">对话</label>
+            <div className="text-gray-800">{event.dialogue ?? '-'}</div>
           </div>
           <div>
             <label className="text-sm font-medium text-gray-600">激活条件</label>
@@ -147,16 +151,26 @@ export default function DataPreview({ selectedFile }: DataPreviewProps) {
                   <span className="font-medium text-gray-800">选项 {index + 1}</span>
                   <span className="text-xs text-gray-500">ID: {option.optionId}</span>
                 </div>
-                <div className="text-gray-700 mb-3">{option.description}</div>
-                {/* 效果 */}
-                <div className="mb-2">
-                  <span className="text-sm font-medium text-gray-600">目标:</span>
-                  <span className="ml-2 text-xs text-gray-700">{option.target === 'player' ? '玩家（皇帝）' : '当前角色'}</span>
-                </div>
-                <div className="mb-2">
-                  <span className="text-sm font-medium text-gray-600">属性变动:</span>
-                  <span className="ml-2 text-xs text-gray-700">{getAttributeLabel(option.attribute)}: {option.offset > 0 ? '+' : ''}{option.offset}</span>
-                </div>
+                <div className="text-gray-700 mb-3">{option.reply}</div>
+                {/* 效果数组展示 */}
+                {Array.isArray(option.effects) && option.effects.length > 0 ? (
+                  <div className="space-y-2">
+                    {option.effects.map((eff, effIdx) => (
+                      <div key={effIdx} className="pl-2 border-l-2 border-blue-200">
+                        <div className="mb-1">
+                          <span className="text-sm font-medium text-gray-600">目标:</span>
+                          <span className="ml-2 text-xs text-gray-700">{eff.target === 'player' ? '玩家（皇帝）' : '当前角色'}</span>
+                        </div>
+                        <div>
+                          <span className="text-sm font-medium text-gray-600">属性变动:</span>
+                          <span className="ml-2 text-xs text-gray-700">{getAttributeLabel(eff.attribute)}: {eff.offset > 0 ? '+' : ''}{eff.offset}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-gray-400">无属性变动</div>
+                )}
               </div>
             ))
           ) : (

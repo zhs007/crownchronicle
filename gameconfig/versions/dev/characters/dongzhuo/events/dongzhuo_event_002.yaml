@@ -4,15 +4,17 @@ options:
   - text: 遵从迁都命令
     consequences: 洛阳化为废墟，长安成为新的政治中心，董卓暂时脱离险境。
     effects:
-      military: 5
-      popularity: -10
-      treasury: -15
+      - target: self
+        attribute: power
+        offset: 0
     optionId: dongzhuo_event_002_choice_01
+    reply: 我同意
   - consequences: 董卓可能不予理睬，甚至招致其怒火，但可能保留洛阳元气。
     text: 力谏董卓，坚守洛阳
     effects:
-      military: -5
-      authority: -5
-      popularity: 5
+      - target: self
+        attribute: power
+        offset: 0
     optionId: dongzhuo_event_002_choice_02
+    reply: 我同意
 weight: 12

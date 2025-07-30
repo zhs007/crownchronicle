@@ -78,17 +78,19 @@ export class GameStateManager {
      */
     static applyChoiceEffects(gameState: GameState, option: EventOption): GameState {
         const newGameState = JSON.parse(JSON.stringify(gameState)) as GameState;
-        // 只处理新结构 EventOption
-        if (option.target === 'player') {
-            const attr = option.attribute;
-            if (attr in newGameState.emperor) {
-                const currentValue = newGameState.emperor[attr] as number;
-                const newValue = Math.max(0, Math.min(100, currentValue + option.offset));
-                (newGameState.emperor as any)[attr] = newValue;
+        if (!option || !Array.isArray(option.effects)) return newGameState;
+        for (const effect of option.effects) {
+            if (effect.target === 'player') {
+                const attr = effect.attribute;
+                if (attr in newGameState.emperor) {
+                    const currentValue = newGameState.emperor[attr] as number;
+                    const newValue = Math.max(0, Math.min(100, currentValue + effect.offset));
+                    (newGameState.emperor as any)[attr] = newValue;
+                }
+            } else if (effect.target === 'self') {
+                // 这里需要传入当前角色ID，或在调用时补充逻辑
+                // 可根据实际需求补充
             }
-        } else if (option.target === 'self') {
-            // 这里需要传入当前角色ID，或在调用时补充逻辑
-            // 可根据实际需求补充
         }
         return newGameState;
     }
@@ -165,17 +167,18 @@ export class GameStateManager {
         characterDiscoveries?: string[]
     ): void {
         const gameEvent: GameEvent = {
-            eventId: event.id,
+            eventId: event.eventId,
             eventTitle: event.title,
             turn: gameState.currentTurn,
-            choiceId: option.description,
-            chosenAction: option.description,
-            effects: { [option.attribute]: option.offset },
+            choiceId: option.reply,
+            chosenAction: option.reply,
+            effects: Array.isArray(option.effects)
+                ? option.effects.map(eff => ({ target: eff.target, attribute: eff.attribute, offset: eff.offset }))
+                : [],
             consequences: '',
             timestamp: Date.now(),
             relationshipChanges,
-            characterDiscoveries,
-            importance: event.importance || 'normal'
+            characterDiscoveries
         };
         gameState.gameHistory.push(gameEvent);
     }

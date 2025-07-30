@@ -2,13 +2,23 @@ id: dongzhuo_event_004
 title: 董卓入京
 options:
   - optionId: dongzhuo_event_004_choice_01
-    description: ""
+    description: ''
     target: player
     attribute: power
     offset: 0
+    effects:
+      - target: self
+        attribute: power
+        offset: 0
+    reply: 我同意
   - optionId: dongzhuo_event_004_choice_02
-    description: ""
+    description: ''
     target: self
     attribute: power
     offset: 0
+    effects:
+      - target: self
+        attribute: power
+        offset: 0
+    reply: 我同意
 weight: 10

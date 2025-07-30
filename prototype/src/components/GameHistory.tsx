@@ -65,30 +65,29 @@ export default function GameHistory({ history, maxDisplay = 10 }: GameHistoryPro
               </div>
             </div>
 
-            {/* 效果展示 */}
-            {event.effects && Object.keys(event.effects).length > 0 && (
+            {/* 效果展示（新版 effects 数组） */}
+            {Array.isArray(event.effects) && event.effects.length > 0 && (
               <div className="flex flex-wrap gap-1">
-                {Object.entries(event.effects).map(([key, value]) => {
-                  if (value === 0) return null;
-                  
+                {event.effects.map((eff, effIdx) => {
+                  if (!eff || typeof eff.offset !== 'number' || eff.offset === 0) return null;
                   const labels: Record<string, string> = {
+                    power: '权势',
+                    military: '军队',
+                    wealth: '财富',
+                    popularity: '民心',
                     health: '健康',
-                    authority: '威望',
-                    treasury: '国库',
-                    military: '军事',
-                    popularity: '民心'
+                    age: '年龄'
                   };
-                  
                   return (
                     <span 
-                      key={key}
+                      key={effIdx}
                       className={`text-xs px-2 py-1 rounded ${
-                        (value || 0) > 0 
+                        eff.offset > 0 
                           ? 'bg-green-100 text-green-600' 
                           : 'bg-red-100 text-red-600'
                       }`}
                     >
-                      {labels[key] || key}: {value > 0 ? '+' : ''}{value}
+                      {eff.target === 'player' ? '玩家' : '角色'} {labels[eff.attribute] || eff.attribute}: {eff.offset > 0 ? '+' : ''}{eff.offset}
                     </span>
                   );
                 })}
@@ -133,22 +132,6 @@ export default function GameHistory({ history, maxDisplay = 10 }: GameHistoryPro
               </div>
             )}
 
-            {/* 重要事件标记 */}
-            {event.importance === 'critical' && (
-              <div className="mt-2">
-                <span className="text-xs px-2 py-1 rounded bg-red-500 text-white">
-                  ⚠️ 重要事件
-                </span>
-              </div>
-            )}
-
-            {event.importance === 'major' && (
-              <div className="mt-2">
-                <span className="text-xs px-2 py-1 rounded bg-yellow-500 text-white">
-                  ❗ 重大事件
-                </span>
-              </div>
-            )}
           </div>
         ))}
       </div>

@@ -47,14 +47,19 @@ export default function EventDisplay({ event, onChoice, loading = false, gameOve
                 </div>
                 <div className="flex-1">
                   <div className="text-gray-800 font-medium mb-1">
-                    {option.description}
+                    {option.reply}
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    目标：{option.target === 'player' ? '玩家（皇帝）' : '当前角色'}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    属性变动：{option.attribute} {option.offset > 0 ? '+' : ''}{option.offset}
-                  </div>
+                  {Array.isArray(option.effects) && option.effects.length > 0 ? (
+                    option.effects.map((eff, effIdx) => (
+                      <div key={effIdx} className="text-xs text-gray-500 mt-1">
+                        目标：{eff.target === 'player' ? '玩家（皇帝）' : '当前角色'}
+                        <br />
+                        属性变动：{eff.attribute} {eff.offset > 0 ? '+' : ''}{eff.offset}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-xs text-gray-400 mt-1">无属性变动</div>
+                  )}
                 </div>
               </div>
             </button>

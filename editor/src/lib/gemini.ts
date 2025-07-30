@@ -318,36 +318,42 @@ export class GeminiClient {
         ? args.choices
         : [];
     if (rawOptions.length === 2) {
-      options = [rawOptions[0], rawOptions[1]];
+      options = rawOptions.map(opt => ({
+        optionId: opt.optionId ?? '',
+        reply: opt.reply ?? opt.description ?? '',
+        effects: Array.isArray(opt.effects)
+          ? opt.effects
+          : [{
+              target: opt.target ?? 'player',
+              attribute: opt.attribute ?? 'power',
+              offset: typeof opt.offset === 'number' ? opt.offset : 0
+            }]
+      })) as [import('crownchronicle-core').EventOption, import('crownchronicle-core').EventOption];
     } else {
       // 填充空选项，防止类型报错
       options = [
         {
           optionId: '',
-          description: '',
-          target: 'player',
-          attribute: 'power',
-          offset: 0
+          reply: '',
+          effects: [{ target: 'player', attribute: 'power', offset: 0 }]
         },
         {
           optionId: '',
-          description: '',
-          target: 'self',
-          attribute: 'power',
-          offset: 0
+          reply: '',
+          effects: [{ target: 'self', attribute: 'power', offset: 0 }]
         }
       ];
     }
     return {
+      eventId: '',
       id: '', // ID将由saveEvent方法自动生成
-      characterId: String(args.characterId || ''),
       title: String(args.title || ''),
+      dialogue: String(args.dialogue || ''),
       options,
       activationConditions: args.activationConditions as import('crownchronicle-core').EventConditions | undefined,
       removalConditions: args.removalConditions as import('crownchronicle-core').EventConditions | undefined,
       triggerConditions: args.triggerConditions as import('crownchronicle-core').EventConditions | undefined,
-      weight: Number(args.weight || 1),
-      importance: args.importance as 'normal' | 'major' | 'critical' | undefined
+      weight: Number(args.weight || 1)
     };
   }
   

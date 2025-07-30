@@ -14,6 +14,52 @@ async function main() {
   const validator = new ConfigValidator(dataProvider);
   const result = await validator.validateAll();
 for (const issue of result.issues) {
+  // 专门处理 INVALID_OPTION_EFFECTS 错误
+  if (issue.code === 'INVALID_OPTION_EFFECTS' && issue.context) {
+    const match = issue.context.match(/事件 (.+) \(角色 (.+)\)/);
+    if (match) {
+      const eventId = match[1];
+      const charId = match[2];
+      const eventFile = path.resolve('./gameconfig/versions/dev/characters', charId, 'events', `${eventId}.yaml`);
+      try {
+        const content = fs.readFileSync(eventFile, 'utf8');
+        const config = yaml.load(content);
+        if (Array.isArray(config.options)) {
+          config.options = config.options.map(opt => ({
+            ...opt,
+            effects: Array.isArray(opt.effects) && opt.effects.length > 0 ? opt.effects : [{ target: 'self', attribute: 'power', offset: 0 }]
+          }));
+          fs.writeFileSync(eventFile, yaml.dump(config), 'utf8');
+          console.log(`[auto-fix] 事件 ${eventId} (角色 ${charId}) options 字段 effects 已批量修复为合法默认值`);
+        }
+      } catch (e) {
+        console.log(`[missing] 事件 ${eventId} (角色 ${charId}) INVALID_OPTION_EFFECTS 修复失败:`, e.message);
+      }
+    }
+  }
+  // 专门处理 INVALID_OPTION_REPLY 错误
+  if (issue.code === 'INVALID_OPTION_REPLY' && issue.context) {
+    const match = issue.context.match(/事件 (.+) \(角色 (.+)\)/);
+    if (match) {
+      const eventId = match[1];
+      const charId = match[2];
+      const eventFile = path.resolve('./gameconfig/versions/dev/characters', charId, 'events', `${eventId}.yaml`);
+      try {
+        const content = fs.readFileSync(eventFile, 'utf8');
+        const config = yaml.load(content);
+        if (Array.isArray(config.options)) {
+          config.options = config.options.map(opt => ({
+            ...opt,
+            reply: typeof opt.reply === 'string' && opt.reply.trim() ? opt.reply : '我同意'
+          }));
+          fs.writeFileSync(eventFile, yaml.dump(config), 'utf8');
+          console.log(`[auto-fix] 事件 ${eventId} (角色 ${charId}) options 字段 reply 已批量修复为合法默认值`);
+        }
+      } catch (e) {
+        console.log(`[missing] 事件 ${eventId} (角色 ${charId}) INVALID_OPTION_REPLY 修复失败:`, e.message);
+      }
+    }
+  }
   console.log(`[${issue.type}] ${issue.code}: ${issue.message} (${issue.context})`);
   if (issue.suggestion) console.log(`建议: ${issue.suggestion}`);
 
@@ -78,10 +124,10 @@ for (const issue of result.issues) {
             } else if (f === 'id') {
               config.id = eventId;
             } else if (f === 'options') {
-              config.options = [
-                { description: '', target: '', attribute: '', offset: 0 },
-                { description: '', target: '', attribute: '', offset: 0 }
-              ];
+config.options = [
+  { reply: '我同意', effects: [{ target: 'self', attribute: 'power', offset: 0 }] },
+  { reply: '我同意', effects: [{ target: 'self', attribute: 'power', offset: 0 }] }
+];
             } else if (f === 'weight') {
               config.weight = 1;
             }
@@ -90,27 +136,24 @@ for (const issue of result.issues) {
           console.log(`[auto-fix] 事件 ${eventId} (角色 ${charId}) 已补全字段: ${missingFields.join(', ')}`);
         }
         // 检查 options 字段类型和长度
-        if (!Array.isArray(config.options)) {
-          console.log(`[missing] 事件 ${eventId} (角色 ${charId}) options 不是数组`);
-        } else if (config.options.length !== 2) {
-          console.log(`[missing] 事件 ${eventId} (角色 ${charId}) options 数组长度为 ${config.options.length}，应为2`);
+        if (!Array.isArray(config.options) || config.options.length !== 2) {
+          // 无论原有字段如何，始终重建为合法结构
+          config.options = [
+            { reply: '我同意', effects: [{ target: 'self', attribute: 'power', offset: 0 }] },
+            { reply: '我同意', effects: [{ target: 'self', attribute: 'power', offset: 0 }] }
+          ];
+          fixed = true;
+          console.log(`[auto-fix] 事件 ${eventId} (角色 ${charId}) options 字段已重建为新版结构`);
         } else {
-          // 检查每个选项的必需字段并自动修复
-          const optionRequiredFields = ['description', 'target', 'attribute', 'offset'];
-          config.options.forEach((opt, idx) => {
-            const missingOptFields = optionRequiredFields.filter(f => !(f in opt));
-            if (missingOptFields.length > 0) {
-              console.log(`[missing] 事件 ${eventId} (角色 ${charId}) options[${idx}] 缺少字段: ${missingOptFields.join(', ')}`);
-              // 自动补全缺失字段
-              missingOptFields.forEach(f => {
-                opt[f] = (f === 'offset') ? 0 : '';
-              });
-              fixed = true;
-              console.log(`[auto-fix] 事件 ${eventId} (角色 ${charId}) options[${idx}] 已补全: ${missingOptFields.join(', ')} (description/target/attribute: '', offset: 0)`);
-            } else {
-              console.log(`[valid] 事件 ${eventId} (角色 ${charId}) options[${idx}] 字段齐全`);
-            }
+          // 对于已存在的 options，强制升级每个选项为新版结构
+          config.options = config.options.map((opt, idx) => {
+            return {
+              reply: typeof opt.reply === 'string' && opt.reply.trim() ? opt.reply : '我同意',
+              effects: Array.isArray(opt.effects) && opt.effects.length > 0 ? opt.effects : [{ target: 'self', attribute: 'power', offset: 0 }]
+            };
           });
+          fixed = true;
+          console.log(`[auto-fix] 事件 ${eventId} (角色 ${charId}) options 字段已批量升级为新版结构`);
         }
         if (fixed) {
           fs.writeFileSync(eventFile, yaml.dump(config), 'utf8');
