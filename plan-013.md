@@ -1,6 +1,6 @@
 ### 需求
 
-我希望 editor 项目调整如下：
+我希望 editor 项目调整如下（可以考虑彻底重构一个 editor2 项目，技术栈和 editor 一致）：
 
 - 有一个 agent 的实例，它来维护 gemini api client，和 当前的 gameconfig 内存实例。
 - 新增一个 function call——startTask，由 agent 理解用户需求，并拆分为合适的数据，传给 agent，让 agent 知道当前是什么任务，譬如 
@@ -11,10 +11,29 @@
 
 这样，通过一个 startTask ，不断的修正 agent 的操作，在保证满足复杂约束条件下，尽可能让 agent 决定做什么。
 
+我希望 agent 能自己 和 function call 多轮沟通
+
+譬如 agent 了解到用户需求后，确定了可以创建的角色，然后就自己创建角色，再填充角色信息，这期间不需要用户干预，可能会在一个对话里用到多个工具
+
 
 ### 实现方案
 
-#### 1. Agent 核心类设计
+> ⚡️ 本方案建议新建 `editor2` 项目，技术栈与现有 editor 保持一致，但采用全新 agent 驱动架构。editor2 可并行开发，逐步迁移内容和功能，最大化创新和稳定性。
+
+**editor2 项目目标：**
+- 彻底解耦旧有流程，专注任务驱动、自动化内容管控
+- 保持与 core/gameconfig 等包的接口兼容，便于数据迁移
+- 支持更灵活的 agent 设计和多轮 function call 协作
+
+
+#### 1. Agent 主动多轮 function call 协作（核心设计）
+
+- agent 能根据用户初始需求，自动规划并执行多步 function call，无需每一步都等待用户输入。
+- 例如：用户表达“我要一个新角色”，agent 自动判断可用角色，主动调用创建角色、补充属性、生成初始事件等 function call，直到任务完整或遇到需要用户决策的关键点才中断。
+- agent 支持在一次任务流中串联多个工具/接口，自动收集和处理中间结果，实现“智能批量操作”。
+- 这样可以极大提升内容生产效率，让 AI 真正成为“自动化内容管控助手”，而不是被动等待指令的工具。
+
+#### 2. Agent 核心类设计
 
 - 新建 `EditorAgent` 类，内部维护：
   - `geminiClient: GeminiClient`（AI接口）
@@ -22,14 +41,14 @@
   - `currentTask: AgentTask`（当前任务状态）
   - `history: AgentHistory[]`（多轮对话与操作记录）
 
-#### 2. 任务驱动接口定义
+#### 3. 任务驱动接口定义
 
 - 统一入口：`startTask(task: AgentTask): AgentResponse`
   - `AgentTask` 包含 action 类型、参数、上下文等
   - 支持 READY_NEW_CHARACTER、NEW_CHARACTER、READY_NEW_EVENT、NEW_EVENT 等 action
   - 每个 action 都有对应的处理方法和 prompt 模板
 
-#### 3. 任务流与状态管理
+#### 4. 任务流与状态管理
 
 - `EditorAgent` 维护任务状态机，自动推进任务流程：
   - 记录已存在角色/事件，自动过滤重复项
