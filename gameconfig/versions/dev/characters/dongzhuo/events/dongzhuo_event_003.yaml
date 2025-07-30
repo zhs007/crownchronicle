@@ -1,0 +1,14 @@
+id: dongzhuo_event_003
+title: 废立皇帝
+options:
+  - target: player
+    description: 顺从董卓的决定
+    attribute: power
+    offset: -10
+    optionId: dongzhuo_event_003_choice_01
+  - target: player
+    attribute: military
+    description: 联合朝臣反对董卓
+    offset: 15
+    optionId: dongzhuo_event_003_choice_02
+weight: 15

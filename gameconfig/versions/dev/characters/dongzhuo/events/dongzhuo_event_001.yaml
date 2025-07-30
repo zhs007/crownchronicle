@@ -1,0 +1,18 @@
+id: dongzhuo_event_001
+title: 废立少帝
+options:
+  - effects:
+      popularity: -10
+      military: 5
+      authority: 10
+    text: 顺从董卓的决定
+    consequences: 朝中官员敢怒不敢言，董卓权势更盛。
+    optionId: dongzhuo_event_001_choice_01
+  - text: 暗中反对并联络反董势力
+    consequences: 董卓对朝臣的掌控力下降，但自身也面临风险。
+    effects:
+      authority: -5
+      popularity: 5
+      military: -5
+    optionId: dongzhuo_event_001_choice_02
+weight: 15

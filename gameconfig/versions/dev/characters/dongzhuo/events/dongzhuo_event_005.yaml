@@ -1,0 +1,14 @@
+id: dongzhuo_event_005
+title: 联军讨董
+options:
+  - optionId: dongzhuo_event_005_choice_01
+    description: ""
+    target: player
+    attribute: power
+    offset: 0
+  - optionId: dongzhuo_event_005_choice_02
+    description: ""
+    target: self
+    attribute: power
+    offset: 0
+weight: 15

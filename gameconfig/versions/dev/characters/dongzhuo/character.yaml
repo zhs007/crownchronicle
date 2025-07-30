@@ -1,0 +1,11 @@
+id: dongzhuo
+name: 董卓
+description: 东汉末年权臣，掌握军权废立皇帝，残暴专横，最终被义子吕布所杀。
+initialAttributes:
+  age: 50
+  health: 60
+  military: 90
+  popularity: 10
+  power: 95
+  wealth: 80
+commonCardIds: []

@@ -1,4 +1,5 @@
 import { CharacterAttributes } from '@/types/game';
+import TinyPinyin from 'tiny-pinyin';
 import { GoogleGenerativeAI, FunctionCall as GeminiFunctionCall, SchemaType } from '@google/generative-ai';
 import { setupGlobalProxy } from './proxyConfig';
 import { 
@@ -167,12 +168,14 @@ export class GeminiClient {
       const characterData: CharacterCard = this.convertToCharacterCard(args);
       // 使用角色名称进行保存，系统将自动生成ID
       const characterName = String(args.name);
-      await this.dataManager.saveCharacter(characterName, characterData);
+      // 将中文名转为拼音（小写、无空格）
+      const characterIdPinyin = TinyPinyin.convertToPinyin(characterName, '', true).toLowerCase();
+      await this.dataManager.saveCharacter(characterIdPinyin, characterData);
       return {
         type: 'success',
         action: 'create_character',
         data: characterData,
-        message: `✅ 角色 "${characterName}" 创建成功并已保存到配置文件`
+        message: `✅ 角色 "${characterName}" (ID: ${characterIdPinyin}) 创建成功并已保存到配置文件`
       };
     } catch (error) {
       console.error('创建角色失败:', error);
@@ -350,37 +353,36 @@ export class GeminiClient {
   
   private async validateWithCore(data: Record<string, unknown>, functionName: string): Promise<{ valid: boolean; issues: { message: string }[] }> {
     try {
-      if (functionName.includes('character')) {
+      if (functionName === 'get_character_info') {
+        // 只需校验 characterId
+        if (!data.characterId || typeof data.characterId !== 'string') {
+          return { valid: false, issues: [{ message: 'get_character_info 需要 characterId 字段' }] };
+        }
+        return { valid: true, issues: [] };
+      } else if (functionName.includes('character')) {
         // 验证原始输入数据，而不是转换后的数据
         // 因为转换后的数据中ID会被故意设为空字符串（待自动生成）
         if (!data.name || typeof data.name !== 'string') {
           return { valid: false, issues: [{ message: '角色必须有 name 字段' }] };
         }
-        
         // 验证必需的属性字段
         if (!data.initialAttributes) {
           return { valid: false, issues: [{ message: '角色必须有 initialAttributes 字段' }] };
         }
-        
-        // ...已移除 initialRelationshipWithEmperor 校验...
-        
         return { valid: true, issues: [] };
       } else if (functionName.includes('event')) {
         // 验证原始输入数据
         if (!data.title || typeof data.title !== 'string') {
           return { valid: false, issues: [{ message: '事件必须有 title 字段' }] };
         }
-        
         if (!data.characterId || typeof data.characterId !== 'string') {
           return { valid: false, issues: [{ message: '事件必须有 characterId 字段' }] };
         }
-        
         return { valid: true, issues: [] };
       }
     } catch (error) {
       return { valid: false, issues: [{ message: String(error) }] };
     }
-    
     return { valid: true, issues: [] };
   }
   
@@ -415,7 +417,7 @@ export class GeminiClient {
       },
       create_event: {
         name: 'create_event',
-        description: '创建事件卡牌。当用户选定了具体的事件类型和角色后调用此函数。系统将根据事件标题自动生成规范的ID，数据将通过 crownchronicle-core 包验证器验证',
+        description: '创建事件卡牌。请直接生成标准 options 字段（每个选项包含 description、target、attribute、offset），系统将自动生成ID，数据将通过 crownchronicle-core 包验证器验证。',
         parameters: {
           type: SchemaType.OBJECT,
           properties: {
@@ -425,29 +427,21 @@ export class GeminiClient {
             speaker: { type: SchemaType.STRING, description: '说话角色的称谓' },
             dialogue: { type: SchemaType.STRING, description: '角色对话内容' },
             weight: { type: SchemaType.NUMBER, description: '事件权重 (1-20)' },
-            choices: {
+            options: {
               type: SchemaType.ARRAY,
               items: {
                 type: SchemaType.OBJECT,
                 properties: {
-                  text: { type: SchemaType.STRING, description: '选项文本（系统将自动生成选项ID）' },
-                  effects: {
-                    type: SchemaType.OBJECT,
-                    properties: {
-                      health: { type: SchemaType.NUMBER, description: '健康影响 (-20 到 20)' },
-                      authority: { type: SchemaType.NUMBER, description: '威望影响 (-20 到 20)' },
-                      treasury: { type: SchemaType.NUMBER, description: '国库影响 (-20 到 20)' },
-                      military: { type: SchemaType.NUMBER, description: '军事影响 (-20 到 20)' },
-                      popularity: { type: SchemaType.NUMBER, description: '民心影响 (-20 到 20)' }
-                    }
-                  },
-                  consequences: { type: SchemaType.STRING, description: '选择后果描述' }
+                  description: { type: SchemaType.STRING, description: '选项描述文本' },
+                  target: { type: SchemaType.STRING, enum: ['player', 'self'], format: 'enum', description: '影响对象：player 或 self' },
+                  attribute: { type: SchemaType.STRING, enum: ['power', 'military', 'wealth', 'popularity', 'health', 'age'], format: 'enum', description: '影响属性' },
+                  offset: { type: SchemaType.NUMBER, description: '属性变化值（可正可负）' }
                 },
-                required: ['text', 'effects']
+                required: ['description', 'target', 'attribute', 'offset']
               }
             }
           },
-          required: ['characterId', 'title', 'description', 'speaker', 'dialogue', 'weight', 'choices']
+          required: ['characterId', 'title', 'description', 'speaker', 'dialogue', 'weight', 'options']
         }
       },
       get_character_info: {
@@ -506,6 +500,8 @@ export class GeminiClient {
       - 系统自动生成ID，你只需提供name字段
       - 数据须通过crownchronicle-core验证
       - 属性值范围：0-100，关系值：-100到+100
+      - **事件卡必须直接生成标准 options 字段，每个选项包含 description、target（player/self）、attribute（power/military/wealth/popularity/health/age）、offset（数值）**
+      - 创建事件卡前，必须先获取该角色已有事件列表（如通过 get_character_info），避免重复主题或标题（如“废立少帝”与“废立皇帝”不应重复）。如发现重复，请提示用户或自动跳过。
       
       ## 现有角色避免重复：
       已有角色: ${context.characters.map(c => `${c.name}(${c.id})`).join(', ')}
