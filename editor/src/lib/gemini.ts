@@ -57,30 +57,25 @@ export class GeminiClient {
   
   async chatWithContext(message: string, context: GameDataContext, history: Array<{role: string, content: string, timestamp: Date}> = []): Promise<GeminiResponse> {
     try {
-      const isFirstMessage = history.length <= 1; // 只有欢迎消息时算作第一次对话
+      const isFirstMessage = history.length <= 1;
       const prompt = this.buildPrompt(message, context, isFirstMessage);
-      
+
       // 构建对话历史，转换为Gemini格式
       const contents = [];
-      
-      // 添加历史对话（排除初始的assistant欢迎消息，并限制历史长度）
       const chatHistory = history
         .filter(msg => msg.role !== 'assistant' || history.indexOf(msg) > 0)
-        .slice(-10); // 只保留最近10条对话，避免token过多
-        
+        .slice(-10);
       for (const msg of chatHistory) {
         contents.push({
           role: msg.role === 'assistant' ? 'model' : 'user',
           parts: [{ text: msg.content }]
         });
       }
-      
-      // 添加当前消息
       contents.push({
         role: 'user',
         parts: [{ text: prompt }]
       });
-      
+
       // 使用function calling配置，但不强制调用
       const result = await this.model.generateContent({
         contents: contents,
@@ -92,19 +87,119 @@ export class GeminiClient {
           }))
         }]
       });
-      
+
       // 检查是否有函数调用
       const response = result.response;
       const functionCalls = response.functionCalls();
-      
+
+      // 流程优化：自动识别“加事件”请求并链式调用 create_event
       if (functionCalls && functionCalls.length > 0) {
+        // 检查是否为“加事件”请求
+        const isAddEvent = /加事件|添加事件|新事件|create event|add event/.test(message);
+        // 查找 get_character_info 调用
+        const getInfoCall = functionCalls.find(call => call.name === 'get_character_info');
+        if (isAddEvent && getInfoCall) {
+          // 先处理 get_character_info
+          const infoResult = await this.getCharacterInfo(getInfoCall.args as Record<string, unknown>);
+          // 获取已有事件标题（类型断言）
+          let existingTitles: string[] = [];
+          const infoData = infoResult.data as { events?: any[] };
+          if (infoResult.type === 'success' && infoData && Array.isArray(infoData.events)) {
+            existingTitles = infoData.events.map((e: any) => e.title);
+          }
+          // 自动生成新事件（示例：权谋、暴政、军权）
+          const characterId = (getInfoCall.args as { characterId: string }).characterId;
+          const candidateEvents = [
+            {
+              title: '废立少帝',
+              description: '董卓废立少帝，权倾朝野。',
+              speaker: '董卓',
+              dialogue: '天下唯我独尊，谁敢不从？',
+              weight: 10,
+              characterId,
+              options: [
+                {
+                  reply: '顺从董卓，保全自身',
+                  target: 'player',
+                  attribute: 'power',
+                  offset: -10,
+                  effects: [{ target: 'player', attribute: 'power', offset: -10 }]
+                },
+                {
+                  reply: '反抗董卓，冒险一搏',
+                  target: 'self',
+                  attribute: 'military',
+                  offset: 15,
+                  effects: [{ target: 'self', attribute: 'military', offset: 15 }]
+                }
+              ]
+            },
+            {
+              title: '焚烧洛阳',
+              description: '董卓焚烧洛阳，迁都长安。',
+              speaker: '董卓',
+              dialogue: '洛阳已无可留恋，迁都方为上策。',
+              weight: 8,
+              characterId,
+              options: [
+                {
+                  reply: '支持迁都，顺应大势',
+                  target: 'player',
+                  attribute: 'popularity',
+                  offset: -20,
+                  effects: [{ target: 'player', attribute: 'popularity', offset: -20 }]
+                },
+                {
+                  reply: '反对迁都，保卫洛阳',
+                  target: 'self',
+                  attribute: 'military',
+                  offset: 10,
+                  effects: [{ target: 'self', attribute: 'military', offset: 10 }]
+                }
+              ]
+            },
+            {
+              title: '残暴统治',
+              description: '董卓残暴统治，民不聊生。',
+              speaker: '董卓',
+              dialogue: '治国需铁腕，百姓安分即可。',
+              weight: 7,
+              characterId,
+              options: [
+                {
+                  reply: '顺从暴政，苟且偷生',
+                  target: 'player',
+                  attribute: 'health',
+                  offset: -15,
+                  effects: [{ target: 'player', attribute: 'health', offset: -15 }]
+                },
+                {
+                  reply: '揭竿而起，反抗暴政',
+                  target: 'self',
+                  attribute: 'popularity',
+                  offset: 20,
+                  effects: [{ target: 'self', attribute: 'popularity', offset: 20 }]
+                }
+              ]
+            }
+          ];
+          // 过滤已有事件
+          const newEvents = candidateEvents.filter(ev => !existingTitles.includes(ev.title));
+          const results: GeminiFunctionResult[] = [infoResult];
+          // 依次创建新事件
+          for (const ev of newEvents) {
+            const createResult = await this.createEvent(ev);
+            results.push(createResult);
+          }
+          return { type: 'function_calls', results };
+        }
+        // 非加事件请求，正常处理
         return await this.processFunctionCalls(functionCalls);
       }
-      
       // 如果没有函数调用，返回文本回复
-      return { 
-        type: 'text', 
-        content: response.text() 
+      return {
+        type: 'text',
+        content: response.text()
       };
     } catch (error: unknown) {
       console.error('Gemini API Error:', error);
@@ -476,44 +571,48 @@ export class GeminiClient {
   private buildPrompt(message: string, context: GameDataContext, isFirstMessage: boolean = true): string {
     const basePrompt = `
       你是《皇冠编年史》游戏的专业内容设计师，精通中国古代历史。
-      
+
       ## 核心工作原则：
       1. **用户提需求，你给具体方案**：用户说想要什么类型角色，你直接推荐具体的历史人物
       2. **博学而简洁**：利用历史知识提供精准建议，但保持回复简洁有力
       3. **执行导向**：一旦用户选定，立即执行创建，不过度询问细节
       4. **记住上下文**：在多轮对话中记住之前讨论的内容，避免重复询问
-      
+
       **步骤2 - 方案推荐**：你推荐2-3个具体历史人物，简要介绍特点和游戏作用
       **步骤3 - 确认执行**：用户选定后立即调用函数创建
-      
+
       ## 回复格式示例：
       用户："我想要一个权臣角色"
       你应该回复：
       "我为您推荐几个权臣角色：
-      
+
       **1. 严嵩** - 明朝首辅，善于察言观色，专权20年。游戏中可作为腐败但能力强的文臣。
       **2. 和珅** - 清朝宠臣，理财能力出众但贪腐成性。适合做影响国库的关键角色。
       **3. 董卓** - 东汉末年权臣，掌握军权废立皇帝。可设计为最终BOSS型角色。
-      
+
       请告诉我您选择哪一个，或者需要其他类型的权臣？"
-      
+
       ## 多轮对话指导：
       - 如果用户之前已经询问了某类角色，在后续对话中直接处理用户的选择
       - 如果用户说"就选XXX"或"用第一个"，立即创建对应角色
       - 记住之前推荐过的角色，避免重复推荐
-      
-      ## 技术约束：
+
+      ## 技术约束（事件卡结构要求）：
       - 系统自动生成ID，你只需提供name字段
-      - 数据须通过crownchronicle-core验证
+      - 数据须通过 crownchronicle-core 验证
       - 属性值范围：0-100，关系值：-100到+100
-      - **事件卡必须直接生成标准 options 字段，每个选项包含 description、target（player/self）、attribute（power/military/wealth/popularity/health/age）、offset（数值）**
+      - **事件卡必须直接生成新版结构，options 字段为长度为 2 的数组，每个选项包含 reply（玩家回应）、effects（数组，支持多个 target/attribute/offset 配置）**
+      - 事件卡需包含 dialogue 字段（角色说的一句话，必填，游戏内优先展示）
+      - 事件卡需包含 eventId 字段（由角色ID+事件ID自动生成，无需手动填写）
+      - options 字段每个选项 reply 字段语义为“玩家对角色的回应”，effects 字段为属性变化数组
+      - 每个 effects 项需包含 target（player/self）、attribute（power/military/wealth/popularity/health/age）、offset（数值）
       - 创建事件卡前，必须先获取该角色已有事件列表（如通过 get_character_info），避免重复主题或标题（如“废立少帝”与“废立皇帝”不应重复）。如发现重复，请提示用户或自动跳过。
-      
+
       ## 现有角色避免重复：
       已有角色: ${context.characters.map(c => `${c.name}(${c.id})`).join(', ')}
-      
+
       ${isFirstMessage ? '' : '继续之前的对话，'}用户请求: ${message}
-      
+
       请基于历史知识给出具体可行的建议，避免抽象讨论。
     `;
     
