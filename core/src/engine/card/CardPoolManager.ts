@@ -155,42 +155,26 @@ export class CardPoolManager {
    * 评估条件
    */
   private static evaluateConditions(conditions: EventConditions, gameState: GameState): boolean {
-    const { emperor } = gameState;
-    if (conditions.minHealth && emperor.health < conditions.minHealth) return false;
-    if (conditions.minPower && emperor.power < conditions.minPower) return false;
-    if (conditions.maxPower && emperor.power > conditions.maxPower) return false;
-    if (conditions.minAge && emperor.age < conditions.minAge) return false;
-    if (conditions.maxAge && emperor.age > conditions.maxAge) return false;
-    if (conditions.attributeRequirements) {
-      for (const [attr, value] of Object.entries(conditions.attributeRequirements)) {
-        if (value !== undefined) {
-          if (attr.startsWith('min')) {
-            const emperorAttr = attr.replace('min', '').toLowerCase();
-            const currentValue = emperor[emperorAttr as keyof typeof emperor] as number;
-            if (currentValue < value) return false;
-          } else if (attr.startsWith('max')) {
-            const emperorAttr = attr.replace('max', '').toLowerCase();
-            const currentValue = emperor[emperorAttr as keyof typeof emperor] as number;
-            if (currentValue > value) return false;
-          } else {
-            const currentValue = emperor[attr as keyof typeof emperor] as number;
-            if (currentValue !== value) return false;
-          }
+    // 新结构：遍历 attributeConditions
+    if (conditions.attributeConditions) {
+      for (const cond of conditions.attributeConditions) {
+        let targetObj: import('../../types/card').CharacterAttributes | undefined;
+        if (cond.target === 'player') {
+          targetObj = gameState.emperor;
+        } else if (cond.target === 'self' && gameState.currentEvent) {
+          // 通过当前事件的 selfCharacterId 获取角色
+          const selfCharId = (gameState.currentEvent as any).selfCharacterId;
+          const selfChar = gameState.activeCharacters.find(c => c.id === selfCharId);
+          targetObj = selfChar?.attributes;
         }
+        if (!targetObj) return false;
+        const value = targetObj[cond.attribute];
+        if (typeof value !== 'number') return false;
+        if (cond.min !== undefined && value < cond.min) return false;
+        if (cond.max !== undefined && value > cond.max) return false;
       }
     }
-    if (conditions.requiredEvents) {
-      const pastEvents = gameState.gameHistory.map(h => h.eventId);
-      if (!conditions.requiredEvents.every(reqEvent => pastEvents.indexOf(reqEvent) !== -1)) {
-        return false;
-      }
-    }
-    if (conditions.excludedEvents) {
-      const pastEvents = gameState.gameHistory.map(h => h.eventId);
-      if (conditions.excludedEvents.some(excludedEvent => pastEvents.indexOf(excludedEvent) !== -1)) {
-        return false;
-      }
-    }
+    // requiredEvents/excludedEvents 已移除
     return true;
   }
 }

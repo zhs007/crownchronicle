@@ -83,10 +83,17 @@ export class GameEngine {
 
 
   /**
-   * 检查事件条件
+   * 检查事件条件（新结构）
    */
-  static checkEventConditions(event: EventCard, gameState: GameState): boolean {
-    return GameStateManager.checkEventConditions(event, gameState);
+  static checkEventConditions(event: EventCard, gameState: GameState, selfCharacterId?: string): boolean {
+    // 兼容旧调用方式：event.activationConditions/triggerConditions
+    // 推荐直接传 event.activationConditions 或 event.triggerConditions
+    // selfCharacterId 用于 self target
+    const eventConditions = event.activationConditions || event.triggerConditions || {};
+    return GameStateManager.checkEventConditions(
+      eventConditions,
+      { gameState, selfCharacterId }
+    );
   }
 
   /**

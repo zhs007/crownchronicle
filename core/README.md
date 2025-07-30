@@ -1,3 +1,5 @@
+# Crown Chronicle Core
+
 # 角色生成与合成机制
 
 ## 角色生成（基于标签/tag）
@@ -61,7 +63,43 @@ console.log(newCharacter);
 - 变更/迁移建议记录于 `plan-007-report.md` 等
 
 ---
-# Crown Chronicle Core
+
+## 事件激活条件（EventConditions）新结构
+
+事件卡的激活/移除/触发条件统一采用新版结构：
+
+```typescript
+export interface EventConditions {
+  attributeConditions?: EventConditionItem[];
+}
+
+type EventConditionItem = {
+  target: 'self' | 'player';
+  attribute: keyof CharacterAttributes;
+  min?: number;
+  max?: number;
+};
+```
+
+示例：
+
+```typescript
+const conditions: EventConditions = {
+  attributeConditions: [
+    { target: 'player', attribute: 'power', min: 40, max: 60 },
+    { target: 'self', attribute: 'military', min: 80 },
+    { target: 'player', attribute: 'health', min: 30 },
+    { target: 'self', attribute: 'popularity', max: 100 }
+  ]
+};
+```
+
+内容编辑注意事项：
+- 每个 EventConditionItem 表示一个判定条件，target 可选 'self' 或 'player'。
+- attribute 必须为 CharacterAttributes 的 key（如 power、military、wealth、popularity、health、age）。
+- min/max 可选，若都存在则判定区间，单独存在则判定下限或上限。
+- 可组合多个条件，全部满足才激活事件。
+- 严禁使用旧字段（如 minPower、maxHealth 等），仅允许 attributeConditions。
 
   Crown Chronicle 的核心游戏逻辑库，采用模块化架构，便于维护和扩展。该包包含游戏主流程、卡牌系统、配置校验、类型定义等核心功能，可独立运行或被 prototype/editor 等项目引用。
 
@@ -361,6 +399,32 @@ if (!result.valid) {
 从内存中加载预定义的游戏数据。
 
 ## 数据格式
+### 事件配置格式 (event.yaml)
+```yaml
+id: "event_id"
+title: "事件标题"
+dialogue: "对话内容"
+weight: 10
+options:
+  - optionId: "choice_1"
+    reply: "选项文本"
+    effects:
+      - target: "player"
+        attribute: "power"
+        offset: 5
+      - target: "self"
+        attribute: "military"
+        offset: -10
+activationConditions:
+  attributeConditions:
+    - target: "player"
+      attribute: "power"
+      min: 40
+      max: 60
+    - target: "self"
+      attribute: "military"
+      min: 80
+```
 
 ### 角色配置格式 (character.yaml)
 
@@ -385,45 +449,6 @@ commonCardIds:
   - "chancellor_common"
 ```
 
-### 事件配置格式 (event.yaml)
-## 迁移指引
-
-1. 角色卡 YAML/JSON 数据需批量移除所有已废弃字段，仅保留 id、name、tags、description、attributes、eventIds、commonCardIds。
-2. 代码层所有类型定义、适配器、UI、测试用例均需同步上述字段。
-3. 旧字段如 displayName、role、category、rarity、traits、hiddenTraits、backgroundClues、conditions 等全部移除。
-4. 角色属性请统一放入 attributes 字段。
-5. 事件 ID 统一放入 eventIds 字段。
-
-```yaml
-id: "event_id"
-title: "事件标题"
-description: "事件描述"
-speaker: "说话者"
-dialogue: "对话内容"
-
-weight: 10
-
-choices:
-  - id: "choice_1"
-    text: "选项文本"
-    effects:
-      authority: 5
-      treasury: -10
-    consequences: "选择后果"
-    characterEffects:
-      - characterId: "character_id"
-        attributeChanges:
-          loyalty: 10
-        relationshipChanges:
-          trust: 5
-
-activationConditions:
-  minReignYears: 1
-  minAuthority: 30
-
-triggerConditions:
-  minHealth: 20
-```
 
 ## 开发
 

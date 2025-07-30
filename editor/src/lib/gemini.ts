@@ -90,22 +90,22 @@ export class GeminiClient {
 
       // 检查是否有函数调用
       const response = result.response;
-      const functionCalls = response.functionCalls();
+      const functionCalls: GeminiFunctionCall[] = response.functionCalls() ?? [];
 
       // 流程优化：自动识别“加事件”请求并链式调用 create_event
       if (functionCalls && functionCalls.length > 0) {
         // 检查是否为“加事件”请求
         const isAddEvent = /加事件|添加事件|新事件|create event|add event/.test(message);
         // 查找 get_character_info 调用
-        const getInfoCall = functionCalls.find(call => call.name === 'get_character_info');
+        const getInfoCall = functionCalls.find((call: GeminiFunctionCall) => call.name === 'get_character_info');
         if (isAddEvent && getInfoCall) {
           // 先处理 get_character_info
           const infoResult = await this.getCharacterInfo(getInfoCall.args as Record<string, unknown>);
           // 获取已有事件标题（类型断言）
           let existingTitles: string[] = [];
-          const infoData = infoResult.data as { events?: any[] };
+          const infoData = infoResult.data as { events?: import('crownchronicle-core').EventCard[] };
           if (infoResult.type === 'success' && infoData && Array.isArray(infoData.events)) {
-            existingTitles = infoData.events.map((e: any) => e.title);
+            existingTitles = infoData.events.map((e: import('crownchronicle-core').EventCard) => e.title);
           }
           // 自动生成新事件（示例：权谋、暴政、军权）
           const characterId = (getInfoCall.args as { characterId: string }).characterId;

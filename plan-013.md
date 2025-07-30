@@ -15,6 +15,27 @@ type EventConditionItem = {
 
 
 ### 实现方案
+### EventConditions 新结构示例
+
+```typescript
+// 事件激活条件示例
+const conditions: EventConditions = {
+  attributeConditions: [
+    { target: 'player', attribute: 'power', min: 40, max: 60 },
+    { target: 'self', attribute: 'military', min: 80 },
+    { target: 'player', attribute: 'health', min: 30 },
+    { target: 'self', attribute: 'popularity', max: 100 }
+  ]
+};
+```
+
+#### 内容编辑说明
+
+- 每个 EventConditionItem 表示一个判定条件，target 可选 'self' 或 'player'。
+- attribute 必须为 CharacterAttributes 的 key（如 power、military、wealth、popularity、health、age）。
+- min/max 可选，若都存在则判定区间，单独存在则判定下限或上限。
+- 可组合多个条件，全部满足才激活事件。
+- 内容编辑时请严格遵循上述结构，避免使用旧字段（如 minPower、maxHealth 等）。
 
 1. 定义新的事件激活条件类型 `EventConditionItem`，包含：
    - `target`: `'self' | 'player'`，表示条件作用对象

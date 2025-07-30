@@ -124,26 +124,28 @@ export class GameStateManager {
     /**
      * 检查事件条件
      */
-    static checkEventConditions(event: EventCard, gameState: GameState): boolean {
-        const conditions = event.triggerConditions;
-        if (!conditions) return true;
-        const { emperor } = gameState;
-        if (conditions.minHealth && emperor.health < conditions.minHealth) return false;
-        if (conditions.minPower && emperor.power < conditions.minPower) return false;
-        if (conditions.maxPower && emperor.power > conditions.maxPower) return false;
-        if (conditions.minAge && emperor.age < conditions.minAge) return false;
-        if (conditions.maxAge && emperor.age > conditions.maxAge) return false;
-        if (conditions.requiredEvents) {
-            const pastEvents = gameState.gameHistory.map(h => h.eventId);
-            if (!conditions.requiredEvents.every(reqEvent => pastEvents.includes(reqEvent))) {
-                return false;
+    /**
+     * 检查事件激活/触发条件（新结构）
+     */
+    static checkEventConditions(eventConditions: import('../../types/event').EventConditions, context: {
+        gameState: import('../../types/game').GameState,
+        selfCharacterId?: string
+    }): boolean {
+        if (!eventConditions || !eventConditions.attributeConditions) return true;
+        const { gameState, selfCharacterId } = context;
+        for (const cond of eventConditions.attributeConditions) {
+            let targetObj: import('../../types/card').CharacterAttributes | undefined;
+            if (cond.target === 'player') {
+                targetObj = gameState.emperor;
+            } else if (cond.target === 'self' && selfCharacterId) {
+                const selfChar = gameState.activeCharacters.find(c => c.id === selfCharacterId);
+                targetObj = selfChar?.attributes;
             }
-        }
-        if (conditions.excludedEvents) {
-            const pastEvents = gameState.gameHistory.map(h => h.eventId);
-            if (conditions.excludedEvents.some(excludedEvent => pastEvents.includes(excludedEvent))) {
-                return false;
-            }
+            if (!targetObj) return false;
+            const value = targetObj[cond.attribute];
+            if (typeof value !== 'number') return false;
+            if (cond.min !== undefined && value < cond.min) return false;
+            if (cond.max !== undefined && value > cond.max) return false;
         }
         return true;
     }

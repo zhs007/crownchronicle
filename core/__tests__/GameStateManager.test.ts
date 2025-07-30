@@ -48,7 +48,7 @@ describe('GameStateManager', () => {
     expect(newState.currentEvent).toBeNull();
   });
 
-  it('should check event conditions (minHealth)', () => {
+  it('should check event conditions (attributeConditions)', () => {
     const gameState = GameStateManager.createNewGame();
     const event: EventCard = {
       eventId: 'e1',
@@ -59,10 +59,15 @@ describe('GameStateManager', () => {
         { optionId: 'o1', reply: '', effects: [{ target: 'player', attribute: 'power', offset: 0 }] },
         { optionId: 'o2', reply: '', effects: [{ target: 'player', attribute: 'power', offset: 0 }] }
       ],
-      triggerConditions: { minHealth: 200 },
+      triggerConditions: {
+        attributeConditions: [
+          { target: 'player', attribute: 'health', min: 200 }
+        ]
+      },
       weight: 1
     } as any;
-    expect(GameStateManager.checkEventConditions(event, gameState)).toBe(false);
+    const eventConditions = event.triggerConditions || {};
+    expect(GameStateManager.checkEventConditions(eventConditions, { gameState })).toBe(false);
   });
 
   it('should calculate event weight with dynamicWeight', () => {

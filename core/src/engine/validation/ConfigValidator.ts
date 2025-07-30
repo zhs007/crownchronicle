@@ -329,6 +329,52 @@ export class ConfigValidator {
         }
       });
     }
+    // 校验事件激活/移除/触发条件结构
+    const validAttributes = ['power', 'military', 'wealth', 'popularity', 'health', 'age'];
+    const checkConditions = (conditions: import('../../types/event').EventConditions | undefined, condType: string) => {
+      if (!conditions || !conditions.attributeConditions) return;
+      conditions.attributeConditions.forEach((cond, idx) => {
+        if (cond.target !== 'player' && cond.target !== 'self') {
+          issues.push({
+            type: 'error',
+            code: 'INVALID_CONDITION_TARGET',
+            message: `${condType} 第${idx + 1}个条件 target 非法: ${cond.target}`,
+            context,
+            suggestion: 'target 仅允许 "player" 或 "self"'
+          });
+        }
+        if (!validAttributes.includes(cond.attribute)) {
+          issues.push({
+            type: 'error',
+            code: 'INVALID_CONDITION_ATTRIBUTE',
+            message: `${condType} 第${idx + 1}个条件 attribute 非法: ${cond.attribute}`,
+            context,
+            suggestion: `属性名必须为: ${validAttributes.join(', ')}`
+          });
+        }
+        if (cond.min !== undefined && (typeof cond.min !== 'number' || isNaN(cond.min))) {
+          issues.push({
+            type: 'error',
+            code: 'INVALID_CONDITION_MIN',
+            message: `${condType} 第${idx + 1}个条件 min 非法: ${cond.min}`,
+            context,
+            suggestion: 'min 必须为数字'
+          });
+        }
+        if (cond.max !== undefined && (typeof cond.max !== 'number' || isNaN(cond.max))) {
+          issues.push({
+            type: 'error',
+            code: 'INVALID_CONDITION_MAX',
+            message: `${condType} 第${idx + 1}个条件 max 非法: ${cond.max}`,
+            context,
+            suggestion: 'max 必须为数字'
+          });
+        }
+      });
+    };
+    checkConditions(event.activationConditions, 'activationConditions');
+    checkConditions(event.removalConditions, 'removalConditions');
+    checkConditions(event.triggerConditions, 'triggerConditions');
     return issues;
   }
 

@@ -45,9 +45,21 @@ describe('CardPoolManager', () => {
     return { id, title: id, options, ...extra } as EventCard;
   }
 
-  it('should activate and remove cards from pending pool', () => {
-    const event1 = makeEventCard('e1', { activationConditions: { minPower: 40 } });
-    const event2 = makeEventCard('e2', { removalConditions: { maxPower: 60 } });
+  it('should activate and remove cards from pending pool (attributeConditions)', () => {
+    const event1 = makeEventCard('e1', {
+      activationConditions: {
+        attributeConditions: [
+          { target: 'player', attribute: 'power', min: 40 }
+        ]
+      }
+    });
+    const event2 = makeEventCard('e2', {
+      removalConditions: {
+        attributeConditions: [
+          { target: 'player', attribute: 'power', max: 60 }
+        ]
+      }
+    });
     const state = makeGameState({ cardPools: { pending: [event1, event2], active: [], discarded: [] } });
     const newState = CardPoolManager.updatePendingPool(state);
     expect(newState.cardPools.active.map(e => e.id)).toContain('e1');

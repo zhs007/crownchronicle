@@ -15,15 +15,16 @@ export interface EventOption {
 // ...existing code...
 }
 
+
+export type EventConditionItem = {
+  target: OptionTarget;
+  attribute: keyof CharacterAttributes;
+  min?: number;
+  max?: number;
+};
+
 export interface EventConditions {
-  minHealth?: number;
-  minPower?: number;
-  maxPower?: number;
-  minAge?: number;
-  maxAge?: number;
-  requiredEvents?: string[];
-  excludedEvents?: string[];
-  attributeRequirements?: Partial<CharacterAttributes>;
+  attributeConditions?: EventConditionItem[];
 }
 
 export interface EventCard {
