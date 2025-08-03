@@ -100,20 +100,28 @@ export class GeminiClient {
   async chat(userMessage: string, context: WorkflowContext): Promise<{ responseForUser: string, newContext: WorkflowContext, functionCall?: GeminiFunctionCall }> {
     try {
       const allCharacters = await this.dataManager.getAllCharacters();
-      // 获取每个角色的事件标题列表
-      const characterEventsMap: Record<string, string[]> = {};
-      for (const c of allCharacters) {
-        const events = await this.dataManager.getCharacterEvents(c.id);
-        characterEventsMap[c.id] = Array.isArray(events) ? events.map(e => e.title) : [];
+      let characterEventsMap: Record<string, string[]> | undefined = undefined;
+      // 判断是否为“为某角色添加事件”意图，并且已明确角色
+      const isAddEvent = context.workflow === 'add_event' || context.workflow === 'create_event';
+      const characterId = context.data && (context.data.characterId || context.data.id);
+      if (isAddEvent && characterId) {
+        // 只查当前角色的事件
+        const charIdStr = String(characterId);
+        const events = await this.dataManager.getCharacterEvents(charIdStr);
+        characterEventsMap = {
+          [charIdStr]: Array.isArray(events) ? events.map(e => e.title) : []
+        };
       }
-      const gameDataContext: GameDataContext & { characterEventsMap: Record<string, string[]> } = {
+      const gameDataContext: GameDataContext & { characterEventsMap?: Record<string, string[]> } = {
         characters: allCharacters.map(c => ({ name: c.name, id: c.id })),
         eventCount: 0, // 这个字段可以后续丰富
         factions: [], // 这个字段可以后续丰富
-        characterEventsMap
+        ...(characterEventsMap ? { characterEventsMap } : {})
       };
 
       const prompt = this.buildSuperPrompt(userMessage, context, gameDataContext);
+      // 调试：输出 prompt 内容
+      console.log('[Gemini][Prompt]', prompt);
 
       const result = await this.model.generateContent({
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
@@ -190,26 +198,85 @@ export class GeminiClient {
   async executeFunctionCall(functionCall: GeminiFunctionCall): Promise<GeminiFunctionResult> {
     const { name, args } = functionCall;
     try {
+      console.log('[Gemini] Function call:', name, 'args:', JSON.stringify(args, null, 2));
       // 使用 Core 包验证数据
       const validationResult = await this.validateWithCore();
       if (!validationResult.valid) {
         throw new Error(`数据验证失败: ${validationResult.issues.map(i => i.message).join(', ')}`);
       }
-      
+      let result: GeminiFunctionResult;
       // 执行函数调用
       switch (name) {
+        case 'set_workflow': {
+          // 补全 context，查事件，返回新 context 并驱动推荐
+          const { workflow, characterId } = args as { workflow: string, characterId: string };
+          const events = await this.dataManager.getCharacterEvents(characterId);
+          const characterEventsMap = {
+            [characterId]: Array.isArray(events)
+              ? events.map(e => ({ title: e.title, dialogue: e.dialogue }))
+              : []
+          };
+          const newContext: WorkflowContext = {
+            workflow,
+            stage: null,
+            data: { characterId },
+            lastQuestion: null
+          };
+          const allCharacters = await this.dataManager.getAllCharacters();
+          const gameDataContext: GameDataContext & { characterEventsMap?: Record<string, any[]> } = {
+            characters: allCharacters.map(c => ({ name: c.name, id: c.id })),
+            eventCount: 0,
+            factions: [],
+            characterEventsMap
+          };
+          const prompt = this.buildSuperPrompt(
+            `请为该角色推荐新的历史事件，避免与下方已收录事件重复或类似。`,
+            newContext,
+            gameDataContext
+          );
+          // 直接触发 Gemini 推荐
+          console.log('[Gemini][set_workflow] 新 prompt:', prompt);
+          const result2 = await this.model.generateContent({
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            tools: [{ functionDeclarations: Object.values(this.functionSchema) }],
+          });
+          const response2 = result2.response;
+          const responseText2 = response2.text();
+          const { reply_to_user, updated_context } = this.parseGeminiResponse(responseText2);
+          const functionCalls2 = response2.functionCalls() ?? [];
+          // 日志输出推荐内容
+          console.log('[Gemini][set_workflow] 推荐事件回复:', reply_to_user);
+          // 直接将推荐事件内容作为最终 function call 返回
+          return {
+            type: 'success',
+            action: 'set_workflow',
+            data: {
+              responseForUser: reply_to_user,
+              newContext: updated_context,
+              functionCall: functionCalls2.length > 0 ? functionCalls2[0] : undefined
+            },
+            message: '[set_workflow] Gemini 已根据补全后的上下文推荐事件。'
+          };
+        }
         case 'create_character':
-          return await this.createCharacter(args as Record<string, unknown>);
+          result = await this.createCharacter(args as Record<string, unknown>);
+          break;
         case 'create_event':
-          return await this.createEvent(args as Record<string, unknown>);
+          result = await this.createEvent(args as Record<string, unknown>);
+          break;
         case 'get_character_info':
-          return await this.getCharacterInfo(args as Record<string, unknown>);
+          result = await this.getCharacterInfo(args as Record<string, unknown>);
+          break;
         case 'list_characters':
-            return await this.listCharacters();
+          result = await this.listCharacters();
+          break;
         default:
           throw new Error(`未知的函数调用: ${name}`);
       }
+      console.log('[Gemini] Function result:', name, 'result:', JSON.stringify(result, null, 2));
+      return result;
     } catch (error: unknown) {
+      console.error('[Gemini] Function call error:', name, error);
       return {
         type: 'error',
         function: name,
@@ -340,6 +407,18 @@ export class GeminiClient {
   private buildFunctionSchema(): Record<string, FunctionCallSchema> {
     // 保持原有的 Schema
     return {
+      set_workflow: {
+        name: 'set_workflow',
+        description: '设置当前工作流和相关上下文（如角色ID），用于补全上下文后继续推荐。',
+        parameters: {
+          type: SchemaType.OBJECT,
+          properties: {
+            workflow: { type: SchemaType.STRING, description: '工作流名称，如 add_event' },
+            characterId: { type: SchemaType.STRING, description: '角色ID' }
+          },
+          required: ['workflow', 'characterId']
+        }
+      },
       create_character: {
         name: 'create_character',
         description: '创建角色卡牌。当用户选定了具体的历史人物后调用此函数。系统将根据角色姓名自动生成规范的ID，数据将通过 crownchronicle-core 包验证器验证',
@@ -417,8 +496,10 @@ export class GeminiClient {
   }
   
   private buildSuperPrompt(message: string, context: WorkflowContext, gameData: GameDataContext & { characterEventsMap?: Record<string, string[]> }): string {
-    // 新增：为角色添加事件时，要求推荐未被收录的历史事件
+    // 新增：为角色添加事件时，要求推荐未被收录的历史事件，并进行语义去重
     return `
+      ## 重要规则
+      - 如果 \`context.workflow\` 为空，但你已识别到用户的意图和角色，请主动调用 set_workflow function，并传递 workflow 和 characterId。调用 set_workflow 后，等待系统补全上下文并返回新问题，再继续推荐事件。
       你是一个资深的游戏史料编辑，你的工作是与用户对话，将真实存在的中国历史人物和事件，转化为符合游戏《皇冠编年史》机制的数据卡。
 
       ## 核心原则
@@ -462,17 +543,22 @@ export class GeminiClient {
       *   **已存在角色**: ${gameData.characters.map(c => `${c.name}(${c.id})`).join(', ') || '无'}
 
       *   **各角色已收录事件（用于推荐时排除重复）**:
-      ${Object.entries(gameData.characterEventsMap || {}).map(([cid, titles]) => {
+      ${Object.entries(gameData.characterEventsMap || {}).map(([cid, events]) => {
         const char = gameData.characters.find(c => c.id === cid);
-        return `- ${char ? char.name : cid}: ${titles.length ? titles.join('、') : '无'}`;
+        // 兼容 events 可能是字符串数组或对象数组
+        const eventTitles = Array.isArray(events)
+          ? events.map(e => typeof e === 'string' ? e : (e && typeof (e as any).title === 'string' ? (e as any).title : '[无标题]'))
+          : [];
+        return `- ${char ? char.name : cid}: ${eventTitles.length ? eventTitles.join('、') : '无'}`;
       }).join('\n')}
 
       ---
       ## 事件推荐要求
       当用户请求为某个角色添加事件时：
       1. 你应主动基于该角色真实历史和上方“已收录事件”列表，推荐3-5个合适且未被收录的事件标题，并简要说明推荐理由。
-      2. 推荐时必须排除已存在的事件标题，避免重复。
-      3. 用户可直接选择推荐项，也可自定义。
+      2. 推荐时必须排除所有与已收录事件“历史内容相同或高度相关（即使标题不同）”的事件，避免同义、近义、表述不同但本质相同的事件重复收录。
+      3. 推荐时不仅要排除标题完全相同的事件，也要排除历史事实相同、只是表述不同的事件。
+      4. 用户可直接选择推荐项，也可自定义。
 
       ---
       ## 对话开始
