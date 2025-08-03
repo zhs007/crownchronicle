@@ -207,50 +207,50 @@ export default function FileExplorer({ onFileSelect, onRefresh }: FileExplorerPr
     onRefresh?.();
   };
 
-  return (
-    <div className="h-full flex flex-col bg-white border-r">
-      {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b bg-gray-50">
-        <h3 className="text-sm font-medium text-gray-700">项目文件</h3>
-        <button
-          onClick={handleRefresh}
-          disabled={isLoading}
-          className="p-1 text-gray-500 hover:text-gray-700 disabled:opacity-50"
-          title="刷新"
-        >
-          <svg className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-        </button>
-      </div>
-
-      {/* File Tree */}
-      <div className="flex-1 overflow-y-auto">
-        {isLoading ? (
-          <div className="p-4 text-center text-gray-500">
-            <div className="animate-pulse">加载中...</div>
-          </div>
-        ) : fileTree.length === 0 ? (
-          <div className="p-4 text-center text-gray-500">
-            <div className="text-4xl mb-2">📂</div>
-            <div className="text-sm">暂无文件</div>
-            <div className="text-xs text-gray-400 mt-1">
-              使用 AI 助手创建角色和事件
-            </div>
-          </div>
-        ) : (
-          <div className="py-2">
-            {fileTree.map(node => renderNode(node))}
-          </div>
-        )}
-      </div>
-
-      {/* Stats */}
-      <div className="p-3 border-t bg-gray-50 text-xs text-gray-600">
-        <div>角色: {fileTree.find(f => f.id === 'plane-characters')?.children?.length || 0}</div>
-        <div>事件: {fileTree.find(f => f.id === 'plane-characters')?.children?.reduce((sum, char) => sum + (char.children?.length || 0), 0) || 0}</div>
-        <div>通用卡: {fileTree.find(f => f.id === 'plane-commoncards')?.children?.length || 0}</div>
-      </div>
+return (
+  <div className="h-full min-h-0 flex-1 flex flex-col bg-white border-r">
+    {/* Header */}
+    <div className="flex items-center justify-between p-3 border-b bg-gray-50">
+      <h3 className="text-sm font-medium text-gray-700">项目文件</h3>
+      <button
+        onClick={handleRefresh}
+        disabled={isLoading}
+        className="p-1 text-gray-500 hover:text-gray-700 disabled:opacity-50"
+        title="刷新"
+      >
+        <svg className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+      </button>
     </div>
+
+    {/* File Tree */}
+    <div className="flex-1 min-h-0 overflow-y-auto">
+      {isLoading ? (
+        <div className="p-4 text-center text-gray-500">
+          <div className="animate-pulse">加载中...</div>
+        </div>
+      ) : fileTree.length === 0 ? (
+        <div className="p-4 text-center text-gray-500">
+          <div className="text-4xl mb-2">📂</div>
+          <div className="text-sm">暂无文件</div>
+          <div className="text-xs text-gray-400 mt-1">
+            使用 AI 助手创建角色和事件
+          </div>
+        </div>
+      ) : (
+        <div className="py-2">
+          {fileTree.map(node => renderNode(node))}
+        </div>
+      )}
+    </div>
+
+    {/* Stats */}
+    <div className="p-3 border-t bg-gray-50 text-xs text-gray-600">
+      <div>角色: {fileTree.find(f => f.id === 'plane-characters')?.children?.length || 0}</div>
+      <div>事件: {fileTree.find(f => f.id === 'plane-characters')?.children?.reduce((sum, char) => sum + (char.children?.length || 0), 0) || 0}</div>
+      <div>通用卡: {fileTree.find(f => f.id === 'plane-commoncards')?.children?.length || 0}</div>
+    </div>
+  </div>
   );
 }

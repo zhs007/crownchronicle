@@ -80,15 +80,17 @@ export default function Home() {
         </div>
 
         {/* Center - Chat Interface + 角色卡管理 + 事件预览 */}
-        <div className="flex-1 flex flex-col">
-          <ChatInterface
-            onCharacterCreated={handleCharacterCreated}
-          />
-          <div className="flex flex-row border-t bg-gray-50">
-            <div className="flex-1 p-2">
+        <div className="flex-1 flex flex-col min-h-0">
+          {/* 聊天区自适应高度，溢出可滚动 */}
+          <div className="flex-1 min-h-0 overflow-auto">
+            <ChatInterface onCharacterCreated={handleCharacterCreated} />
+          </div>
+          {/* 底部面板固定高度，避免撑大主区 */}
+          <div className="flex flex-row border-t bg-gray-50 min-h-[180px] max-h-[260px] h-[22vh] overflow-auto">
+            <div className="flex-1 p-2 overflow-auto">
               <CharacterCardPanel />
             </div>
-            <div className="flex-1 p-2 border-l">
+            <div className="flex-1 p-2 border-l overflow-auto">
               <EventPreviewPanel />
             </div>
           </div>
