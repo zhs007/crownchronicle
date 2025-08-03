@@ -1,97 +1,86 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { GeminiClient } from '@/lib/gemini';
-import { EditorDataManager } from '@/lib/dataManager';
-import { sessionManager } from '@/lib/sessionManager';
+import { NextResponse } from 'next/server';
+import { GeminiClient, workflowSessionManager } from '@/lib/gemini';
+import { WorkflowContext } from '@/types/workflow';
+import { GeminiFunctionResult } from '@/types/gemini';
 
-const geminiClient = new GeminiClient(process.env.GEMINI_API_KEY || '');
-const dataManager = new EditorDataManager();
+// 初始化 Gemini 客户端
+const apiKey = process.env.GEMINI_API_KEY;
+if (!apiKey) {
+  throw new Error('Missing GEMINI_API_KEY environment variable');
+}
+const geminiClient = new GeminiClient(apiKey);
+geminiClient.initialize();
 
-export async function POST(request: NextRequest) {
+
+export async function POST(request: Request) {
   try {
-    const { message, history, sessionId, useSession = false } = await request.json();
-    
+    const body = await request.json();
+    const { message, sessionId: incomingSessionId } = body;
+
     if (!message) {
-      return NextResponse.json(
-        { error: 'Message is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Message is required' }, { status: 400 });
     }
 
-    // 根据是否使用会话模式，获取对话历史
-    let conversationHistory: Array<{role: string, content: string, timestamp: Date}> = [];
-    let currentSessionId = sessionId;
+    let sessionId = incomingSessionId;
+    let context: WorkflowContext;
 
-    if (useSession) {
-      // 会话模式：使用后端缓存
-      if (!currentSessionId || !sessionManager.hasSession(currentSessionId)) {
-        // 创建新会话
-        currentSessionId = sessionManager.createSession();
-      }
-      
-      // 获取会话历史
-      conversationHistory = sessionManager.getSessionHistory(currentSessionId)
-        .map(msg => ({
-          role: msg.role,
-          content: msg.content,
-          timestamp: msg.timestamp
-        }));
-      
-      // 添加用户消息到会话
-      sessionManager.addMessage(currentSessionId, {
-        role: 'user',
-        content: message,
-        timestamp: new Date()
-      });
+    // 如果没有会话ID，创建一个新会话
+    if (!sessionId) {
+      const newSession = workflowSessionManager.createSession();
+      sessionId = newSession.sessionId;
+      context = newSession.context;
     } else {
-      // 前端传递模式：使用传递的历史记录
-      conversationHistory = history || [];
+      const existingContext = workflowSessionManager.getSession(sessionId);
+      if (!existingContext) {
+        // 如果会话ID无效，也创建一个新会话
+        const newSession = workflowSessionManager.createSession();
+        sessionId = newSession.sessionId;
+        context = newSession.context;
+      } else {
+        context = existingContext;
+      }
     }
-    
-    // 获取当前游戏数据上下文
-    const characters = await dataManager.getAllCharacters();
-    let eventCount = 0;
-    
-    for (const character of characters) {
-      const events = await dataManager.getCharacterEvents(character.id);
-      eventCount += events.length;
-    }
-    
-    const context = {
-      characters: characters.map(c => ({ name: c.name, id: c.id })),
-      eventCount,
-      factions: ['皇族', '文官集团', '武将集团', '宦官集团', '后宫集团'] // TODO: 从数据中提取
-    };
-    
-    await geminiClient.initialize();
-    const response = await geminiClient.chatWithContext(message, context, conversationHistory);
-    
-    // 如果使用会话模式，保存AI回复
-    if (useSession && currentSessionId) {
-      const responseContent = response.type === 'text' 
-        ? (response.content || '无回复内容')
-        : `执行了 ${response.results?.length || 0} 个操作`;
-        
-      sessionManager.addMessage(currentSessionId, {
-        role: 'assistant',
-        content: responseContent,
-        timestamp: new Date(),
-        type: response.type,
-        results: response.results
+
+    // 调用 GeminiClient 的核心 chat 方法
+    const { responseForUser, newContext, functionCall } = await geminiClient.chat(message, context);
+
+    // 如果 AI 决定调用函数
+    if (functionCall) {
+      // 1. 执行函数
+      const functionResult: GeminiFunctionResult = await geminiClient.executeFunctionCall(functionCall);
+
+      // 2. 将函数执行结果作为新的输入，再次调用 AI，让 AI 决定下一步说什么
+      //    我们构造一个系统消息来告知 AI 函数调用的结果
+      const functionResultMessage = `工具调用结果: ${JSON.stringify(functionResult)}`;
+      
+      // 使用上一个步骤更新的上下文 `newContext`
+      const finalResult = await geminiClient.chat(functionResultMessage, newContext);
+      
+      // 更新 responseForUser 和 newContext
+      const finalResponseForUser = finalResult.responseForUser;
+      const finalNewContext = finalResult.newContext;
+
+      // 更新会话管理器中的上下文
+      workflowSessionManager.updateSession(sessionId, finalNewContext);
+
+      // 返回给前端
+      return NextResponse.json({
+        reply: finalResponseForUser,
+        sessionId: sessionId,
       });
     }
-    
-    // 返回响应，包含会话ID
+
+    // 更新会话管理器中的上下文
+    workflowSessionManager.updateSession(sessionId, newContext);
+
+    // 返回给前端
     return NextResponse.json({
-      ...response,
-      sessionId: useSession ? currentSessionId : undefined,
-      sessionStats: useSession ? sessionManager.getStats() : undefined
+      reply: responseForUser,
+      sessionId: sessionId,
     });
   } catch (error: unknown) {
-    console.error('Gemini API Error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 }
-    );
+    console.error('API Error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

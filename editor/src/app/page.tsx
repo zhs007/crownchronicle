@@ -40,13 +40,7 @@ export default function Home() {
   };
 
   const handleCharacterCreated = (character: unknown) => {
-    console.log('Character created:', character);
-    // 触发文件列表刷新
-    setRefreshTrigger(prev => prev + 1);
-  };
-
-  const handleEventCreated = (event: unknown) => {
-    console.log('Event created:', event);
+    console.log('Character or Event created:', character);
     // 触发文件列表刷新
     setRefreshTrigger(prev => prev + 1);
   };
@@ -89,7 +83,6 @@ export default function Home() {
         <div className="flex-1 flex flex-col">
           <ChatInterface
             onCharacterCreated={handleCharacterCreated}
-            onEventCreated={handleEventCreated}
           />
           <div className="flex flex-row border-t bg-gray-50">
             <div className="flex-1 p-2">

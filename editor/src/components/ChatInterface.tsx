@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { CharacterCard, EventCard } from '@/types/game';
+import { CharacterCard } from '@/types/game';
 
 // Utility function for consistent time formatting
 const formatTime = (date: Date): string => {
@@ -15,15 +15,8 @@ const formatTime = (date: Date): string => {
 // Client-only timestamp component to avoid hydration issues
 const ClientTimestamp: React.FC<{ timestamp: Date }> = ({ timestamp }) => {
   const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return <span>--:--:--</span>;
-  }
-
+  useEffect(() => { setMounted(true); }, []);
+  if (!mounted) return <span>--:--:--</span>;
   return <span>{formatTime(timestamp)}</span>;
 };
 
@@ -31,43 +24,24 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
-  type?: 'text' | 'function_calls' | 'error';
-  results?: unknown[];
-}
-
-interface ApiResult {
-  type: 'success' | 'error';
-  action?: 'create_character' | 'create_event';
-  data?: CharacterCard | EventCard;
-  message?: string;
-  function?: string;
-  error?: string;
-}
-
-interface ApiResponse {
-  type?: 'text' | 'function_calls' | 'error';
-  content?: string;
-  results?: ApiResult[];
-  error?: string;
+  type?: 'text' | 'error';
 }
 
 interface ChatInterfaceProps {
   onCharacterCreated?: (character: CharacterCard) => void;
-  onEventCreated?: (event: EventCard) => void;
 }
 
-export default function ChatInterface({ onCharacterCreated, onEventCreated }: ChatInterfaceProps) {
+export default function ChatInterface({ onCharacterCreated }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: '您好！我是《皇冠编年史》内容设计师，精通中国古代历史。�\n\n告诉我您想要什么类型的角色或事件，我会为您推荐具体的历史人物和方案：\n\n- 🏛️ **权臣**：如严嵩、和珅、董卓等\n- ⚔️ **武将**：如白起、韩信、岳飞等  \n- � **后妃**：如窦太后、吕后、慈禧等\n- 📚 **文臣**：如诸葛亮、范仲淹、张居正等\n\n直接说出您的需求即可！',
+      content: '您好！我是《皇冠编年史》的史料编辑。请告诉我您的工作目标，例如：“我们来创建一个新角色”，或者“为霍光添加一个事件”。',
       timestamp: new Date()
     }
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'unknown' | 'connected' | 'error'>('unknown');
-  const [useSession, setUseSession] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -80,14 +54,16 @@ export default function ChatInterface({ onCharacterCreated, onEventCreated }: Ch
   }, [messages]);
 
   useEffect(() => {
+    // 初始连接检查可以保留，用于UI显示
     checkConnection();
   }, []);
 
   const checkConnection = async () => {
+    // 这个接口可以保留，或者改造成一个简单的 health check
     try {
-      const response = await fetch('/api/test-connection');
-      const result = await response.json();
-      setConnectionStatus(result.geminiApi ? 'connected' : 'error');
+      // 假设有一个 /api/health 接口
+      const response = await fetch('/api/health'); 
+      setConnectionStatus(response.ok ? 'connected' : 'error');
     } catch {
       setConnectionStatus('error');
     }
@@ -112,9 +88,7 @@ export default function ChatInterface({ onCharacterCreated, onEventCreated }: Ch
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           message: inputValue,
-          history: useSession ? undefined : messages, // 会话模式时不传递历史
-          sessionId: useSession ? sessionId : undefined,
-          useSession: useSession
+          sessionId: sessionId, // 始终传递 sessionId
         })
       });
 
@@ -124,33 +98,26 @@ export default function ChatInterface({ onCharacterCreated, onEventCreated }: Ch
         throw new Error(data.error || 'API request failed');
       }
 
-      // 如果使用会话模式，更新会话ID
-      if (useSession && data.sessionId) {
+      // 更新会话ID
+      if (data.sessionId) {
         setSessionId(data.sessionId);
       }
 
       const assistantMessage: Message = {
         role: 'assistant',
-        content: formatGeminiResponse(data),
+        content: data.reply, // 使用新的响应字段
         timestamp: new Date(),
-        type: data.type,
-        results: data.results
+        type: 'text',
       };
 
       setMessages(prev => [...prev, assistantMessage]);
-
-      // 处理函数调用结果
-      if (data.type === 'function_calls' && data.results && data.results.length > 0) {
-        data.results.forEach((result: ApiResult) => {
-          if (result.type === 'success') {
-            if (result.action === 'create_character' && onCharacterCreated && result.data) {
-              onCharacterCreated(result.data as CharacterCard);
-            } else if (result.action === 'create_event' && onEventCreated && result.data) {
-              onEventCreated(result.data as EventCard);
-            }
-          }
-        });
+      
+      // 可以在这里检查 data.reply 中是否包含特定关键词来触发 onCharacterCreated 等回调
+      // 这是一个简化的实现，更稳健的方案是让后端在完成操作后返回一个明确的事件信号
+      if (data.reply && (data.reply.includes('创建成功') || data.reply.includes('已保存'))) {
+        onCharacterCreated?.({} as CharacterCard); // 触发刷新
       }
+
 
     } catch (error: unknown) {
       const errorMessage: Message = {
@@ -165,52 +132,15 @@ export default function ChatInterface({ onCharacterCreated, onEventCreated }: Ch
     }
   };
 
-  const clearSession = async () => {
-    if (useSession && sessionId) {
-      try {
-        await fetch('/api/session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'delete', sessionId })
-        });
-      } catch (error) {
-        console.error('清除会话失败:', error);
-      }
-    }
-    
-    // 重置本地状态
+  const clearSession = () => {
     setSessionId(null);
-    setMessages([{
-      role: 'assistant',
-      content: '您好！我是《皇冠编年史》内容设计师，精通中国古代历史。\n\n告诉我您想要什么类型的角色或事件，我会为您推荐具体的历史人物和方案：\n\n- 🏛️ **权臣**：如严嵩、和珅、董卓等\n- ⚔️ **武将**：如白起、韩信、岳飞等  \n- 👑 **后妃**：如窦太后、吕后、慈禧等\n- 📚 **文臣**：如诸葛亮、范仲淹、张居正等\n\n直接说出您的需求即可！',
-      timestamp: new Date()
-    }]);
-  };
-
-  const formatGeminiResponse = (data: ApiResponse): string => {
-    switch (data.type) {
-      case 'text':
-        return data.content || '';
-      
-      case 'function_calls':
-        if (!data.results || data.results.length === 0) {
-          return '执行了函数调用，但没有返回结果。';
-        }
-        
-        return data.results.map((result: ApiResult) => {
-          if (result.type === 'success') {
-            return `✅ ${result.message || '成功'}`;
-          } else {
-            return `❌ 执行 ${result.function || '函数'} 时出错：${result.error || '未知错误'}`;
-          }
-        }).join('\n\n');
-      
-      case 'error':
-        return `❌ 错误：${data.error || '未知错误'}`;
-      
-      default:
-        return '收到了未知类型的响应。';
-    }
+    setMessages([
+      {
+        role: 'assistant',
+        content: '您好！我是《皇冠编年史》的史料编辑。新的会话已经开始，请告诉我您的工作目标。',
+        timestamp: new Date()
+      }
+    ]);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -226,37 +156,21 @@ export default function ChatInterface({ onCharacterCreated, onEventCreated }: Ch
       <div className="flex items-center justify-between p-4 border-b bg-gray-50">
         <h2 className="text-lg font-semibold text-gray-800">AI 编辑助手</h2>
         <div className="flex items-center space-x-4">
-          {/* 会话模式切换 */}
-          <div className="flex items-center space-x-2">
-            <label className="text-sm text-gray-600">
-              <input
-                type="checkbox"
-                checked={useSession}
-                onChange={(e) => {
-                  setUseSession(e.target.checked);
-                  if (!e.target.checked) {
-                    setSessionId(null);
-                  }
-                }}
-                className="mr-1"
-              />
-              会话缓存
-            </label>
-            {useSession && sessionId && (
-              <>
-                <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                  ID: {sessionId.slice(-8)}
-                </span>
-                <button
-                  onClick={clearSession}
-                  className="text-xs text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 px-2 py-1 rounded"
-                  title="清除会话"
-                >
-                  清除
-                </button>
-              </>
-            )}
-          </div>
+          {/* 会话信息 */}
+          {sessionId && (
+            <>
+              <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded" title={`会话ID: ${sessionId}`}>
+                会话已连接
+              </span>
+              <button
+                onClick={clearSession}
+                className="text-xs text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 px-2 py-1 rounded"
+                title="清除会话并重置"
+              >
+                重置对话
+              </button>
+            </>
+          )}
           
           {/* 连接状态 */}
           <div className="flex items-center space-x-2">
@@ -265,8 +179,8 @@ export default function ChatInterface({ onCharacterCreated, onEventCreated }: Ch
               connectionStatus === 'error' ? 'bg-red-500' : 'bg-yellow-500'
             }`}></div>
             <span className="text-sm text-gray-600">
-              {connectionStatus === 'connected' ? '已连接' : 
-               connectionStatus === 'error' ? '连接失败' : '检查中...'}
+              {connectionStatus === 'connected' ? '服务正常' : 
+               connectionStatus === 'error' ? '服务异常' : '检查中...'}
             </span>
           </div>
         </div>
@@ -288,8 +202,9 @@ export default function ChatInterface({ onCharacterCreated, onEventCreated }: Ch
                   components={{
                     code({ className, children, ...props }) {
                       const match = /language-(\w+)/.exec(className || '');
-                      const inline = !match;
-                      return !inline ? (
+                      return !match ? (
+                        <code className={className} {...props}>{children}</code>
+                      ) : (
                         <SyntaxHighlighter
                           style={tomorrow}
                           language={match[1]}
@@ -297,10 +212,6 @@ export default function ChatInterface({ onCharacterCreated, onEventCreated }: Ch
                         >
                           {String(children).replace(/\n$/, '')}
                         </SyntaxHighlighter>
-                      ) : (
-                        <code className={className} {...props}>
-                          {children}
-                        </code>
                       );
                     }
                   }}
@@ -334,7 +245,7 @@ export default function ChatInterface({ onCharacterCreated, onEventCreated }: Ch
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="告诉我您想要什么类型的角色或事件，例如：我想要一个权臣角色、为霍光加个事件..."
+            placeholder="例如：我们来创建一个新角色，或者为霍光添加一个事件..."
             className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
             rows={2}
             disabled={isLoading}

@@ -146,7 +146,7 @@ export default function DataPreview({ selectedFile }: DataPreviewProps) {
         <div className="space-y-4">
           {Array.isArray(event.options) && event.options.length > 0 ? (
             event.options.map((option, index) => (
-              <div key={option.optionId} className="border rounded-lg p-3">
+              <div key={option.optionId ?? index} className="border rounded-lg p-3">
                 <div className="flex items-start justify-between mb-2">
                   <span className="font-medium text-gray-800">选项 {index + 1}</span>
                   <span className="text-xs text-gray-500">ID: {option.optionId}</span>
