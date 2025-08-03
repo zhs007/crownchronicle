@@ -60,6 +60,8 @@ export class GeminiClient {
   private dataProvider: FileSystemDataProvider;
   private validator: ConfigValidator;
   private dataManager: EditorDataManager;
+  // 新增：多轮对话消息队列
+  private messages: Array<{ role: 'user' | 'model' | 'function', content: string }> = [];
   
   constructor(apiKey: string, dataPath?: string) {
     this.genAI = new GoogleGenerativeAI(apiKey);
@@ -72,7 +74,6 @@ export class GeminiClient {
         topP: 0.95,
         maxOutputTokens: 8192,
       },
-      // 安全设置，允许更自由的对话
       safetySettings: [
         { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
         { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
@@ -80,9 +81,7 @@ export class GeminiClient {
         { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
       ],
     });
-    
     console.log(`✅ Gemini client initialized with model: ${modelName}`);
-    
     const actualDataPath = dataPath || GameConfigManager.getConfigPath('editor');
     this.dataProvider = new FileSystemDataProvider(actualDataPath);
     this.validator = new ConfigValidator(this.dataProvider);
@@ -97,60 +96,84 @@ export class GeminiClient {
   /**
    * 新的核心对话方法，由 AI 驱动工作流
    */
+  /**
+   * 多轮对话核心方法，支持 ready_add_event workflow 和上下文消息队列
+   */
   async chat(userMessage: string, context: WorkflowContext): Promise<{ responseForUser: string, newContext: WorkflowContext, functionCall?: GeminiFunctionCall }> {
     try {
-      const allCharacters = await this.dataManager.getAllCharacters();
-      let characterEventsMap: Record<string, string[]> | undefined = undefined;
-      // 判断是否为“为某角色添加事件”意图，并且已明确角色
-      const isAddEvent = context.workflow === 'add_event' || context.workflow === 'create_event';
-      const characterId = context.data && (context.data.characterId || context.data.id);
-      if (isAddEvent && characterId) {
-        // 只查当前角色的事件
-        const charIdStr = String(characterId);
-        const events = await this.dataManager.getCharacterEvents(charIdStr);
-        characterEventsMap = {
-          [charIdStr]: Array.isArray(events) ? events.map(e => e.title) : []
+      // 1. 构建对话历史
+      if (this.messages.length === 0) {
+        // 第一轮，拼接 super prompt
+        const allCharacters = await this.dataManager.getAllCharacters();
+        const gameDataContext: GameDataContext = {
+          characters: allCharacters.map(c => ({ name: c.name, id: c.id })),
+          eventCount: 0,
+          factions: []
         };
+        const prompt = this.buildSuperPrompt(userMessage, context, gameDataContext);
+        console.log('[Gemini][Prompt]', prompt);
+        this.messages.push({ role: 'user', content: prompt });
+      } else {
+        // 后续轮次只追加用户输入
+        this.messages.push({ role: 'user', content: userMessage });
       }
-      const gameDataContext: GameDataContext & { characterEventsMap?: Record<string, string[]> } = {
-        characters: allCharacters.map(c => ({ name: c.name, id: c.id })),
-        eventCount: 0, // 这个字段可以后续丰富
-        factions: [], // 这个字段可以后续丰富
-        ...(characterEventsMap ? { characterEventsMap } : {})
-      };
 
-      const prompt = this.buildSuperPrompt(userMessage, context, gameDataContext);
-      // 调试：输出 prompt 内容
-      console.log('[Gemini][Prompt]', prompt);
-
-      const result = await this.model.generateContent({
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        tools: [{
-          functionDeclarations: Object.values(this.functionSchema),
-        }],
+      // 2. 发送历史消息给 Gemini
+      let result = await this.model.generateContent({
+        contents: this.messages.map(m => ({ role: m.role, parts: [{ text: m.content }] })),
+        tools: [{ functionDeclarations: Object.values(this.functionSchema) }],
       });
+      let response = result.response;
+      let responseText = response.text();
+      console.log('[Gemini][ResponseText]', responseText);
+      let reply_to_user = responseText;
+      let functionCalls = response.functionCalls() ?? [];
+      // 本地 context 变量，后续 function call 处理时维护
+      let localContext: WorkflowContext = { workflow: null, stage: null, data: {}, lastQuestion: null };
 
-      const response = result.response;
-      const responseText = response.text();
-      
-      // AI 的回复应该是一个 JSON 字符串，包含给用户的回复和更新后的上下文
-      const { reply_to_user, updated_context } = this.parseGeminiResponse(responseText);
-      
-      const functionCalls = response.functionCalls() ?? [];
-      
+      // 3. 追加 Gemini 回复到历史
+      this.messages.push({ role: 'model', content: reply_to_user });
+
+      // 4. function call 链式处理
+      while (functionCalls.length > 0) {
+        const fc = functionCalls[0];
+        // 执行 function call
+        console.log('[Gemini][FunctionCall]', fc.name, fc.args);
+        const fcResult = await this.executeFunctionCall(fc);
+        // 如果是 set_workflow，直接用参数更新本地 context
+        if (fc.name === 'set_workflow') {
+          localContext.workflow = (fc.args as any).workflow;
+          if ((fc.args as any).characterId) {
+            if (!localContext.data) localContext.data = {};
+            localContext.data.characterId = (fc.args as any).characterId;
+          }
+        }
+        // 追加 function call 结果到历史
+        this.messages.push({ role: 'model', content: `[FunctionCallResult] ${fc.name}: ${JSON.stringify(fcResult)}` });
+        console.log('[Gemini][FunctionCallResult]', this.messages[this.messages.length-1]);
+        // 继续发起下一轮 Gemini
+        const genParams = {
+          contents: this.messages.map(m => ({ role: m.role, parts: [{ text: m.content }] })),
+          tools: [{ functionDeclarations: Object.values(this.functionSchema) }],
+        };
+        // console.log('[Gemini][generateContent params]', JSON.stringify(genParams, null, 2));
+        result = await this.model.generateContent(genParams);
+        response = result.response;
+        responseText = response.text();
+        console.log('[Gemini][ResponseText]', responseText);
+        reply_to_user = responseText;
+        functionCalls = response.functionCalls() ?? [];
+        this.messages.push({ role: 'model', content: reply_to_user });
+      }
+
       return {
         responseForUser: reply_to_user,
-        newContext: updated_context,
-        functionCall: functionCalls.length > 0 ? functionCalls[0] : undefined,
+        newContext: localContext,
+        functionCall: undefined,
       };
-
     } catch (error: unknown) {
       console.error('Gemini API Error:', error);
       const errorMessage = error instanceof Error ? error.message : String(error);
-      if (errorMessage.includes('proxy') || errorMessage.includes('network')) {
-        throw new Error('代理连接失败，请检查代理配置');
-      }
-      // 返回一个友好的错误信息给用户，并保持上下文不变
       return {
         responseForUser: `抱歉，处理时遇到错误: ${errorMessage}`,
         newContext: context,
@@ -158,42 +181,6 @@ export class GeminiClient {
     }
   }
 
-  /**
-   * 解析 Gemini 返回的包含特定格式的 JSON 字符串
-   */
-  private parseGeminiResponse(responseText: string): { reply_to_user: string, updated_context: WorkflowContext } {
-    try {
-      // 找到 JSON 开始和结束的位置
-      const jsonStart = responseText.indexOf('```json');
-      const jsonEnd = responseText.lastIndexOf('```');
-
-      if (jsonStart === -1 || jsonEnd === -1 || jsonStart === jsonEnd) {
-        // 如果没有找到我们期望的 JSON 块，就认为整个回复都是给用户的
-        return {
-          reply_to_user: responseText,
-          updated_context: { workflow: null, stage: null, data: {}, lastQuestion: null } // 重置上下文
-        };
-      }
-
-      const reply_to_user = responseText.substring(0, jsonStart).trim();
-      const jsonString = responseText.substring(jsonStart + 7, jsonEnd).trim();
-      
-      const parsedJson = JSON.parse(jsonString);
-
-      return {
-        reply_to_user,
-        updated_context: parsedJson.updated_context,
-      };
-
-    } catch (error) {
-      console.error("Failed to parse Gemini's response:", error);
-      // 如果解析失败，将原始文本返回给用户，并提示错误
-      return {
-        reply_to_user: `我生成了格式不正确的回复，请您重试.\n\n原始回复:\n${responseText}`,
-        updated_context: { workflow: null, stage: null, data: {}, lastQuestion: null } // 重置上下文
-      };
-    }
-  }
   
   async executeFunctionCall(functionCall: GeminiFunctionCall): Promise<GeminiFunctionResult> {
     const { name, args } = functionCall;
@@ -205,57 +192,39 @@ export class GeminiClient {
         throw new Error(`数据验证失败: ${validationResult.issues.map(i => i.message).join(', ')}`);
       }
       let result: GeminiFunctionResult;
-      // 执行函数调用
       switch (name) {
         case 'set_workflow': {
-          // 补全 context，查事件，返回新 context 并驱动推荐
           const { workflow, characterId } = args as { workflow: string, characterId: string };
-          const events = await this.dataManager.getCharacterEvents(characterId);
-          const characterEventsMap = {
-            [characterId]: Array.isArray(events)
-              ? events.map(e => ({ title: e.title, dialogue: e.dialogue }))
-              : []
-          };
-          const newContext: WorkflowContext = {
-            workflow,
-            stage: null,
-            data: { characterId },
-            lastQuestion: null
-          };
-          const allCharacters = await this.dataManager.getAllCharacters();
-          const gameDataContext: GameDataContext & { characterEventsMap?: Record<string, any[]> } = {
-            characters: allCharacters.map(c => ({ name: c.name, id: c.id })),
-            eventCount: 0,
-            factions: [],
-            characterEventsMap
-          };
-          const prompt = this.buildSuperPrompt(
-            `请为该角色推荐新的历史事件，避免与下方已收录事件重复或类似。`,
-            newContext,
-            gameDataContext
-          );
-          // 直接触发 Gemini 推荐
-          console.log('[Gemini][set_workflow] 新 prompt:', prompt);
-          const result2 = await this.model.generateContent({
-            contents: [{ role: 'user', parts: [{ text: prompt }] }],
-            tools: [{ functionDeclarations: Object.values(this.functionSchema) }],
-          });
-          const response2 = result2.response;
-          const responseText2 = response2.text();
-          const { reply_to_user, updated_context } = this.parseGeminiResponse(responseText2);
-          const functionCalls2 = response2.functionCalls() ?? [];
-          // 日志输出推荐内容
-          console.log('[Gemini][set_workflow] 推荐事件回复:', reply_to_user);
-          // 直接将推荐事件内容作为最终 function call 返回
+          console.log('[Gemini][set_workflow] 更新 workflow:', workflow, 'characterId:', characterId);
+
+          var recommendPrompt = 'workflow 修改成功';
+          // 如果 workflow 是 ready_add_event，自动补充推荐 prompt
+          if (workflow === 'ready_add_event' && characterId) {
+            // 获取该角色的所有事件
+            const events = await this.dataManager.getCharacterEvents(characterId);
+            const allCharacters = await this.dataManager.getAllCharacters();
+            const characterObj = allCharacters.find(c => c.id === characterId);
+            const characterName = characterObj ? characterObj.name : characterId;
+            const gameDataContext: GameDataContext & { characterEventsMap?: Record<string, any[]> } = {
+              characters: allCharacters.map(c => ({ name: c.name, id: c.id })),
+              eventCount: 0,
+              factions: [],
+              characterEventsMap: {
+                [characterId]: Array.isArray(events) ? events.map(e => ({ title: e.title, dialogue: e.dialogue })) : []
+              }
+            };
+            recommendPrompt = `请为「${characterName}」推荐新的历史事件，避免与下方已收录事件重复或类似。\n\n${JSON.stringify(gameDataContext, null, 2)}`;
+            console.log('[Gemini][set_workflow][RecommendPrompt]', recommendPrompt);
+            // this.messages.push({ role: 'user', content: recommendPrompt });
+          }
           return {
             type: 'success',
             action: 'set_workflow',
             data: {
-              responseForUser: reply_to_user,
-              newContext: updated_context,
-              functionCall: functionCalls2.length > 0 ? functionCalls2[0] : undefined
+              workflow,
+              characterId
             },
-            message: '[set_workflow] Gemini 已根据补全后的上下文推荐事件。'
+            message: recommendPrompt
           };
         }
         case 'create_character':
@@ -275,7 +244,7 @@ export class GeminiClient {
       }
       console.log('[Gemini] Function result:', name, 'result:', JSON.stringify(result, null, 2));
       return result;
-    } catch (error: unknown) {
+    } catch (error) {
       console.error('[Gemini] Function call error:', name, error);
       return {
         type: 'error',
@@ -496,47 +465,38 @@ export class GeminiClient {
   }
   
   private buildSuperPrompt(message: string, context: WorkflowContext, gameData: GameDataContext & { characterEventsMap?: Record<string, string[]> }): string {
-    // 新增：为角色添加事件时，要求推荐未被收录的历史事件，并进行语义去重
+    console.log('buildSuperPrompt called with message:', message, 'context:', context, 'gameData:', gameData);
+
+    // 新 prompt 规则：上下文变更只能通过 set_workflow function call，不允许直接返回 updated_context JSON
+    // 明确 ready_add_event 是推荐事件的 workflow
     return `
       ## 重要规则
-      - 如果 \`context.workflow\` 为空，但你已识别到用户的意图和角色，请主动调用 set_workflow function，并传递 workflow 和 characterId。调用 set_workflow 后，等待系统补全上下文并返回新问题，再继续推荐事件。
-      你是一个资深的游戏史料编辑，你的工作是与用户对话，将真实存在的中国历史人物和事件，转化为符合游戏《皇冠编年史》机制的数据卡。
+      - 你只能通过 function call（如 set_workflow）来设置或变更当前 workflow 和上下文，绝不能直接返回 updated_context 或任何 JSON。
+      - 如果你识别到用户意图为“为某角色推荐/添加事件”，必须先通过 set_workflow function call 设置 workflow 为 ready_add_event，并传递 characterId。
+      - ready_add_event 是专门用于为角色推荐事件的 workflow，推荐事件前必须进入该 workflow。
+      - 其它所有上下文变更也只能通过 function call 完成。
+      - 你是一个资深的游戏史料编辑，你的工作是与用户对话，将真实存在的中国历史人物和事件，转化为符合游戏《皇冠编年史》机制的数据卡。
 
       ## 核心原则
       1.  **你是对话的主导者**: 主动引导对话，而不是被动回答。
       2.  **基于史实和已有数据**: 你的所有建议都必须基于真实历史和游戏中已存在的数据。绝不虚构内容。
-      3.  **状态驱动**: 你必须严格遵循并更新我提供给你的 \`WorkflowContext\` JSON 对象来管理对话状态。
-      4.  **结构化输出**: 你的所有回复都必须严格分为两部分：给用户看的自然语言对话，以及一个包含更新后上下文的 JSON 代码块。
+      3.  **状态驱动**: 你必须严格遵循并通过 function call（如 set_workflow）来管理和更新对话状态。
+      4.  **结构化输出**: 你的回复只需自然语言对话内容，无需返回任何 JSON。
 
       ## 工作流程
       你将收到用户的最新消息，以及当前的 \`WorkflowContext\`。你需要按以下步骤思考并行动：
 
       1.  **分析上下文 (\`WorkflowContext\`)**:
-          *   如果 \`context.workflow\` 为 \`null\`，这表示一个新任务的开始。你需要从用户消息中识别核心意图（如“创建角色”、“添加事件”），然后初始化上下文，并向用户提出第一个引导性问题。
+          *   如果 \`context.workflow\` 为 \`null\`，这表示一个新任务的开始。你需要从用户消息中识别核心意图（如“创建角色”、“添加事件”），然后通过 set_workflow function call 初始化上下文，并向用户提出第一个引导性问题。
           *   如果 \`context.workflow\` 已存在，说明任务正在进行中。你需要根据 \`context.stage\` 判断当前进展，并结合用户的最新消息来推进流程。
 
       2.  **推进工作流**:
           *   **收集信息**: 通过一连串有逻辑的问题，逐步收集完成任务所需的所有信息，并将它们填充到 \`context.data\` 中。
-          *   **更新状态**: 每完成一步，都要更新 \`context.stage\` 到下一个逻辑阶段，并构思 \`context.lastQuestion\` 的新问题。
-          *   **调用工具**: 当 \`context.data\` 中的所有必要信息都已集齐时，调用相应的工具函数（如 \`create_character\` 或 \`create_event\`）。调用工具后，必须将 \`context\` 重置为初始状态（所有字段为 \`null\`），并告知用户任务已完成。
+          *   **更新状态**: 每完成一步，都要通过 function call（如 set_workflow）更新 \`context.stage\` 到下一个逻辑阶段，并构思 \`context.lastQuestion\` 的新问题。
+          *   **调用工具**: 当 \`context.data\` 中的所有必要信息都已集齐时，调用相应的工具函数（如 \`create_character\` 或 \`create_event\`）。调用工具后，必须通过 set_workflow function call 将 \`context\` 重置为初始状态（所有字段为 \`null\`），并告知用户任务已完成。
 
       3.  **生成回复**:
-          你的回复必须严格遵循以下格式，不得有任何偏差：
-
-          \`\`\`text
-          [这里是给用户看的、自然的、引导性的对话内容]
-          \`\`\`
-
-          \`\`\`json
-          {
-            "updated_context": {
-              "workflow": "[更新后的工作流名称，或 null]",
-              "stage": "[更新后的阶段名称，或 null]",
-              "data": { ... },
-              "lastQuestion": "[你向下个用户提出的问题的内部标识符，或 null]"
-            }
-          }
-          \`\`\`
+          你的回复只需自然、引导性的对话内容，无需返回任何 JSON。
 
       ---
       ## 当前游戏数据
