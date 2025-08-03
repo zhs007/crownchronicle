@@ -100,10 +100,17 @@ export class GeminiClient {
   async chat(userMessage: string, context: WorkflowContext): Promise<{ responseForUser: string, newContext: WorkflowContext, functionCall?: GeminiFunctionCall }> {
     try {
       const allCharacters = await this.dataManager.getAllCharacters();
-      const gameDataContext: GameDataContext = {
+      // 获取每个角色的事件标题列表
+      const characterEventsMap: Record<string, string[]> = {};
+      for (const c of allCharacters) {
+        const events = await this.dataManager.getCharacterEvents(c.id);
+        characterEventsMap[c.id] = Array.isArray(events) ? events.map(e => e.title) : [];
+      }
+      const gameDataContext: GameDataContext & { characterEventsMap: Record<string, string[]> } = {
         characters: allCharacters.map(c => ({ name: c.name, id: c.id })),
         eventCount: 0, // 这个字段可以后续丰富
         factions: [], // 这个字段可以后续丰富
+        characterEventsMap
       };
 
       const prompt = this.buildSuperPrompt(userMessage, context, gameDataContext);
@@ -409,7 +416,8 @@ export class GeminiClient {
     };
   }
   
-  private buildSuperPrompt(message: string, context: WorkflowContext, gameData: GameDataContext): string {
+  private buildSuperPrompt(message: string, context: WorkflowContext, gameData: GameDataContext & { characterEventsMap?: Record<string, string[]> }): string {
+    // 新增：为角色添加事件时，要求推荐未被收录的历史事件
     return `
       你是一个资深的游戏史料编辑，你的工作是与用户对话，将真实存在的中国历史人物和事件，转化为符合游戏《皇冠编年史》机制的数据卡。
 
@@ -452,6 +460,19 @@ export class GeminiClient {
       ---
       ## 当前游戏数据
       *   **已存在角色**: ${gameData.characters.map(c => `${c.name}(${c.id})`).join(', ') || '无'}
+
+      *   **各角色已收录事件（用于推荐时排除重复）**:
+      ${Object.entries(gameData.characterEventsMap || {}).map(([cid, titles]) => {
+        const char = gameData.characters.find(c => c.id === cid);
+        return `- ${char ? char.name : cid}: ${titles.length ? titles.join('、') : '无'}`;
+      }).join('\n')}
+
+      ---
+      ## 事件推荐要求
+      当用户请求为某个角色添加事件时：
+      1. 你应主动基于该角色真实历史和上方“已收录事件”列表，推荐3-5个合适且未被收录的事件标题，并简要说明推荐理由。
+      2. 推荐时必须排除已存在的事件标题，避免重复。
+      3. 用户可直接选择推荐项，也可自定义。
 
       ---
       ## 对话开始
