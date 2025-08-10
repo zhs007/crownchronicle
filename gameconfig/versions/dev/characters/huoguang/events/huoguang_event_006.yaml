@@ -1,0 +1,22 @@
+id: huoguang_event_006
+title: 霍光与上官桀的首次冲突
+options:
+  - optionId: huoguang_event_006_choice_01
+    reply: 霍光所言有理，此事容后再议。
+    effects:
+      - offset: 5
+        target: self
+        attribute: power
+      - target: player
+        attribute: popularity
+        offset: 3
+  - optionId: huoguang_event_006_choice_02
+    reply: 上官桀亦有考量，朕再思量一番。
+    effects:
+      - target: self
+        offset: -3
+        attribute: power
+      - offset: 5
+        attribute: wealth
+        target: player
+weight: 10

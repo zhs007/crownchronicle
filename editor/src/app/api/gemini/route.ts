@@ -21,6 +21,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 });
     }
 
+    console.log('[API][Incoming]', { sessionId: incomingSessionId, messagePreview: String(message).slice(0, 200) });
+
     let sessionId = incomingSessionId;
     let context: WorkflowContext;
 
@@ -41,8 +43,12 @@ export async function POST(request: Request) {
       }
     }
 
+    console.log('[API][ChatStart]', { sessionId, messagePreview: String(message).slice(0, 200) });
+
     // 调用 GeminiClient 的核心 chat 方法
     const { responseForUser, newContext, functionCall } = await geminiClient.chat(message, context);
+
+    console.log('[API][ChatDone]', { sessionId, replyPreview: String(responseForUser).slice(0, 200), hasFunctionCall: !!functionCall });
 
     // 如果 AI 决定调用函数
     if (functionCall) {
@@ -52,6 +58,7 @@ export async function POST(request: Request) {
       // 2. 将函数执行结果作为新的输入，再次调用 AI，让 AI 决定下一步说什么
       //    我们构造一个系统消息来告知 AI 函数调用的结果
       const functionResultMessage = `工具调用结果: ${JSON.stringify(functionResult)}`;
+      console.log('[API][FunctionResult]', { sessionId, function: functionCall.name, resultSummary: { type: functionResult.type, action: functionResult.action } });
       
       // 使用上一个步骤更新的上下文 `newContext`
       const finalResult = await geminiClient.chat(functionResultMessage, newContext);

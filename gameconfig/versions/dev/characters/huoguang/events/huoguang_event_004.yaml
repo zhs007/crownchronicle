@@ -1,0 +1,22 @@
+id: huoguang_event_004
+title: 上官桀谋反案
+options:
+  - optionId: huoguang_event_004_choice_01
+    reply: 爱卿辛苦了，务必将此案查个水落石出，以儆效尤！
+    effects:
+      - offset: 10
+        attribute: power
+        target: self
+      - offset: 5
+        attribute: popularity
+        target: player
+  - optionId: huoguang_event_004_choice_02
+    reply: 此事重大，切不可操之过急，当谨慎行事。
+    effects:
+      - target: self
+        offset: 3
+        attribute: power
+      - offset: -5
+        target: player
+        attribute: health
+weight: 15

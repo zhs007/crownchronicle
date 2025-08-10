@@ -1,0 +1,22 @@
+id: huoguang_event_007
+title: 霍光化解上官桀的攻讦
+options:
+  - optionId: huoguang_event_007_choice_01
+    reply: 朕相信霍光，上官桀休得胡言！
+    effects:
+      - offset: 5
+        target: self
+        attribute: power
+      - attribute: popularity
+        offset: 3
+        target: player
+  - optionId: huoguang_event_007_choice_02
+    reply: 此事朕会彻查，二位爱卿都请退下。
+    effects:
+      - attribute: power
+        target: self
+        offset: -3
+      - target: player
+        offset: 5
+        attribute: health
+weight: 12

@@ -1,0 +1,22 @@
+id: huoguang_event_005
+title: 权倾朝野
+options:
+  - optionId: huoguang_event_005_choice_01
+    reply: 霍光辅政，朕心甚慰。
+    effects:
+      - offset: 5
+        attribute: power
+        target: self
+      - attribute: popularity
+        target: player
+        offset: 3
+  - optionId: huoguang_event_005_choice_02
+    reply: 霍光专权，恐非社稷之福。
+    effects:
+      - attribute: power
+        offset: -5
+        target: self
+      - offset: -3
+        attribute: popularity
+        target: player
+weight: 10

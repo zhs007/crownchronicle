@@ -1,0 +1,22 @@
+id: huoguang_event_009
+title: 霍光识破上官桀的阴谋
+options:
+  - optionId: huoguang_event_009_choice_01
+    reply: 霍光爱卿明察秋毫，朕当助你一臂之力。
+    effects:
+      - target: self
+        offset: 10
+        attribute: power
+      - attribute: popularity
+        offset: 5
+        target: player
+  - optionId: huoguang_event_009_choice_02
+    reply: 此事重大，霍光爱卿可有万全之策？
+    effects:
+      - target: self
+        offset: 5
+        attribute: military
+      - offset: 3
+        target: player
+        attribute: wealth
+weight: 15
