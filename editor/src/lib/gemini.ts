@@ -16,9 +16,21 @@ import {
 } from '@/types/gemini';
 import { WorkflowContext } from '@/types/workflow';
 import { GameDataContext } from '@/types/editor';
+// 新增导入：事件卡本地规则校验（显式扩展名确保 bundler 解析）
+import { validateEventCardRules } from './validators/eventCardRules';
 
 // 设置代理（如果需要）
 setupGlobalProxy();
+
+// 允许的属性与数值档位（用于 prompt 与本地校验传参）
+const LEGAL_ATTRIBUTE_KEYS = ['power', 'military', 'wealth', 'popularity', 'health', 'age'] as const;
+const LEGAL_OFFSETS = [-10, -5, -3, 3, 5, 10] as const;
+
+// 任务队列类型定义（仅 editor 侧使用）
+type TaskType = 'create_event' | 'create_character';
+type Task = { type: TaskType; args: Record<string, unknown> };
+type OnErrorPolicy = 'skip' | 'abort';
+type CreationPolicy = 'single' | 'batch';
 
 /**
  * 一个简单的内存会话管理器，用于追踪每个对话的工作流上下文
@@ -62,14 +74,19 @@ export class GeminiClient {
   private dataManager: EditorDataManager;
   // 新增：多轮对话消息队列
   private messages: Array<{ role: 'user' | 'model' | 'function', content: string }> = [];
-  
+  // 新增：任务队列状态（按实例维护）
+  private taskQueue: Task[] = [];
+  private taskCursor = 0;
+  private taskPolicy: CreationPolicy = 'single';
+  private taskOnError: OnErrorPolicy = 'skip';
+
   constructor(apiKey: string, dataPath?: string) {
     this.genAI = new GoogleGenerativeAI(apiKey);
     const modelName = process.env.GEMINI_MODEL || 'gemini-1.5-pro';
     this.model = this.genAI.getGenerativeModel({
       model: modelName,
       generationConfig: {
-        temperature: 0.7,
+        temperature: 0.25,
         topK: 40,
         topP: 0.95,
         maxOutputTokens: 8192,
@@ -88,6 +105,60 @@ export class GeminiClient {
     this.dataManager = new EditorDataManager(actualDataPath);
   }
   
+  // 任务队列辅助方法
+  private resetTaskQueue() {
+    this.taskQueue = [];
+    this.taskCursor = 0;
+    this.taskPolicy = 'single';
+    this.taskOnError = 'skip';
+  }
+  private hasPendingTasks() { return this.taskCursor < this.taskQueue.length; }
+  private peekNextTask(): Task | null {
+    return this.taskCursor < this.taskQueue.length ? this.taskQueue[this.taskCursor] : null;
+  }
+  private popNextTask(): Task | null {
+    if (!this.hasPendingTasks()) return null;
+    const t = this.taskQueue[this.taskCursor];
+    this.taskCursor += 1;
+    return t;
+  }
+  private scheduleTasksInternal(tasks: Task[], policy?: CreationPolicy, onError?: OnErrorPolicy) {
+    this.taskQueue = Array.isArray(tasks) ? tasks.filter(t => t && (t.type === 'create_event' || t.type === 'create_character')) : [];
+    this.taskCursor = 0;
+    if (policy) this.taskPolicy = policy;
+    if (onError) this.taskOnError = onError;
+    return { total: this.taskQueue.length, nextTask: this.peekNextTask() };
+  }
+  private async runPendingTasksChain(maxCount = 10): Promise<{ results: GeminiFunctionResult[]; processed: number; success: number; errors: number; errorDetails: string[] }> {
+    const results: GeminiFunctionResult[] = [];
+    let processed = 0, success = 0, errors = 0;
+    const errorDetails: string[] = [];
+    while (this.hasPendingTasks() && processed < maxCount) {
+      const task = this.popNextTask();
+      if (!task) break;
+      let r: GeminiFunctionResult;
+      if (task.type === 'create_event') {
+        r = await this.createEvent(task.args);
+        this.messages.push({ role: 'model', content: `[FunctionCallResult] create_event: ${JSON.stringify(r)}` });
+      } else {
+        r = await this.createCharacter(task.args);
+        this.messages.push({ role: 'model', content: `[FunctionCallResult] create_character: ${JSON.stringify(r)}` });
+      }
+      results.push(r);
+      if (r.type === 'success') {
+        success++;
+      } else {
+        errors++;
+        const reason = (r as { error?: string }).error || '';
+        const act = (r as { action?: string }).action || 'unknown';
+        errorDetails.push(`${act}: ${reason}`);
+      }
+      processed++;
+      if (r.type === 'error' && this.taskOnError === 'abort') break;
+    }
+    return { results, processed, success, errors, errorDetails };
+  }
+
   async initialize() {
     this.functionSchema = this.buildFunctionSchema();
     console.log('✅ Gemini 客户端初始化完成，已集成 Core 包验证');
@@ -129,7 +200,7 @@ export class GeminiClient {
       let reply_to_user = responseText;
       let functionCalls = response.functionCalls() ?? [];
       // 本地 context 变量，后续 function call 处理时维护
-      let localContext: WorkflowContext = { workflow: null, stage: null, data: {}, lastQuestion: null };
+      const localContext: WorkflowContext = { workflow: null, stage: null, data: {}, lastQuestion: null };
 
       // 3. 追加 Gemini 回复到历史
       this.messages.push({ role: 'model', content: reply_to_user });
@@ -142,12 +213,35 @@ export class GeminiClient {
         const fcResult = await this.executeFunctionCall(fc);
         // 如果是 set_workflow，直接用参数更新本地 context
         if (fc.name === 'set_workflow') {
-          localContext.workflow = (fc.args as any).workflow;
-          if ((fc.args as any).characterId) {
+          type SetWorkflowArgs = { workflow: string; characterId?: string };
+          const setArgs = fc.args as unknown as SetWorkflowArgs;
+          localContext.workflow = setArgs.workflow;
+          if (setArgs.characterId) {
             if (!localContext.data) localContext.data = {};
-            localContext.data.characterId = (fc.args as any).characterId;
+            localContext.data.characterId = setArgs.characterId;
           }
         }
+
+        // 如果是 schedule_tasks，自动串行执行队列
+        if (fc.name === 'schedule_tasks' && (fcResult as GeminiFunctionResult).type === 'success') {
+          this.messages.push({ role: 'model', content: `[FunctionCallResult] ${fc.name}: ${JSON.stringify(fcResult)}` });
+          const chain = await this.runPendingTasksChain();
+          reply_to_user = `✅ 任务执行完成：成功 ${chain.success}，失败 ${chain.errors}，已处理 ${chain.processed} 项。` + (chain.errors > 0 ? `\n失败原因：\n- ${chain.errorDetails.join('\n- ')}` : '');
+          functionCalls = [];
+          break;
+        }
+
+        // 如果 create_event/character 成功，若有队列则继续自动执行
+        if ((fc.name === 'create_event' || fc.name === 'create_character') && (fcResult as GeminiFunctionResult).type === 'success') {
+          if (this.hasPendingTasks()) {
+            this.messages.push({ role: 'model', content: `[FunctionCallResult] ${fc.name}: ${JSON.stringify(fcResult)}` });
+            const chain = await this.runPendingTasksChain();
+            reply_to_user = `✅ 任务执行完成：成功 ${chain.success}，失败 ${chain.errors}，已处理 ${chain.processed} 项。` + (chain.errors > 0 ? `\n失败原因：\n- ${chain.errorDetails.join('\n- ')}` : '');
+            functionCalls = [];
+            break;
+          }
+        }
+
         // 追加 function call 结果到历史
         this.messages.push({ role: 'model', content: `[FunctionCallResult] ${fc.name}: ${JSON.stringify(fcResult)}` });
         console.log('[Gemini][FunctionCallResult]', this.messages[this.messages.length-1]);
@@ -197,7 +291,7 @@ export class GeminiClient {
           const { workflow, characterId } = args as { workflow: string, characterId: string };
           console.log('[Gemini][set_workflow] 更新 workflow:', workflow, 'characterId:', characterId);
 
-          var recommendPrompt = 'workflow 修改成功';
+          let recommendPrompt = 'workflow 修改成功';
           // 如果 workflow 是 ready_add_event，自动补充推荐 prompt
           if (workflow === 'ready_add_event' && characterId) {
             // 获取该角色的所有事件
@@ -205,7 +299,7 @@ export class GeminiClient {
             const allCharacters = await this.dataManager.getAllCharacters();
             const characterObj = allCharacters.find(c => c.id === characterId);
             const characterName = characterObj ? characterObj.name : characterId;
-            const gameDataContext: GameDataContext & { characterEventsMap?: Record<string, any[]> } = {
+            const gameDataContext: GameDataContext & { characterEventsMap?: Record<string, Array<{ title?: string; dialogue?: string }>> } = {
               characters: allCharacters.map(c => ({ name: c.name, id: c.id })),
               eventCount: 0,
               factions: [],
@@ -226,6 +320,22 @@ export class GeminiClient {
             },
             message: recommendPrompt
           };
+        }
+        case 'schedule_tasks': {
+          const { tasks, policy, onError } = args as { tasks: Task[]; policy?: CreationPolicy; onError?: OnErrorPolicy };
+          const schedule = this.scheduleTasksInternal(Array.isArray(tasks) ? tasks : [], policy, onError);
+          result = {
+            type: 'success',
+            action: 'schedule_tasks',
+            data: { total: schedule.total, nextTask: schedule.nextTask },
+            message: schedule.total > 0 ? `✅ 已加入 ${schedule.total} 个任务，准备执行。` : '⚠️ 未加入任何任务。'
+          };
+          break;
+        }
+        case 'clear_task_queue': {
+          this.resetTaskQueue();
+          result = { type: 'success', action: 'clear_task_queue', data: { cleared: true }, message: '✅ 队列已清空。' };
+          break;
         }
         case 'create_character':
           result = await this.createCharacter(args as Record<string, unknown>);
@@ -276,8 +386,27 @@ export class GeminiClient {
   private async createEvent(args: Record<string, unknown>): Promise<GeminiFunctionResult> {
     try {
       const eventData: EventCard = this.convertToEventCard(args);
-      const characterId = String(args.characterId);
+      const characterId = String((args as { characterId?: string }).characterId);
       const eventTitle = String(args.title);
+
+      // 标题重复校验（基于现有数据）
+      const existing = await this.dataManager.getCharacterEvents(characterId);
+      const normalize = (t: string) => t.trim().replace(/\s+/g, '').toLowerCase();
+      if (existing.some(e => normalize(e.title) === normalize(eventTitle))) {
+        return { type: 'error', action: 'create_event', error: `该角色已存在同标题事件：${eventTitle}（当前已有 ${existing.length} 个事件）` };
+      }
+
+      // 本地规则校验（属性名、数值档位、80%双属性、避免同属性同时改 player/self）
+      const legalAttrs = { player: [...LEGAL_ATTRIBUTE_KEYS], self: [...LEGAL_ATTRIBUTE_KEYS] };
+      const ruleCheck = validateEventCardRules(eventData, legalAttrs, LEGAL_OFFSETS as unknown as number[]);
+      if (!ruleCheck.ok) {
+        return {
+          type: 'error',
+          action: 'create_event',
+          error: `事件卡不符合规则：${ruleCheck.errors.join('; ')}（双属性占比：${Math.round(ruleCheck.stats.twoAttrRatio * 100)}%）`
+        };
+      }
+
       const eventId = await this.dataManager.saveEvent(characterId, eventTitle, eventData);
       return {
         type: 'success',
@@ -374,7 +503,7 @@ export class GeminiClient {
   }
   
   private buildFunctionSchema(): Record<string, FunctionCallSchema> {
-    // 保持原有的 Schema
+    // 更新 Schema：新增任务队列相关函数
     return {
       set_workflow: {
         name: 'set_workflow',
@@ -386,6 +515,75 @@ export class GeminiClient {
             characterId: { type: SchemaType.STRING, description: '角色ID' }
           },
           required: ['workflow', 'characterId']
+        }
+      },
+      schedule_tasks: {
+        name: 'schedule_tasks',
+        description: '将一个或多个创建任务加入队列，由系统自动顺序执行。适合单次或批量创建。',
+        parameters: {
+          type: SchemaType.OBJECT,
+          properties: {
+            tasks: {
+              type: SchemaType.ARRAY,
+              items: {
+                type: SchemaType.OBJECT,
+                properties: {
+                  type: { type: SchemaType.STRING, enum: ['create_event', 'create_character'], format: 'enum', description: '任务类型' },
+                  args: {
+                    type: SchemaType.OBJECT,
+                    description: '任务参数：对于 create_event 包含 characterId、title、dialogue、weight、options；对于 create_character 包含 name、description、initialAttributes',
+                    properties: {
+                      // create_event 可能用到的字段（宽松定义，严格由运行时校验）
+                      characterId: { type: SchemaType.STRING },
+                      title: { type: SchemaType.STRING },
+                      description: { type: SchemaType.STRING },
+                      speaker: { type: SchemaType.STRING },
+                      dialogue: { type: SchemaType.STRING },
+                      weight: { type: SchemaType.NUMBER },
+                      options: {
+                        type: SchemaType.ARRAY,
+                        items: {
+                          type: SchemaType.OBJECT,
+                          properties: {
+                            target: { type: SchemaType.STRING, enum: ['player', 'self'], format: 'enum' },
+                            attribute: { type: SchemaType.STRING, enum: [...LEGAL_ATTRIBUTE_KEYS] as unknown as string[], format: 'enum' },
+                            offset: { type: SchemaType.NUMBER }
+                          },
+                          required: ['target', 'attribute', 'offset']
+                        }
+                      },
+                      // create_character 可能用到的字段
+                      name: { type: SchemaType.STRING },
+                      initialAttributes: {
+                        type: SchemaType.OBJECT,
+                        properties: {
+                          power: { type: SchemaType.NUMBER },
+                          military: { type: SchemaType.NUMBER },
+                          wealth: { type: SchemaType.NUMBER },
+                          popularity: { type: SchemaType.NUMBER },
+                          health: { type: SchemaType.NUMBER },
+                          age: { type: SchemaType.NUMBER }
+                        }
+                      }
+                    }
+                  }
+                },
+                required: ['type', 'args']
+              }
+            },
+            policy: { type: SchemaType.STRING, enum: ['single', 'batch'], format: 'enum', description: '创建策略，single 或 batch' },
+            onError: { type: SchemaType.STRING, enum: ['skip', 'abort'], format: 'enum', description: '出错策略：跳过或中止' }
+          },
+          required: ['tasks']
+        }
+      },
+      clear_task_queue: {
+        name: 'clear_task_queue',
+        description: '清空当前任务队列。',
+        parameters: {
+          type: SchemaType.OBJECT,
+          properties: {},
+          required: []
         }
       },
       create_character: {
@@ -414,100 +612,86 @@ export class GeminiClient {
       },
       create_event: {
         name: 'create_event',
-        description: '创建事件卡牌。请直接生成标准 options 字段（每个选项包含 description、target、attribute、offset），系统将自动生成ID，数据将通过 crownchronicle-core 包验证器验证。',
+        description: '创建事件卡牌。严格遵循：dialogue 为角色话术；options.reply 为皇帝回复；多数（≥80%）选项的 effects 至少影响 2 个不同属性；offset 只能取 -10/-5/-3/3/5/10。',
         parameters: {
           type: SchemaType.OBJECT,
           properties: {
             characterId: { type: SchemaType.STRING, description: '所属角色ID' },
             title: { type: SchemaType.STRING, description: '事件标题（系统将据此自动生成ID）' },
             description: { type: SchemaType.STRING, description: '事件描述' },
-            speaker: { type: SchemaType.STRING, description: '说话角色的称谓' },
-            dialogue: { type: SchemaType.STRING, description: '角色对话内容' },
+            speaker: { type: SchemaType.STRING, description: '说话角色的称谓（与角色一致）' },
+            dialogue: { type: SchemaType.STRING, description: '角色对话内容（角色语气）' },
             weight: { type: SchemaType.NUMBER, description: '事件权重 (1-20)' },
             options: {
               type: SchemaType.ARRAY,
               items: {
                 type: SchemaType.OBJECT,
                 properties: {
-                  description: { type: SchemaType.STRING, description: '选项描述文本' },
-                  target: { type: SchemaType.STRING, enum: ['player', 'self'], format: 'enum', description: '影响对象：player 或 self' },
-                  attribute: { type: SchemaType.STRING, enum: ['power', 'military', 'wealth', 'popularity', 'health', 'age'], format: 'enum', description: '影响属性' },
-                  offset: { type: SchemaType.NUMBER, description: '属性变化值（可正可负）' }
+                  reply: { type: SchemaType.STRING, description: '皇帝（玩家）的回复话术' },
+                  effects: {
+                    type: SchemaType.ARRAY,
+                    items: {
+                      type: SchemaType.OBJECT,
+                      properties: {
+                        target: { type: SchemaType.STRING, enum: ['player', 'self'], format: 'enum', description: '影响对象：player 或 self' },
+                        attribute: { type: SchemaType.STRING, enum: [...LEGAL_ATTRIBUTE_KEYS] as unknown as string[], format: 'enum', description: '影响属性' },
+                        offset: { type: SchemaType.NUMBER, description: '属性变化值（仅允许 -10, -5, -3, 3, 5, 10）' }
+                      },
+                      required: ['target', 'attribute', 'offset']
+                    }
+                  },
+                  // 兼容旧结构：如提供 description/target/attribute/offset，将被自动转为 reply + effects
+                  description: { type: SchemaType.STRING, description: '兼容旧字段：选项描述文本（将作为 reply 使用）' },
+                  target: { type: SchemaType.STRING, enum: ['player', 'self'], format: 'enum', description: '兼容旧字段：影响对象' },
+                  attribute: { type: SchemaType.STRING, enum: [...LEGAL_ATTRIBUTE_KEYS] as unknown as string[], format: 'enum', description: '兼容旧字段：影响属性' },
+                  offset: { type: SchemaType.NUMBER, description: '兼容旧字段：属性变化值（仅允许 -10, -5, -3, 3, 5, 10）' }
                 },
-                required: ['description', 'target', 'attribute', 'offset']
+                required: ['reply', 'effects']
               }
             }
           },
           required: ['characterId', 'title', 'description', 'speaker', 'dialogue', 'weight', 'options']
         }
-      },
-      get_character_info: {
-        name: 'get_character_info',
-        description: '获取指定角色的详细信息，包括属性、关系和所有事件。在需要了解角色背景进行讨论时使用，或在为角色添加事件前调用',
-        parameters: {
-          type: SchemaType.OBJECT,
-          properties: {
-            characterId: { type: SchemaType.STRING, description: '角色ID，如果用户提到角色名字，需要先列出所有角色找到对应ID' }
-          },
-          required: ['characterId']
-        }
-      },
-      list_characters: {
-        name: 'list_characters',
-        description: '列出当前所有可用的角色。当需要了解项目中有哪些角色，或用户提到角色名字但不确定ID时使用。适合在对话中了解现状时调用',
-        parameters: {
-          type: SchemaType.OBJECT,
-          properties: {},
-          required: []
-        }
       }
     };
   }
-  
-  private buildSuperPrompt(message: string, context: WorkflowContext, gameData: GameDataContext & { characterEventsMap?: Record<string, string[]> }): string {
+
+  private buildSuperPrompt(message: string, context: WorkflowContext, gameData: GameDataContext & { characterEventsMap?: Record<string, Array<{ title?: string; dialogue?: string }>> }): string {
     console.log('buildSuperPrompt called with message:', message, 'context:', context, 'gameData:', gameData);
 
-    // 新 prompt 规则：上下文变更只能通过 set_workflow function call，不允许直接返回 updated_context JSON
-    // 明确 ready_add_event 是推荐事件的 workflow
     return `
       ## 重要规则
-      - 你只能通过 function call（如 set_workflow）来设置或变更当前 workflow 和上下文，绝不能直接返回 updated_context 或任何 JSON。
-      - 如果你识别到用户意图为“为某角色推荐/添加事件”，必须先通过 set_workflow function call 设置 workflow 为 ready_add_event，并传递 characterId。
+      - 你只能通过 function call（如 set_workflow、schedule_tasks）来设置或变更状态与批量创建，绝不能直接返回 updated_context 或任何 JSON。
+      - 当用户提出创建卡牌（单张或多张）时，优先使用 schedule_tasks 将任务加入队列；系统会自动按顺序执行，无需你逐个手动调用 create_*。
       - ready_add_event 是专门用于为角色推荐事件的 workflow，推荐事件前必须进入该 workflow。
       - 其它所有上下文变更也只能通过 function call 完成。
       - 你是一个资深的游戏史料编辑，你的工作是与用户对话，将真实存在的中国历史人物和事件，转化为符合游戏《皇冠编年史》机制的数据卡。
 
       ## 核心原则
-      1.  **你是对话的主导者**: 主动引导对话，而不是被动回答。
-      2.  **基于史实和已有数据**: 你的所有建议都必须基于真实历史和游戏中已存在的数据。绝不虚构内容。
-      3.  **状态驱动**: 你必须严格遵循并通过 function call（如 set_workflow）来管理和更新对话状态。
-      4.  **结构化输出**: 你的回复只需自然语言对话内容，无需返回任何 JSON。
+      1.  你是对话的主导者：主动引导对话，而不是被动回答。
+      2.  基于史实和已有数据：你的所有建议都必须基于真实历史和游戏中已存在的数据。绝不虚构内容。
+      3.  状态驱动：你必须严格遵循并通过 function call 来管理和更新对话状态。
+      4.  结构化输出：你的回复只需自然语言对话内容，无需返回任何 JSON。
 
       ## 工作流程
       你将收到用户的最新消息，以及当前的 \`WorkflowContext\`。你需要按以下步骤思考并行动：
 
-      1.  **分析上下文 (\`WorkflowContext\`)**:
-          *   如果 \`context.workflow\` 为 \`null\`，这表示一个新任务的开始。你需要从用户消息中识别核心意图（如“创建角色”、“添加事件”），然后通过 set_workflow function call 初始化上下文，并向用户提出第一个引导性问题。
-          *   如果 \`context.workflow\` 已存在，说明任务正在进行中。你需要根据 \`context.stage\` 判断当前进展，并结合用户的最新消息来推进流程。
-
-      2.  **推进工作流**:
-          *   **收集信息**: 通过一连串有逻辑的问题，逐步收集完成任务所需的所有信息，并将它们填充到 \`context.data\` 中。
-          *   **更新状态**: 每完成一步，都要通过 function call（如 set_workflow）更新 \`context.stage\` 到下一个逻辑阶段，并构思 \`context.lastQuestion\` 的新问题。
-          *   **调用工具**: 当 \`context.data\` 中的所有必要信息都已集齐时，调用相应的工具函数（如 \`create_character\` 或 \`create_event\`）。调用工具后，必须通过 set_workflow function call 将 \`context\` 重置为初始状态（所有字段为 \`null\`），并告知用户任务已完成。
-
-      3.  **生成回复**:
-          你的回复只需自然、引导性的对话内容，无需返回任何 JSON。
+      1. 分析上下文 (\`WorkflowContext\`)：判断是新任务还是进行中任务。
+      2. 任务队列模式：
+         - 单次或批量创建：请先调用 schedule_tasks，提供 1 个或多个任务（create_event/create_character）。
+         - 系统会自动顺序执行队列并返回结果汇总；你无需手动逐条调用 create_*。
+         - 执行完成后，向用户汇报成功/失败数量，并询问是否继续或进行下一步。
+      3. 生成回复：只需自然语言对话内容，无需返回任何 JSON。
 
       ---
       ## 当前游戏数据
-      *   **已存在角色**: ${gameData.characters.map(c => `${c.name}(${c.id})`).join(', ') || '无'}
+      * 已存在角色: ${gameData.characters.map(c => `${c.name}(${c.id})`).join(', ') || '无'}
 
-      *   **各角色已收录事件（用于推荐时排除重复）**:
-      ${Object.entries(gameData.characterEventsMap || {}).map(([cid, events]) => {
+      * 各角色已收录事件（用于推荐时排除重复）:
+      ${(Object.entries(gameData.characterEventsMap || {})).map(([cid, evts]) => {
         const char = gameData.characters.find(c => c.id === cid);
-        // 兼容 events 可能是字符串数组或对象数组
-        const eventTitles = Array.isArray(events)
-          ? events.map(e => typeof e === 'string' ? e : (e && typeof (e as any).title === 'string' ? (e as any).title : '[无标题]'))
+        const eventTitles = Array.isArray(evts)
+          ? (evts as Array<string | { title?: string }>).map(e => typeof e === 'string' ? e : (e && typeof e.title === 'string' ? e.title : '[无标题]'))
           : [];
         return `- ${char ? char.name : cid}: ${eventTitles.length ? eventTitles.join('、') : '无'}`;
       }).join('\n')}
@@ -515,22 +699,22 @@ export class GeminiClient {
       ---
       ## 事件推荐要求
       当用户请求为某个角色添加事件时：
-      1. 你应主动基于该角色真实历史和上方“已收录事件”列表，推荐3-5个合适且未被收录的事件标题，并简要说明推荐理由。
-      2. 推荐时必须排除所有与已收录事件“历史内容相同或高度相关（即使标题不同）”的事件，避免同义、近义、表述不同但本质相同的事件重复收录。
-      3. 推荐时不仅要排除标题完全相同的事件，也要排除历史事实相同、只是表述不同的事件。
-      4. 用户可直接选择推荐项，也可自定义。
+      1. 基于该角色真实历史与“已收录事件”，推荐 3-5 个未收录的事件标题并简述理由，避免同义/近义重复。
+      2. 用户可直接选择推荐项，也可自定义。
+
+      ---
+      ## 事件卡编写规则（调用 create_event 前务必遵守）
+      - 对话视角：dialogue 必须是“角色”的一句话；options.reply 必须是“皇帝（玩家）”的回复话术。
+      - 选项数量：恰好 2 个 options。
+      - 效果结构：多数（≥80%）选项的 effects 至少影响 2 个不同属性。
+      - 冲突避免：同一 option 内，不得同时对同一属性既改 player 又改 self。
+      - 合法属性：${LEGAL_ATTRIBUTE_KEYS.join(', ')}。
+      - 合法数值档位：${LEGAL_OFFSETS.join(', ')}。
 
       ---
       ## 对话开始
 
-      **用户的最新消息**: "${message}"
-
-      **当前的工作流上下文**:
-      \`\`\`json
-      ${JSON.stringify(context, null, 2)}
-      \`\`\`
-
-      现在，请严格按照上述规则，生成你的回复。
+      “${message}”\n\n当前 WorkflowContext: \n\`\`\`json\n${JSON.stringify(context, null, 2)}\n\`\`\`
     `;
   }
 }

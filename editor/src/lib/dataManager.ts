@@ -32,6 +32,10 @@ export async function saveCommonCard(card: Record<string, unknown>) {
 export class EditorDataManager {
   // ...existing code...
 
+  private normalizeTitle(title: string): string {
+    return title.trim().replace(/\s+/g, '').toLowerCase();
+  }
+
   /**
    * 获取所有通用卡（直接用 core 的递归方法）
    */
@@ -100,8 +104,15 @@ export class EditorDataManager {
   
   async saveEvent(characterId: string, eventTitle: string, data: EventCard) {
     try {
-      // 获取角色的现有事件，计算下一个序号
+      // 获取角色的现有事件，先做重复标题检测
       const existingEvents = await this.getCharacterEvents(characterId);
+      const normNew = this.normalizeTitle(eventTitle);
+      const dup = existingEvents.find(e => this.normalizeTitle(e.title) === normNew);
+      if (dup) {
+        throw new Error(`该角色已存在同标题事件：${eventTitle}`);
+      }
+
+      // 计算下一个序号
       const nextNumber = existingEvents.length + 1;
       
       // 根据角色ID和序号自动生成规范的事件ID
