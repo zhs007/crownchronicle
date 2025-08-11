@@ -1,0 +1,28 @@
+id: huoguang_event_020
+title: 霍光病重，宣帝探望
+options:
+  - optionId: huoguang_event_020_choice_01
+    reply: 霍光大人乃国之柱石，朕心甚忧。望大人安心养病，国事有朕在。
+    effects:
+      - offset: 5
+        attribute: health
+        target: player
+      - target: self
+        offset: 5
+        attribute: popularity
+  - optionId: huoguang_event_020_choice_02
+    reply: 霍光大人病重，朕心甚慰。大人可安心休养，朝中之事，朕自有安排。
+    effects:
+      - attribute: power
+        target: player
+        offset: 5
+      - target: player
+        offset: 5
+        attribute: military
+      - offset: -5
+        attribute: popularity
+        target: self
+      - attribute: wealth
+        target: self
+        offset: -5
+weight: 8

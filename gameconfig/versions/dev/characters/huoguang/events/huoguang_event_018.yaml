@@ -1,0 +1,34 @@
+id: huoguang_event_018
+title: 霍光辞官试探
+options:
+  - optionId: huoguang_event_018_choice_01
+    reply: 霍光大人乃国家栋梁，朕岂能无大人辅佐？还望大人继续为国操劳。
+    effects:
+      - target: player
+        attribute: power
+        offset: 5
+      - attribute: popularity
+        offset: 5
+        target: player
+      - offset: 5
+        target: self
+        attribute: wealth
+      - attribute: health
+        target: self
+        offset: 3
+  - optionId: huoguang_event_018_choice_02
+    reply: 霍光大人既然心意已决，朕也不便强留。只是朝中事务繁杂，还需大人多多指点。
+    effects:
+      - offset: 5
+        attribute: power
+        target: player
+      - attribute: military
+        target: player
+        offset: 3
+      - target: self
+        attribute: popularity
+        offset: -5
+      - target: self
+        offset: -3
+        attribute: wealth
+weight: 8

@@ -1,0 +1,34 @@
+id: huoguang_event_010
+title: 拥立汉宣帝
+options:
+  - optionId: huoguang_event_010_choice_01
+    reply: 朕愿顺应天意，登基为帝，定不负霍光大人及天下百姓所望！
+    effects:
+      - target: player
+        attribute: power
+        offset: 10
+      - target: player
+        attribute: popularity
+        offset: 10
+      - attribute: wealth
+        target: self
+        offset: 5
+      - offset: 5
+        target: self
+        attribute: military
+  - optionId: huoguang_event_010_choice_02
+    reply: 此事重大，朕需再三思量，以观其变，方能定夺。
+    effects:
+      - offset: -5
+        target: player
+        attribute: power
+      - attribute: popularity
+        offset: -5
+        target: player
+      - offset: -3
+        attribute: wealth
+        target: self
+      - attribute: military
+        offset: -3
+        target: self
+weight: 10

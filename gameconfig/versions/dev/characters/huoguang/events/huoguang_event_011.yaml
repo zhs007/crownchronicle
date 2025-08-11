@@ -1,0 +1,34 @@
+id: huoguang_event_011
+title: 霍氏子弟骄奢淫逸
+options:
+  - optionId: huoguang_event_011_choice_01
+    reply: 朕愿顺应天意，登基为帝，定不负霍光大人及天下百姓所望！
+    effects:
+      - offset: 5
+        attribute: power
+        target: player
+      - target: player
+        attribute: popularity
+        offset: 5
+      - offset: -3
+        attribute: wealth
+        target: self
+      - target: self
+        offset: 3
+        attribute: health
+  - optionId: huoguang_event_011_choice_02
+    reply: 霍氏子弟如此骄横，已然影响朝纲，霍光大人若不能严加管束，朕恐难再信任霍氏。
+    effects:
+      - attribute: power
+        offset: 3
+        target: player
+      - attribute: military
+        target: player
+        offset: 3
+      - target: self
+        offset: -5
+        attribute: popularity
+      - offset: -5
+        target: self
+        attribute: wealth
+weight: 8

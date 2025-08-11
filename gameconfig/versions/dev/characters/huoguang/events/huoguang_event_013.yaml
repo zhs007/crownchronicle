@@ -1,0 +1,34 @@
+id: huoguang_event_013
+title: 霍山结党营私
+options:
+  - optionId: huoguang_event_013_choice_01
+    reply: 霍山身为皇亲国戚，更应以身作则。若有结党营私之举，朕绝不姑息。
+    effects:
+      - attribute: power
+        target: player
+        offset: 5
+      - offset: 3
+        target: player
+        attribute: military
+      - attribute: popularity
+        offset: -5
+        target: self
+      - attribute: wealth
+        offset: -3
+        target: self
+  - optionId: huoguang_event_013_choice_02
+    reply: 霍光大人忠心耿耿，其侄儿想必也是为朝廷效力。朕相信霍山不会做出逾矩之事。
+    effects:
+      - target: player
+        attribute: popularity
+        offset: 5
+      - target: player
+        attribute: health
+        offset: 3
+      - offset: 5
+        target: self
+        attribute: power
+      - attribute: wealth
+        offset: 3
+        target: self
+weight: 8

@@ -1,0 +1,34 @@
+id: huoguang_event_016
+title: 汉宣帝亲政之议
+options:
+  - optionId: huoguang_event_016_choice_01
+    reply: 霍光大人劳苦功高，朕愿继续倚重大人，共同治理天下。
+    effects:
+      - target: player
+        attribute: power
+        offset: 5
+      - offset: 5
+        attribute: popularity
+        target: player
+      - offset: 3
+        attribute: wealth
+        target: self
+      - target: self
+        offset: 3
+        attribute: health
+  - optionId: huoguang_event_016_choice_02
+    reply: 朕已成年，理应亲政。霍光大人虽有功，但大权独揽并非长久之计。
+    effects:
+      - offset: 5
+        attribute: power
+        target: player
+      - offset: 5
+        target: player
+        attribute: military
+      - offset: -5
+        attribute: wealth
+        target: self
+      - target: self
+        attribute: popularity
+        offset: -5
+weight: 10

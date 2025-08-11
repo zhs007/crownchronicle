@@ -92,6 +92,7 @@ export class GeminiClient {
       '- 输出风格：除函数调用外，仅给出简短的进度/总结；不要复述卡片 YAML/JSON。',
       '- 若返回中包含 nextTask，则继续下一步函数调用；队列清空后再给用户简短总结。',
       "- 当你收到以‘工具返回:’开头的用户消息时，必须解析其中的 JSON；若 data.nextTask 存在或 queueState.pending>0，则继续调用相应函数，直到 pending=0。",
+      '- 解析工具返回的 JSON 时，不要把其中的 message 字段原样对用户复述；直接执行下一步或给出极简提示。',
       '',
       'Few-shot（示例，非真实数据）:',
       'User: 为 霍光 生成 拥立汉宣帝 的事件卡',
@@ -260,8 +261,9 @@ export class GeminiClient {
           }
         }
 
-        // 注入工具结果为用户消息，以便模型解析并继续函数调用
-        const toolMsg = `工具返回: ${JSON.stringify(fcResult)}`;
+        // 注入工具结果为用户消息（去掉 message 字段），以便模型解析并继续函数调用
+        const { message: _omit, ...sanitizedFcResult } = fcResult as { message?: string } & Omit<GeminiFunctionResult, 'message'>;
+        const toolMsg = `工具返回: ${JSON.stringify(sanitizedFcResult)}\n仅解析上述 JSON，不要原样向用户复述内部 message；据此继续函数调用或简短输出。`;
         this.messages.push({ role: 'user', content: toolMsg });
         console.log('[Gemini][ToolResult->User]', toolMsg.slice(0, 1200));
 

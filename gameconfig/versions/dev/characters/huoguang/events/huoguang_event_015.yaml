@@ -1,0 +1,34 @@
+id: huoguang_event_015
+title: 霍氏门客横行乡里
+options:
+  - optionId: huoguang_event_015_choice_01
+    reply: 霍光大人忠心耿耿，朕相信你会严惩不法之徒，以安民心。
+    effects:
+      - target: player
+        attribute: popularity
+        offset: 5
+      - target: player
+        attribute: power
+        offset: 3
+      - offset: -3
+        attribute: wealth
+        target: self
+      - offset: 3
+        target: self
+        attribute: health
+  - optionId: huoguang_event_015_choice_02
+    reply: 霍氏门客如此嚣张，已严重损害朝廷威信。霍光大人若不能立即整顿，朕将亲自过问！
+    effects:
+      - attribute: power
+        offset: 5
+        target: player
+      - target: player
+        offset: 5
+        attribute: military
+      - offset: -5
+        target: self
+        attribute: popularity
+      - attribute: wealth
+        target: self
+        offset: -5
+weight: 8

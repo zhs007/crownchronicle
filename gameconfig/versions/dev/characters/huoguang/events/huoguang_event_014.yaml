@@ -1,0 +1,34 @@
+id: huoguang_event_014
+title: 霍光女婿范明友骄横
+options:
+  - optionId: huoguang_event_014_choice_01
+    reply: 范明友身为国戚，理应以身作则，岂能如此骄横！
+    effects:
+      - target: player
+        offset: 5
+        attribute: power
+      - attribute: popularity
+        target: player
+        offset: 5
+      - attribute: wealth
+        target: self
+        offset: -3
+      - target: self
+        offset: -3
+        attribute: military
+  - optionId: huoguang_event_014_choice_02
+    reply: 范明友虽有不足，但其忠心可鉴，朕相信他会改正。
+    effects:
+      - target: player
+        attribute: power
+        offset: -3
+      - attribute: popularity
+        offset: -3
+        target: player
+      - offset: 5
+        target: self
+        attribute: wealth
+      - target: self
+        attribute: military
+        offset: 5
+weight: 8
